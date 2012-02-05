@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 CMAKE_EDIT_COMMAND = /usr/bin/cmake-gui
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bholdaway/ros_workspace/SubImuController
+CMAKE_SOURCE_DIR = /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bholdaway/ros_workspace/SubImuController/build
+CMAKE_BINARY_DIR = /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build
 
 # Utility rule file for test-future.
 
@@ -57,6 +57,6 @@ CMakeFiles/test-future.dir/clean:
 .PHONY : CMakeFiles/test-future.dir/clean
 
 CMakeFiles/test-future.dir/depend:
-	cd /home/bholdaway/ros_workspace/SubImuController/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bholdaway/ros_workspace/SubImuController /home/bholdaway/ros_workspace/SubImuController /home/bholdaway/ros_workspace/SubImuController/build /home/bholdaway/ros_workspace/SubImuController/build /home/bholdaway/ros_workspace/SubImuController/build/CMakeFiles/test-future.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build/CMakeFiles/test-future.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/test-future.dir/depend
 

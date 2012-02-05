@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/bholdaway/ros_workspace/SubImuController/src/SubImuControllerMain.cpp
+/home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp
 stdio.h
 -
 string.h
@@ -26,9 +26,9 @@ cstring
 string
 -
 ros/ros.h
-/home/bholdaway/ros_workspace/SubImuController/src/ros/ros.h
+/home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/src/ros/ros.h
 std_msgs/Float32MultiArray.h
-/home/bholdaway/ros_workspace/SubImuController/src/std_msgs/Float32MultiArray.h
+/home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/src/std_msgs/Float32MultiArray.h
 
 /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/include/ros/advertise_options.h
 ros/forwards.h
