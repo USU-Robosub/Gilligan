@@ -56,27 +56,27 @@ ROS_CALLBACK(messageCb, std_msgs::UInt8MultiArray, msg)
   byte dir = msg.data[1] >> 7;
   if (msg.data[0] & 0x80 > 0) //front turn
   {
-    sendCommand(TURN_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, msg.data[1]);
+    sendCommand(TURN_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, msg.data[1] & 0x7f);
   }
   if (msg.data[0] & 0x40 > 0) //back turn
   {
-    sendCommand(TURN_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, msg.data[1]); 
+    sendCommand(TURN_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, msg.data[1] & 0x7f); 
   }
   if (msg.data[0] & 0x20 > 0) //front depth
   {
-    sendCommand(DEPTH_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, msg.data[1]); 
+    sendCommand(DEPTH_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, msg.data[1] & 0x7f); 
   }
   if (msg.data[0] & 0x10 > 0) //back depth
   {
-    sendCommand(DEPTH_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, msg.data[1]); 
+    sendCommand(DEPTH_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, msg.data[1] & 0x7f); 
   }
   if (msg.data[0] & 0x8 > 0) //left
   {
-    sendCommand(DRIVE_CONTROLLER_ADDRESS, LEFT_DRIVE_MOTOR + dir, msg.data[1]); 
+    sendCommand(DRIVE_CONTROLLER_ADDRESS, LEFT_DRIVE_MOTOR + dir, msg.data[1] & 0x7f); 
   }
   if (msg.data[0] & 0x4 > 0) //right
   {
-    sendCommand(DRIVE_CONTROLLER_ADDRESS, RIGHT_DRIVE_MOTOR + dir, msg.data[1]); 
+    sendCommand(DRIVE_CONTROLLER_ADDRESS, RIGHT_DRIVE_MOTOR + dir, msg.data[1] & 0x7f); 
   }
 }
 
