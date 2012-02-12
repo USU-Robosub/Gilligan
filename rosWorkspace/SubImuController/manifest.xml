@@ -1,0 +1,17 @@
+<package>
+  <description brief="SubImuController">
+
+     SubImuController
+
+  </description>
+  <author>bholdaway</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubImuController</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
