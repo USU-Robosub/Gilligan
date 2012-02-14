@@ -1,5 +1,7 @@
 #include <QPoint>
 #include<QDesktopWidget>
+#include <QImage>
+#include <QPixmap>
 #include <math.h>
 
 #include "SubConsole.hpp"
@@ -21,10 +23,14 @@ SubConsole::SubConsole(QWidget* pParent)
      m_motorCaseTempSubscriber(),
      m_pressureSubscriber(),
      m_motorStateSubscriber(),
+     m_forwardCameraSubscriber(),
+     m_downwardCameraSubscriber(),
      m_lastXAxisValue(0),
      m_lastYAxisValue(0),
      m_lastThrottleValue(0),
-     m_lastTwistValue(0)
+     m_lastTwistValue(0),
+     m_pForwardCameraData(NULL),
+     m_pDownwardCameraData(NULL)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -47,6 +53,8 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorCaseTempSubscriber = nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
    m_pressureSubscriber = nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_motorStateSubscriber = nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
+   m_forwardCameraSubscriber = nodeHandle.subscribe("Forward_Camera", 10, &SubConsole::forwardCameraCallback, this);
+   m_downwardCameraSubscriber = nodeHandle.subscribe("Downward_Camera", 10, &SubConsole::downwardCameraCallback, this);
 }
 
 /**
@@ -89,19 +97,19 @@ void SubConsole::readJoystickInput(void)
    int currentTwistAxis = m_pJoystick->getAxis(2);
    int currentThrottleAxis = m_pJoystick->getAxis(3);
 
-   if(m_lastXAxisValue != currentXAxis)
+   if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
        //Set the horizontal thrusters to opposite thrust to strafe
        int frontTurnSpeed = 127 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
        int backTurnSpeed = 127 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
 
-       if(currentXAxis >= 0)
-       {
-          backTurnSpeed = frontTurnSpeed + 128;
-       }
-       else
+       if(currentXAxis >= 0)  //Strafe right
        {
           frontTurnSpeed = backTurnSpeed + 128;
+       }
+       else //Strafe left
+       {
+          backTurnSpeed = frontTurnSpeed + 128;
        }
 
        sendMotorSpeedMsg(MOTOR_FRONT_TURN, frontTurnSpeed);
@@ -110,7 +118,7 @@ void SubConsole::readJoystickInput(void)
        m_lastXAxisValue = currentXAxis;
    }
 
-   if(m_lastYAxisValue != currentYAxis)
+   if(m_lastYAxisValue != currentYAxis)   //Move forward/backwards
    {
       //Set the forward/reverse thrusters to same value to move forwards or backwards
       int thrusterSpeed = 127 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
@@ -126,12 +134,12 @@ void SubConsole::readJoystickInput(void)
       m_lastYAxisValue = currentYAxis;
    }
 
-   if(m_lastTwistValue != currentTwistAxis)
+   if(m_lastTwistValue != currentTwistAxis)  //Turn
    {
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
       int thrusterSpeed = 127 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis < 0)
+      if(currentTwistAxis >= 0)  //Turn right (to turn left leave both set from 0-127)
       {
          thrusterSpeed += 128;
       }
@@ -141,7 +149,7 @@ void SubConsole::readJoystickInput(void)
       m_lastTwistValue = currentTwistAxis;
    }
 
-   if(m_lastThrottleValue != currentThrottleAxis)
+   if(m_lastThrottleValue != currentThrottleAxis)  //Submerge/surface
    {
       //Set the vertical thrusters to the same value to control depth
       int thrusterSpeed = 127 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
@@ -257,4 +265,56 @@ void SubConsole::missionStateCallback(const std_msgs::Bool::ConstPtr& msg)
    {
       m_pUi->missionStateLineEdit->setText("Disabled");
    }
+}
+
+/**
+ * @brief ROS callback for Forward_Camera subscription
+ *
+ * @param msg The received message
+ **/
+void SubConsole::forwardCameraCallback(const Ui::Image::ConstPtr& msg)
+{
+   int imgHeight = msg->height;
+   int imgWidth = msg->width;
+   //std::string encoding = msg->encoding;   //@todo check these fields, assuming images are not big endian and encoded as RGB16
+   //unsigned char isBigEndian = msg->is_bigendian;
+   unsigned int step = msg->step;
+   QImage image;
+   QPixmap pixmap;
+
+   if(m_pForwardCameraData != NULL)
+   {
+       delete [] m_pForwardCameraData;
+   }
+
+   m_pForwardCameraData = new unsigned char[msg->data.size()];
+   std::copy(msg->data.begin(), msg->data.end(), m_pForwardCameraData);
+
+   image = QImage(m_pForwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB16);
+   m_pUi->forwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
+}
+
+/**
+ * @brief ROS callback for Forward_Camera subscription
+ *
+ * @param msg The received message
+ **/
+void SubConsole::downwardCameraCallback(const Ui::Image::ConstPtr& msg)
+{
+    int imgHeight = msg->height;
+    int imgWidth = msg->width;
+    unsigned int step = msg->step;
+    QImage image;
+    QPixmap pixmap;
+
+    if(m_pDownwardCameraData != NULL)
+    {
+        delete [] m_pDownwardCameraData;
+    }
+
+    m_pDownwardCameraData = new unsigned char[msg->data.size()];
+    std::copy(msg->data.begin(), msg->data.end(), m_pDownwardCameraData);
+
+    image = QImage(m_pDownwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB16);
+    m_pUi->downwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
 }
