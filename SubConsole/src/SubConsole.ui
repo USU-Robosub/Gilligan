@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>951</width>
-    <height>585</height>
+    <width>938</width>
+    <height>566</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,10 +29,10 @@
     <property name="title">
      <string>Joystick</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>10</x>
        <y>30</y>
        <width>171</width>
        <height>94</height>
@@ -136,10 +136,10 @@
     <property name="title">
      <string>IMU Data</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>10</x>
        <y>30</y>
        <width>141</width>
        <height>97</height>
@@ -215,30 +215,30 @@
     <property name="geometry">
      <rect>
       <x>690</x>
-      <y>170</y>
+      <y>160</y>
       <width>241</width>
-      <height>121</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
-     <string>Temperature Readings</string>
+     <string>Sensor Readings</string>
     </property>
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>10</x>
        <y>30</y>
-       <width>171</width>
-       <height>71</height>
+       <width>221</width>
+       <height>97</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Motor Controller</string>
+           <string>Motor Controller Temp</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -248,7 +248,17 @@
         <item>
          <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>Motor Case</string>
+           <string>Motor Case Temp</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Pressure</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -258,7 +268,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QLineEdit" name="motorControllerTempLineEdit">
           <property name="enabled">
@@ -276,6 +286,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLineEdit" name="pressureLineEdit">
+          <property name="text">
+           <string>0.0</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
@@ -286,58 +303,66 @@
      <rect>
       <x>690</x>
       <y>310</y>
-      <width>241</width>
-      <height>91</height>
+      <width>211</width>
+      <height>101</height>
      </rect>
     </property>
     <property name="title">
-     <string>Mission Toggle</string>
+     <string>Motor State</string>
     </property>
     <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>10</x>
        <y>30</y>
-       <width>161</width>
-       <height>45</height>
+       <width>191</width>
+       <height>64</height>
       </rect>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
-       <widget class="QSlider" name="missionToggleSlider">
-        <property name="maximum">
-         <number>1</number>
-        </property>
-        <property name="pageStep">
-         <number>1</number>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-        <property name="tracking">
-         <bool>true</bool>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
          <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Enabled</string>
+           <string>Motor State</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_8">
           <property name="text">
-           <string>Disabled</string>
+           <string>Mission State</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QLineEdit" name="motorStateLineEdit">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Unknown</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="missionStateLineEdit">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Unknown</string>
           </property>
          </widget>
         </item>
