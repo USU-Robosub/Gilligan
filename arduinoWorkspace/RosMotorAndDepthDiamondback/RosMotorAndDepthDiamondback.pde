@@ -28,17 +28,26 @@
 
 //analog pins
 #define depthPin             0
+#define controllerTempPin    1
+#define caseTempPin          2
 
 SoftwareSerial mySerial = SoftwareSerial(rxPin, txPin);
 ros::NodeHandle  nh;
 std_msgs::Float32 depthMsg;
 std_msgs::UInt8 motorKillMsg;
+std_msgs::Float32 caseTempMsg;
+std_msgs::Float32 controllerTempMsg;
+
 ros::Publisher chatterDepth("Sub_Depth", &depthMsg);
 ros::Publisher chatterMotorKilled("Motor_State", &motorKillMsg);
+ros::Publisher chatterCaseTemp("Motor_Case_Temp", &caseTempMsg);
+ros::Publisher chatterControllerTemp("Motor_Controller_Temp", &controllerTempMsg);
 
 int publishTimer = 100;
 float depth = 0;
 int motorKilled = 0;
+float controllerTemp = 0.0;
+float caseTemp = 0.0;
 
 
 void sendCommand(byte address, byte command, byte data)
@@ -51,8 +60,8 @@ void sendCommand(byte address, byte command, byte data)
 }
 
 
-//void messageCb( const std_msgs::UInt8MultiArray& msg)
-ROS_CALLBACK(messageCb, std_msgs::UInt8MultiArray, msg)
+void messageCb( const std_msgs::UInt8MultiArray& msg) {
+//ROS_CALLBACK(messageCb, std_msgs::UInt8MultiArray, msg)
   byte dir = msg.data[1] >> 7;
   if (msg.data[0] & 0x80 > 0) //front turn
   {
@@ -80,8 +89,8 @@ ROS_CALLBACK(messageCb, std_msgs::UInt8MultiArray, msg)
   }
 }
 
-//ros::Subscriber<std_msgs::UInt8MultiArray> sub("sub_motor_driver", messageCb );
-ros::Subscriber sub("Motor_Driver", &msg, messageCb);
+ros::Subscriber<std_msgs::UInt8MultiArray> sub("sub_motor_driver", messageCb );
+//ros::Subscriber sub("Motor_Driver", &msg, messageCb);
 void checkMotorKilled()
 {
   uint8_t val = 0;
@@ -127,6 +136,47 @@ void checkDepthPsi()
   depth = t;
 }
 
+void checkCaseTemperature()
+{
+  float temp = getTemperature(caseTempPin);
+  
+  if (temp != caseTemp)
+  {
+    caseTempMsg.data = temp;
+    chatterCaseTemp.publish(&caseTempMsg);
+    caseTemp = temp;
+  }
+}
+
+void checkControllerTemperature()
+{
+  float temp = getTemperature(controllerTempPin);
+  
+  if (temp != controllerTemp)
+  {
+    controllerTempMsg.data = temp;
+    controllerTemp = temp;
+    chatterControllerTemp.publish(&controllerTempMsg);
+  }
+}
+
+float getTemperature(int pin)
+{
+  float temp = 0.0;
+  
+  for (int i = 0; i < 100; i++)
+  {
+    temp += analogRead(caseTempPin);
+  }
+  temp /= 100;
+  
+  temp *= 4.9; //convert to mV
+  temp /= 10; //convert to C
+  
+  return temp;
+}
+
+
 void setup()
 {
   //pinMode(rxPin, INPUT);
@@ -136,6 +186,8 @@ void setup()
   nh.initNode();
   nh.advertise(chatterDepth);
   nh.advertise(chatterMotorKilled);
+  nh.advertise(chatterCaseTemp);
+  nh.advertise(chatterControllerTemp);
   nh.subscribe(sub);
 }
 
@@ -143,6 +195,8 @@ void loop()
 {
   checkDepthPsi();
   checkMotorKilled();
+  checkCaseTemperature();
+  checkControllerTemperature();
   
   nh.spinOnce();
   delay(10);
