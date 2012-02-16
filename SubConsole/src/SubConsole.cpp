@@ -16,7 +16,9 @@ SubConsole::SubConsole(QWidget* pParent)
    : QMainWindow(pParent),
      m_pUi(new Ui::SubConsole),
      m_pJoystickTimer(new QTimer(this)),
+     m_pCallbackTimer(new QTimer(this)),
      m_pJoystick(new Joystick()),
+     m_nodeHandle(),
      m_motorPublisher(),
      m_imuSubscriber(),
      m_motorControllerTempSubscriber(),
@@ -34,9 +36,13 @@ SubConsole::SubConsole(QWidget* pParent)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
+   m_pCallbackTimer->setInterval(CALLBACK_HANDLE_INTERVAL_MSEC);
 
    connect(m_pJoystickTimer, SIGNAL(timeout()), this, SLOT(readJoystickInput()));
+   connect(m_pCallbackTimer, SIGNAL(timeout()), this, SLOT(handleRosCallbacks()));
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
+
+   m_pCallbackTimer->start();
 
    //Attempt to connect to default joystick location
    joyConnect();
@@ -44,17 +50,17 @@ SubConsole::SubConsole(QWidget* pParent)
    //Center window on screen
    move(qApp->desktop()->availableGeometry(this).center()-rect().center());
 
-   ros::NodeHandle nodeHandle;
+   m_motorPublisher = m_nodeHandle.advertise<Ui::motorMsg>("Motor_Driver", 100);
 
-   m_motorPublisher = nodeHandle.advertise<Ui::motorMsg>("Motor_Driver", 100);
+   m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
+   m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
+   m_motorCaseTempSubscriber = m_nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
+   m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
+   m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
+   m_forwardCameraSubscriber = m_nodeHandle.subscribe("Forward_Camera", 10, &SubConsole::forwardCameraCallback, this);
+   m_downwardCameraSubscriber = m_nodeHandle.subscribe("Downward_Camera", 10, &SubConsole::downwardCameraCallback, this);
 
-   m_imuSubscriber = nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
-   m_motorControllerTempSubscriber = nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
-   m_motorCaseTempSubscriber = nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
-   m_pressureSubscriber = nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
-   m_motorStateSubscriber = nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
-   m_forwardCameraSubscriber = nodeHandle.subscribe("Forward_Camera", 10, &SubConsole::forwardCameraCallback, this);
-   m_downwardCameraSubscriber = nodeHandle.subscribe("Downward_Camera", 10, &SubConsole::downwardCameraCallback, this);
+   printf("Finished ROS topic publish and subscription initialization\n");
 }
 
 /**
@@ -65,7 +71,9 @@ SubConsole::~SubConsole()
    delete m_pUi;
 
    m_pJoystickTimer->stop();
+   m_pCallbackTimer->stop();
    delete m_pJoystickTimer;
+   delete m_pCallbackTimer;
    delete m_pJoystick;
 }
 
@@ -163,6 +171,14 @@ void SubConsole::readJoystickInput(void)
 
       m_lastThrottleValue = currentThrottleAxis;
    }
+}
+
+/**
+ * @brief Periodically allows ROS time to handle received callbacks
+ **/
+void SubConsole::handleRosCallbacks(void)
+{
+    ros::spinOnce();
 }
 
 /**
@@ -276,11 +292,14 @@ void SubConsole::forwardCameraCallback(const Ui::Image::ConstPtr& msg)
 {
    int imgHeight = msg->height;
    int imgWidth = msg->width;
-   //std::string encoding = msg->encoding;   //@todo check these fields, assuming images are not big endian and encoded as RGB16
-   //unsigned char isBigEndian = msg->is_bigendian;
+   std::string encoding = msg->encoding;   //@todo check these fields, assuming images are not big endian and encoded as RGB16
+   unsigned char isBigEndian = msg->is_bigendian;
    unsigned int step = msg->step;
    QImage image;
    QPixmap pixmap;
+
+   printf("Received image, height: %i, width: %i, encoding: %s, isBE: %i, step: %i\n", imgHeight, imgWidth, encoding.c_str(), isBigEndian, step);
+   fflush(NULL);
 
    if(m_pForwardCameraData != NULL)
    {

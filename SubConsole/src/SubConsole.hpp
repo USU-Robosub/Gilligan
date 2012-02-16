@@ -25,10 +25,22 @@ public:
    SubConsole(QWidget* pParent = 0);
    ~SubConsole();
 
+   void imuDataCallback(const Ui::imuMsg::ConstPtr& msg);
+   void motorControllerTempCallback(const std_msgs::Float32::ConstPtr& msg);
+   void motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg);
+   void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
+   void motorStateCallback(const std_msgs::Bool::ConstPtr& msg);
+   void missionStateCallback(const std_msgs::Bool::ConstPtr& msg);
+   void forwardCameraCallback(const Ui::Image::ConstPtr& msg);
+   void downwardCameraCallback(const Ui::Image::ConstPtr& msg);
+   void tempCallback(const std_msgs::String::ConstPtr& msg);
+
 private:
    Ui::SubConsole* m_pUi;                           //!< Pointer to UI object
    QTimer* m_pJoystickTimer;                        //!< Timer used to poll joystick state
+   QTimer* m_pCallbackTimer;                        //!< Timer used to give processing time to ROS to handle callbacks
    Joystick* m_pJoystick;                           //!< Joystick++ library object
+   ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorPublisher;                 //!< Publishes the Motor_Driver topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Data topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
@@ -54,6 +66,7 @@ private:
    {
       JOYSTICK_POLL_INTERVAL_MSEC = 100,
       JOYSTICK_MAX_VALUE = 32767,
+      CALLBACK_HANDLE_INTERVAL_MSEC = 50,
       MOTOR_FRONT_TURN = 128,
       MOTOR_BACK_TURN = 64,
       MOTOR_FRONT_DEPTH = 32,
@@ -62,18 +75,11 @@ private:
       MOTOR_RIGHT_THRUST = 4
    };
 
-   void imuDataCallback(const Ui::imuMsg::ConstPtr& msg);
-   void motorControllerTempCallback(const std_msgs::Float32::ConstPtr& msg);
-   void motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg);
-   void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
-   void motorStateCallback(const std_msgs::Bool::ConstPtr& msg);
-   void missionStateCallback(const std_msgs::Bool::ConstPtr& msg);
-   void forwardCameraCallback(const Ui::Image::ConstPtr& msg);
-   void downwardCameraCallback(const Ui::Image::ConstPtr& msg);
    void sendMotorSpeedMsg(unsigned char motorMask, unsigned char motorSpeed);
 
 private slots:
    void readJoystickInput(void);
+   void handleRosCallbacks(void);
    void joyConnect(void);
 };
 
