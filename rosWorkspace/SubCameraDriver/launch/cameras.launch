@@ -1,0 +1,4 @@
+<launch>
+	<node name="cameras" pkg="uvc_camera" type="stereo_node">
+	</node>
+</launch>

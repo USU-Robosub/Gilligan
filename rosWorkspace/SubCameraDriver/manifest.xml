@@ -1,0 +1,15 @@
+<package>
+  <description brief="SubCameraDriver">
+
+     SubCameraDriver
+
+  </description>
+  <author>Christopher Blay</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubCameraDriver</url>
+  <depend package="uvc_camera"/>
+
+</package>
+
+
