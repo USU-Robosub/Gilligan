@@ -111,13 +111,18 @@ void SubConsole::readJoystickInput(void)
        int frontTurnSpeed = 127 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
        int backTurnSpeed = 127 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
 
-       if(currentXAxis >= 0)  //Strafe right
+       if(currentXAxis > 0)  //Strafe right
        {
           frontTurnSpeed = backTurnSpeed + 128;
        }
-       else //Strafe left
+       else if(currentXAxis < 0)//Strafe left
        {
           backTurnSpeed = frontTurnSpeed + 128;
+       }
+       else //Motor should be off
+       {
+           frontTurnSpeed = 0;
+           backTurnSpeed = 0;
        }
 
        sendMotorSpeedMsg(MOTOR_FRONT_TURN, frontTurnSpeed);
@@ -132,9 +137,13 @@ void SubConsole::readJoystickInput(void)
       int thrusterSpeed = 127 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
 
       //A neg number means the stick is pushed forward, if positive we actually want reverse
-      if(currentYAxis >= 0)
+      if(currentYAxis > 0)
       {
          thrusterSpeed += 128;
+      }
+      else if(currentYAxis == 0)
+      {
+          thrusterSpeed = 0;
       }
 
       sendMotorSpeedMsg(MOTOR_LEFT_THRUST | MOTOR_RIGHT_THRUST, thrusterSpeed);
@@ -147,9 +156,13 @@ void SubConsole::readJoystickInput(void)
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
       int thrusterSpeed = 127 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis >= 0)  //Turn right (to turn left leave both set from 0-127)
+      if(currentTwistAxis > 0)  //Turn right (to turn left leave both set from 0-127)
       {
          thrusterSpeed += 128;
+      }
+      else if(currentTwistAxis == 0)
+      {
+          thrusterSpeed = 0;
       }
 
       sendMotorSpeedMsg(MOTOR_FRONT_TURN | MOTOR_BACK_TURN, thrusterSpeed);
@@ -162,9 +175,13 @@ void SubConsole::readJoystickInput(void)
       //Set the vertical thrusters to the same value to control depth
       int thrusterSpeed = 127 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentThrottleAxis < 0)
+      if(currentThrottleAxis > 0)
       {
          thrusterSpeed += 128;
+      }
+      else if(currentThrottleAxis == 0)
+      {
+          thrusterSpeed = 0;
       }
 
       sendMotorSpeedMsg(MOTOR_FRONT_DEPTH | MOTOR_BACK_DEPTH, thrusterSpeed);

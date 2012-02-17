@@ -78,7 +78,7 @@
         <item>
          <widget class="QLineEdit" name="devLineEdit">
           <property name="text">
-           <string>/dev/input/js2</string>
+           <string>/dev/input/js1</string>
           </property>
          </widget>
         </item>
@@ -310,7 +310,7 @@
     <property name="title">
      <string>Motor State</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
