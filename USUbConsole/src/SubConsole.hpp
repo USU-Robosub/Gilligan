@@ -3,8 +3,8 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include <joystick.h>
 
+#include "joystick.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
@@ -58,6 +58,8 @@ private:
 
    unsigned char* m_pForwardCameraData;     //!< Pointer to the the last received forward camera frame
    unsigned char* m_pDownwardCameraData;    //!< Pointer to the the last received downward camera frame
+   bool m_downPipEnabled;
+   bool m_forwardPipEnabled;
 
    /**
     * @brief Class constants and mask values
@@ -81,6 +83,9 @@ private slots:
    void readJoystickInput(void);
    void handleRosCallbacks(void);
    void joyConnect(void);
+   void toggleDownwardPiP(void);
+   void toggleForwardPiP(void);
+
 };
 
 #endif // SUBCONSOLE_HPP

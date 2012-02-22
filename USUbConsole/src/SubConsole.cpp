@@ -32,7 +32,9 @@ SubConsole::SubConsole(QWidget* pParent)
      m_lastThrottleValue(0),
      m_lastTwistValue(0),
      m_pForwardCameraData(NULL),
-     m_pDownwardCameraData(NULL)
+     m_pDownwardCameraData(NULL),
+     m_downPipEnabled(false),
+     m_forwardPipEnabled(false)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -41,6 +43,8 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pJoystickTimer, SIGNAL(timeout()), this, SLOT(readJoystickInput()));
    connect(m_pCallbackTimer, SIGNAL(timeout()), this, SLOT(handleRosCallbacks()));
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
+   connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
+   connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
 
    m_pCallbackTimer->start();
 
@@ -50,6 +54,9 @@ SubConsole::SubConsole(QWidget* pParent)
    //Center window on screen
    move(qApp->desktop()->availableGeometry(this).center()-rect().center());
 
+   m_pUi->forwardCameraImageThumb->hide();
+   m_pUi->downCameraImageThumb->hide();
+
    m_motorPublisher = m_nodeHandle.advertise<USUbConsole::motorMsg>("Motor_Driver", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
@@ -57,8 +64,8 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorCaseTempSubscriber = m_nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
-   m_forwardCameraSubscriber = m_nodeHandle.subscribe("Forward_Camera", 10, &SubConsole::forwardCameraCallback, this);
-   m_downwardCameraSubscriber = m_nodeHandle.subscribe("Downward_Camera", 10, &SubConsole::downwardCameraCallback, this);
+   m_forwardCameraSubscriber = m_nodeHandle.subscribe("/left/image_raw", 10, &SubConsole::forwardCameraCallback, this);
+   m_downwardCameraSubscriber = m_nodeHandle.subscribe("/right/image_raw", 10, &SubConsole::downwardCameraCallback, this);
 
    printf("Finished ROS topic publish and subscription initialization\n");
 }
@@ -309,14 +316,9 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
    int imgHeight = msg->height;
    int imgWidth = msg->width;
-   std::string encoding = msg->encoding;   //@todo check these fields, assuming images are not big endian and encoded as RGB16
-   unsigned char isBigEndian = msg->is_bigendian;
    unsigned int step = msg->step;
    QImage image;
    QPixmap pixmap;
-
-   printf("Received image, height: %i, width: %i, encoding: %s, isBE: %i, step: %i\n", imgHeight, imgWidth, encoding.c_str(), isBigEndian, step);
-   fflush(NULL);
 
    if(m_pForwardCameraData != NULL)
    {
@@ -326,8 +328,9 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
    m_pForwardCameraData = new unsigned char[msg->data.size()];
    std::copy(msg->data.begin(), msg->data.end(), m_pForwardCameraData);
 
-   image = QImage(m_pForwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB16);
+   image = QImage(m_pForwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
    m_pUi->forwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
+   m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
 }
 
 /**
@@ -351,6 +354,41 @@ void SubConsole::downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
     m_pDownwardCameraData = new unsigned char[msg->data.size()];
     std::copy(msg->data.begin(), msg->data.end(), m_pDownwardCameraData);
 
-    image = QImage(m_pDownwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB16);
+    image = QImage(m_pDownwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
     m_pUi->downwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
+    m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+}
+
+/**
+ * @brief Toggles the visibility of the downward picture-in-picture
+ **/
+void SubConsole::toggleDownwardPiP(void)
+{
+    if(m_downPipEnabled)
+    {
+        m_pUi->downCameraImageThumb->hide();
+        m_downPipEnabled = false;
+    }
+    else
+    {
+        m_pUi->downCameraImageThumb->show();
+        m_downPipEnabled = true;
+    }
+}
+
+/**
+ * @brief Toggles the visibility of the forward camera picture-in-picture
+ **/
+void SubConsole::toggleForwardPiP(void)
+{
+    if(m_forwardPipEnabled)
+    {
+        m_pUi->forwardCameraImageThumb->hide();
+        m_forwardPipEnabled = false;
+    }
+    else
+    {
+        m_pUi->forwardCameraImageThumb->show();
+        m_forwardPipEnabled = true;
+    }
 }
