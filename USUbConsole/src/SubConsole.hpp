@@ -7,10 +7,10 @@
 #include "joystick.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "std_msgs/Bool.h"
+#include "std_msgs/UInt8.h"
 #include "std_msgs/Float32.h"
-#include "USUbConsole/imuMsg.h"
-#include "USUbConsole/motorMsg.h"
+#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/UInt8MultiArray.h"
 #include "sensor_msgs/Image.h"
 
 namespace Ui
@@ -25,12 +25,12 @@ public:
    SubConsole(QWidget* pParent = 0);
    ~SubConsole();
 
-   void imuDataCallback(const USUbConsole::imuMsg::ConstPtr& msg);
+   void imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void motorControllerTempCallback(const std_msgs::Float32::ConstPtr& msg);
    void motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg);
    void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
-   void motorStateCallback(const std_msgs::Bool::ConstPtr& msg);
-   void missionStateCallback(const std_msgs::Bool::ConstPtr& msg);
+   void motorStateCallback(const std_msgs::UInt8::ConstPtr& msg);
+   void missionStateCallback(const std_msgs::UInt8::ConstPtr& msg);
    void forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg);
    void downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg);
    void tempCallback(const std_msgs::String::ConstPtr& msg);

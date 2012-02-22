@@ -57,7 +57,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->forwardCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
-   m_motorPublisher = m_nodeHandle.advertise<USUbConsole::motorMsg>("Motor_Driver", 100);
+   m_motorPublisher = m_nodeHandle.advertise<std_msgs::UInt8MultiArray>("sub_motor_driver", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -212,10 +212,10 @@ void SubConsole::handleRosCallbacks(void)
  **/
 void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, unsigned char motorSpeed)
 {
-   USUbConsole::motorMsg motorMsg;
+   std_msgs::UInt8MultiArray motorMsg;
 
-   motorMsg.motorMask = motorMask;
-   motorMsg.speed = motorSpeed;
+   motorMsg.data.push_back(motorMask);
+   motorMsg.data.push_back(motorSpeed);
 
    m_motorPublisher.publish(motorMsg);
 
@@ -226,11 +226,11 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, unsigned char motorS
  *
  * @param msg The received message
  **/
-void SubConsole::imuDataCallback(const USUbConsole::imuMsg::ConstPtr& msg)
+void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-   m_pUi->yawLineEdit->setText(QString::number(msg->yaw));
-   m_pUi->pitchLineEdit->setText(QString::number(msg->pitch));
-   m_pUi->rollLineEdit->setText(QString::number(msg->roll));
+   m_pUi->yawLineEdit->setText(QString::number(msg->data[0]));
+   m_pUi->pitchLineEdit->setText(QString::number(msg->data[1]));
+   m_pUi->rollLineEdit->setText(QString::number(msg->data[2]));
 }
 
 /**
@@ -274,7 +274,7 @@ void SubConsole::pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
  *
  * @param msg The received message
  **/
-void SubConsole::motorStateCallback(const std_msgs::Bool::ConstPtr& msg)
+void SubConsole::motorStateCallback(const std_msgs::UInt8::ConstPtr& msg)
 {
    bool motorEnabled = msg->data;
 
@@ -293,7 +293,7 @@ void SubConsole::motorStateCallback(const std_msgs::Bool::ConstPtr& msg)
  *
  * @param msg The received message
  **/
-void SubConsole::missionStateCallback(const std_msgs::Bool::ConstPtr& msg)
+void SubConsole::missionStateCallback(const std_msgs::UInt8::ConstPtr& msg)
 {
    bool missionEnabled = msg->data;
 

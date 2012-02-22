@@ -8,8 +8,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 
 rosbuild_init()
 
-rosbuild_genmsg()
-
 set(QT_ROOT $ENV{QT_ROOT})
 set(QT_QMAKE_EXECUTABLE ${QT_ROOT}/bin/qmake)
 set(QT_MOC_EXECUTABLE ${QT_ROOT}/bin/moc)

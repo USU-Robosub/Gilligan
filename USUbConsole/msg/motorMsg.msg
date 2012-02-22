@@ -1,3 +1,0 @@
-byte motorMask
-byte speed
-
