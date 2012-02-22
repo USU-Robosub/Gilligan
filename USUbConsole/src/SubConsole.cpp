@@ -64,8 +64,8 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorCaseTempSubscriber = m_nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
-   m_forwardCameraSubscriber = m_nodeHandle.subscribe("/left/image_raw", 10, &SubConsole::forwardCameraCallback, this);
-   m_downwardCameraSubscriber = m_nodeHandle.subscribe("/right/image_raw", 10, &SubConsole::downwardCameraCallback, this);
+   m_forwardCameraSubscriber = m_nodeHandle.subscribe("/left/image_raw", 100, &SubConsole::forwardCameraCallback, this);
+   m_downwardCameraSubscriber = m_nodeHandle.subscribe("/right/image_raw", 100, &SubConsole::downwardCameraCallback, this);
 
    printf("Finished ROS topic publish and subscription initialization\n");
 }
@@ -330,7 +330,7 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
 
    image = QImage(m_pForwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
    m_pUi->forwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
-   m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+   m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
 }
 
 /**
@@ -356,7 +356,7 @@ void SubConsole::downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
 
     image = QImage(m_pDownwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
     m_pUi->downwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
-    m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+    m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
 }
 
 /**

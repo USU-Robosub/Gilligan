@@ -58,8 +58,8 @@ private:
 
    unsigned char* m_pForwardCameraData;     //!< Pointer to the the last received forward camera frame
    unsigned char* m_pDownwardCameraData;    //!< Pointer to the the last received downward camera frame
-   bool m_downPipEnabled;
-   bool m_forwardPipEnabled;
+   bool m_downPipEnabled;                   //!< Flag if downward picture in picture is enabled
+   bool m_forwardPipEnabled;                //!< Flag if forward picture in picture is enabled
 
    /**
     * @brief Class constants and mask values
