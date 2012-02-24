@@ -95,8 +95,6 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-    if (ros::ok())
-    {
       std::string line = getTTYLine(fd);
       if (line.length() > 0)
       {
@@ -121,7 +119,6 @@ int main(int argc, char **argv)
         //loop_rate.sleep();
         ++count;
       }
-    }
   }
 
   close(fd);
