@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>938</width>
-    <height>566</height>
+    <height>582</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,7 +78,7 @@
         <item>
          <widget class="QLineEdit" name="devLineEdit">
           <property name="text">
-           <string>/dev/input/js2</string>
+           <string>/dev/input/js1</string>
           </property>
          </widget>
         </item>
@@ -310,7 +310,7 @@
     <property name="title">
      <string>Motor State</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -377,7 +377,7 @@
       <x>10</x>
       <y>10</y>
       <width>661</width>
-      <height>541</height>
+      <height>551</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -412,6 +412,44 @@
        <string/>
       </property>
      </widget>
+     <widget class="QLabel" name="downCameraImageThumb">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>350</y>
+        <width>192</width>
+        <height>144</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="downPipButton">
+      <property name="geometry">
+       <rect>
+        <x>620</x>
+        <y>500</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PiP</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -440,6 +478,44 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="forwardCameraImageThumb">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>350</y>
+        <width>192</width>
+        <height>144</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="forwardPipButton">
+      <property name="geometry">
+       <rect>
+        <x>620</x>
+        <y>500</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PiP</string>
       </property>
      </widget>
     </widget>

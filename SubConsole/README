@@ -1,8 +1,0 @@
-Things you must do:
-1. Setup ROS
-2. Get Qt4 installed
-3. Get joystick++ library built and installed
-4. Set an environment variable called QT_ROOT to point to your Qt installation (QtSDK/Desktop/Qt/474/gcc)
-5. Navigate to the build directory and run build.sh
-
-Make sure you have roscore running and that" should" be it.

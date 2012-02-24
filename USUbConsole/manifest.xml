@@ -1,5 +1,5 @@
 <package>
-  <description brief="subConsole">
+  <description brief="USUbConsole">
 
      USUB Test Console
 
@@ -10,7 +10,12 @@
 
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
+  <depend package="sensor_msgs"/>
   <rosdep name="qt4"/>
+
+   <export>
+     <cpp cflags="-I${prefix}/msg/cpp"/>
+   </export>
 
 </package>
 
