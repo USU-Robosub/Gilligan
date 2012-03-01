@@ -1,0 +1,17 @@
+<package>
+  <description brief="motorTester">
+
+     motorTester
+
+  </description>
+  <author>bholdaway</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/motorTester</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+

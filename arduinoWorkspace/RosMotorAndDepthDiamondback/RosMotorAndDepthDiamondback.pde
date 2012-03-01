@@ -2,6 +2,7 @@
  */
 
 #include <ros.h>
+#include <std_msgs/Int16.h>
 #include <std_msgs/UInt8.h>
 #include <std_msgs/UInt8MultiArray.h>
 #include <std_msgs/Float32.h>
@@ -21,8 +22,8 @@
 #define DRIVE_CONTROLLER_ADDRESS  130
 
 //digital pins
-#define rxPin                2
-#define txPin                3
+#define rxPin                3
+#define txPin                2
 #define drainPin             5
 #define motorKilledPin       6
 
@@ -60,36 +61,40 @@ void sendCommand(byte address, byte command, byte data)
 }
 
 
-void messageCb( const std_msgs::UInt8MultiArray& msg) {
-//ROS_CALLBACK(messageCb, std_msgs::UInt8MultiArray, msg)
-  byte dir = msg.data[1] >> 7;
-  if (msg.data[0] & 0x80 > 0) //front turn
+void messageCb( const std_msgs::Int16& msg) {
+  byte motorMask = msg.data >> 8;
+  byte motorSpeed = msg.data & 0xff;
+  byte dir = motorSpeed >> 7;
+  
+  //mySerial.print(motorMask);
+  //mySerial.print(motorSpeed);
+  if ((motorMask & 0x80) > 0) //front turn
   {
-    sendCommand(TURN_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, msg.data[1] & 0x7f);
+    sendCommand(TURN_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, motorSpeed & 0x7f);
   }
-  if (msg.data[0] & 0x40 > 0) //back turn
+  if ((motorMask & 0x40) > 0) //back turn
   {
-    sendCommand(TURN_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, msg.data[1] & 0x7f); 
+    sendCommand(TURN_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, motorSpeed & 0x7f); 
   }
-  if (msg.data[0] & 0x20 > 0) //front depth
+  if ((motorMask & 0x20) > 0) //front depth
   {
-    sendCommand(DEPTH_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, msg.data[1] & 0x7f); 
+    sendCommand(DEPTH_CONTROLLER_ADDRESS, FRONT_TURN_MOTOR + dir, motorSpeed & 0x7f); 
   }
-  if (msg.data[0] & 0x10 > 0) //back depth
+  if ((motorMask & 0x10) > 0) //back depth
   {
-    sendCommand(DEPTH_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, msg.data[1] & 0x7f); 
+    sendCommand(DEPTH_CONTROLLER_ADDRESS, BACK_TURN_MOTOR + dir, motorSpeed & 0x7f); 
   }
-  if (msg.data[0] & 0x8 > 0) //left
+  if ((motorMask & 0x8) > 0) //left
   {
-    sendCommand(DRIVE_CONTROLLER_ADDRESS, LEFT_DRIVE_MOTOR + dir, msg.data[1] & 0x7f); 
+    sendCommand(DRIVE_CONTROLLER_ADDRESS, LEFT_DRIVE_MOTOR + dir, motorSpeed & 0x7f); 
   }
-  if (msg.data[0] & 0x4 > 0) //right
+  if ((motorMask & 0x4) > 0) //right
   {
-    sendCommand(DRIVE_CONTROLLER_ADDRESS, RIGHT_DRIVE_MOTOR + dir, msg.data[1] & 0x7f); 
+    sendCommand(DRIVE_CONTROLLER_ADDRESS, RIGHT_DRIVE_MOTOR + dir, motorSpeed & 0x7f); 
   }
 }
 
-ros::Subscriber<std_msgs::UInt8MultiArray> sub("sub_motor_driver", messageCb );
+ros::Subscriber<std_msgs::Int16> sub("Motor_Data", messageCb );
 //ros::Subscriber sub("Motor_Driver", &msg, messageCb);
 void checkMotorKilled()
 {
@@ -176,11 +181,10 @@ float getTemperature(int pin)
   return temp;
 }
 
-
 void setup()
 {
-  //pinMode(rxPin, INPUT);
-  //pinMode(txPin, OUTPUT);
+  pinMode(rxPin, INPUT);
+  pinMode(txPin, OUTPUT);
   pinMode(drainPin, OUTPUT);
   mySerial.begin(9600);
   nh.initNode();
