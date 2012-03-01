@@ -10,7 +10,7 @@
 #include "std_msgs/UInt8.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
-#include "std_msgs/UInt8MultiArray.h"
+#include "std_msgs/Int16.h"
 #include "sensor_msgs/Image.h"
 
 namespace Ui
@@ -41,7 +41,9 @@ private:
    QTimer* m_pCallbackTimer;                        //!< Timer used to give processing time to ROS to handle callbacks
    Joystick* m_pJoystick;                           //!< Joystick++ library object
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
-   ros::Publisher m_motorPublisher;                 //!< Publishes the Motor_Driver topic
+   ros::Publisher m_motorDepthPublisher;            //!< Publishes the Motor_Driver_Depth topic
+   ros::Publisher m_motorDrivePublisher;            //!< Publishes the Motor_Driver_Drive topic
+   ros::Publisher m_motorTurnPublisher;             //!< Publishes the Motor_Driver_Turn topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Data topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_motorCaseTempSubscriber;       //!< Subscribes to the Motor_Case_Temp topic
@@ -69,15 +71,16 @@ private:
       JOYSTICK_POLL_INTERVAL_MSEC = 100,
       JOYSTICK_MAX_VALUE = 32767,
       CALLBACK_HANDLE_INTERVAL_MSEC = 20,
-      MOTOR_FRONT_TURN = 128,
-      MOTOR_BACK_TURN = 64,
-      MOTOR_FRONT_DEPTH = 32,
-      MOTOR_BACK_DEPTH = 16,
-      MOTOR_LEFT_THRUST = 8,
-      MOTOR_RIGHT_THRUST = 4
+      DEPTH_CONTROLLER = 1,
+      DRIVE_CONTROLLER = 2,
+      TURN_CONTROLLER = 3,
+      MOTOR_LEFT = 0x04,
+      MOTOR_RIGHT = 0x02,
+      MOTOR_FORWARD = 0x01,
+      MOTOR_REVERSE = 0x00
    };
 
-   void sendMotorSpeedMsg(unsigned char motorMask, unsigned char motorSpeed);
+   void sendMotorSpeedMsg(int motorController, unsigned char motorMask, unsigned char motorSpeed);
 
 private slots:
    void readJoystickInput(void);

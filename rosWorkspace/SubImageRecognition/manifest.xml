@@ -1,0 +1,20 @@
+<package>
+  <description brief="SubImageRecognition">
+
+     SubImageRecognition
+
+  </description>
+  <author>Christopher Blay</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubImageRecognition</url>
+  <depend package="rospy"/>
+  <depend package="cv_bridge"/>
+  <depend package="opencv2"/>
+  <depend package="std_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="SubCameraDriver"/>
+
+</package>
+
+

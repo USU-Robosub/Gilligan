@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>938</width>
+    <width>930</width>
     <height>582</height>
    </rect>
   </property>
@@ -214,22 +214,22 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>160</y>
-      <width>241</width>
-      <height>131</height>
+      <x>680</x>
+      <y>150</y>
+      <width>261</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
      <string>Sensor Readings</string>
     </property>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>20</x>
        <y>30</y>
        <width>221</width>
-       <height>97</height>
+       <height>111</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -258,7 +258,17 @@
         <item>
          <widget class="QLabel" name="label_9">
           <property name="text">
-           <string>Pressure</string>
+           <string>Fresh Water Depth</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Salt Water Depth</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -287,7 +297,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="pressureLineEdit">
+         <widget class="QLineEdit" name="freshDepthLineEdit">
+          <property name="text">
+           <string>0.0</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="saltDepthLineEdit">
           <property name="text">
            <string>0.0</string>
           </property>
