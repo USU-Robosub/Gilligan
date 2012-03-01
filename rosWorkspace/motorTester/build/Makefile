@@ -164,6 +164,19 @@ TestAllMotors/fast:
 .PHONY : TestAllMotors/fast
 
 #=============================================================================
+# Target rules for targets named TestMotor
+
+# Build rule for target.
+TestMotor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 TestMotor
+.PHONY : TestMotor
+
+# fast build rule for target.
+TestMotor/fast:
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/build
+.PHONY : TestMotor/fast
+
+#=============================================================================
 # Target rules for targets named clean-test-results
 
 # Build rule for target.
@@ -321,6 +334,21 @@ src/TestAllMotors.s:
 	$(MAKE) -f CMakeFiles/TestAllMotors.dir/build.make CMakeFiles/TestAllMotors.dir/src/TestAllMotors.s
 .PHONY : src/TestAllMotors.s
 
+# target to build an object file
+src/TestMotor.o:
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/src/TestMotor.o
+.PHONY : src/TestMotor.o
+
+# target to preprocess a source file
+src/TestMotor.i:
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/src/TestMotor.i
+.PHONY : src/TestMotor.i
+
+# target to generate assembly for a file
+src/TestMotor.s:
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/src/TestMotor.s
+.PHONY : src/TestMotor.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -332,6 +360,7 @@ help:
 	@echo "... ROSBUILD_gensrv_cpp"
 	@echo "... ROSBUILD_gensrv_lisp"
 	@echo "... TestAllMotors"
+	@echo "... TestMotor"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
@@ -348,6 +377,9 @@ help:
 	@echo "... src/TestAllMotors.o"
 	@echo "... src/TestAllMotors.i"
 	@echo "... src/TestAllMotors.s"
+	@echo "... src/TestMotor.o"
+	@echo "... src/TestMotor.i"
+	@echo "... src/TestMotor.s"
 .PHONY : help
 
 

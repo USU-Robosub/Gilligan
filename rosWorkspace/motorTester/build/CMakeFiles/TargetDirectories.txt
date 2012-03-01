@@ -3,6 +3,7 @@
 /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/ROSBUILD_gensrv_cpp.dir
 /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/ROSBUILD_gensrv_lisp.dir
 /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/TestAllMotors.dir
+/home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/TestMotor.dir
 /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/clean-test-results.dir
 /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/rosbuild_precompile.dir
 /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles/rosbuild_premsgsrvgen.dir

@@ -39,7 +39,7 @@ std_msgs::UInt8 motorKillMsg;
 std_msgs::Float32 caseTempMsg;
 std_msgs::Float32 controllerTempMsg;
 
-ros::Publisher chatterDepth("Sub_Depth", &depthMsg);
+ros::Publisher chatterDepth("Pressure_Data", &depthMsg);
 ros::Publisher chatterMotorKilled("Motor_State", &motorKillMsg);
 ros::Publisher chatterCaseTemp("Motor_Case_Temp", &caseTempMsg);
 ros::Publisher chatterControllerTemp("Motor_Controller_Temp", &controllerTempMsg);
@@ -53,7 +53,7 @@ float caseTemp = 0.0;
 
 void sendCommand(byte address, byte command, byte data)
 {
-  byte check = (address + command + data) & 0b01111111;
+  byte check = ((address + command + data) & 0b01111111);
   mySerial.print(address, BYTE);
   mySerial.print(command, BYTE);
   mySerial.print(data, BYTE);
@@ -94,7 +94,7 @@ void messageCb( const std_msgs::Int16& msg) {
   }
 }
 
-ros::Subscriber<std_msgs::Int16> sub("Motor_Data", messageCb );
+ros::Subscriber<std_msgs::Int16> sub("Motor_Driver", messageCb );
 //ros::Subscriber sub("Motor_Driver", &msg, messageCb);
 void checkMotorKilled()
 {
