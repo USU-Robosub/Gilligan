@@ -19,7 +19,9 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pCallbackTimer(new QTimer(this)),
      m_pJoystick(new Joystick()),
      m_nodeHandle(),
-     m_motorPublisher(),
+     m_motorDepthPublisher(),
+     m_motorDrivePublisher(),
+     m_motorTurnPublisher(),
      m_imuSubscriber(),
      m_motorControllerTempSubscriber(),
      m_motorCaseTempSubscriber(),
@@ -57,7 +59,9 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->forwardCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
-   m_motorPublisher = m_nodeHandle.advertise<std_msgs::UInt8MultiArray>("sub_motor_driver", 100);
+   m_motorDepthPublisher = m_nodeHandle.advertise<std_msgs::Int16>("Motor_Driver_Depth", 100);
+   m_motorDrivePublisher = m_nodeHandle.advertise<std_msgs::Int16>("Motor_Driver_Drive", 100);
+   m_motorTurnPublisher = m_nodeHandle.advertise<std_msgs::Int16>("Motor_Driver_Turn", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -115,25 +119,22 @@ void SubConsole::readJoystickInput(void)
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
        //Set the horizontal thrusters to opposite thrust to strafe
-       int frontTurnSpeed = 127 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
-       int backTurnSpeed = 127 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
+       int turnSpeed = 255 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
 
        if(currentXAxis > 0)  //Strafe right
        {
-          frontTurnSpeed = backTurnSpeed + 128;
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_REVERSE, turnSpeed);
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          backTurnSpeed = frontTurnSpeed + 128;
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_REVERSE, turnSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed);
        }
        else //Motor should be off
        {
-           frontTurnSpeed = 0;
-           backTurnSpeed = 0;
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_LEFT | MOTOR_FORWARD, turnSpeed);
        }
-
-       sendMotorSpeedMsg(MOTOR_FRONT_TURN, frontTurnSpeed);
-       sendMotorSpeedMsg(MOTOR_BACK_TURN, backTurnSpeed);
 
        m_lastXAxisValue = currentXAxis;
    }
@@ -141,19 +142,17 @@ void SubConsole::readJoystickInput(void)
    if(m_lastYAxisValue != currentYAxis)   //Move forward/backwards
    {
       //Set the forward/reverse thrusters to same value to move forwards or backwards
-      int thrusterSpeed = 127 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
+      int thrusterSpeed = 255 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
 
       //A neg number means the stick is pushed forward, if positive we actually want reverse
-      if(currentYAxis > 0)
+      if(currentYAxis >= 0)
       {
-         thrusterSpeed += 128;
+         sendMotorSpeedMsg(DRIVE_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed);
       }
-      else if(currentYAxis == 0)
+      else if(currentYAxis < 0)
       {
-          thrusterSpeed = 0;
+         sendMotorSpeedMsg(DRIVE_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_REVERSE, thrusterSpeed);
       }
-
-      sendMotorSpeedMsg(MOTOR_LEFT_THRUST | MOTOR_RIGHT_THRUST, thrusterSpeed);
 
       m_lastYAxisValue = currentYAxis;
    }
@@ -161,18 +160,16 @@ void SubConsole::readJoystickInput(void)
    if(m_lastTwistValue != currentTwistAxis)  //Turn
    {
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
-      int thrusterSpeed = 127 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
+      int thrusterSpeed = 255 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis > 0)  //Turn right (to turn left leave both set from 0-127)
+      if(currentTwistAxis >= 0)  //Turn right, set both thrusters to reverse
       {
-         thrusterSpeed += 128;
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_REVERSE, thrusterSpeed);
       }
-      else if(currentTwistAxis == 0)
+      else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
       {
-          thrusterSpeed = 0;
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed);
       }
-
-      sendMotorSpeedMsg(MOTOR_FRONT_TURN | MOTOR_BACK_TURN, thrusterSpeed);
 
       m_lastTwistValue = currentTwistAxis;
    }
@@ -180,18 +177,16 @@ void SubConsole::readJoystickInput(void)
    if(m_lastThrottleValue != currentThrottleAxis)  //Submerge/surface
    {
       //Set the vertical thrusters to the same value to control depth
-      int thrusterSpeed = 127 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
+      int thrusterSpeed = 255 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentThrottleAxis > 0)
+      if(currentThrottleAxis >= 0)
       {
-         thrusterSpeed += 128;
+         sendMotorSpeedMsg(DEPTH_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_REVERSE, thrusterSpeed);
       }
-      else if(currentThrottleAxis == 0)
+      else if(currentThrottleAxis < 0)
       {
-          thrusterSpeed = 0;
+         sendMotorSpeedMsg(DEPTH_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed);
       }
-
-      sendMotorSpeedMsg(MOTOR_FRONT_DEPTH | MOTOR_BACK_DEPTH, thrusterSpeed);
 
       m_lastThrottleValue = currentThrottleAxis;
    }
@@ -210,15 +205,26 @@ void SubConsole::handleRosCallbacks(void)
  *
  * @param motorMask Bit mask with the motors to drive at the specified speed
  **/
-void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, unsigned char motorSpeed)
+void SubConsole::sendMotorSpeedMsg(int motorController, unsigned char motorMask, unsigned char motorSpeed)
 {
-   std_msgs::UInt8MultiArray motorMsg;
+   std_msgs::Int16 motorMsg;
 
-   motorMsg.data.push_back(motorMask);
-   motorMsg.data.push_back(motorSpeed);
+   motorMsg.data = ((short)motorMask << 8) | motorSpeed;
 
-   m_motorPublisher.publish(motorMsg);
+   //printf("Sending speed 0x%02x to motor mask 0x%02x.  As Int16: 0x%04x\n", motorSpeed, motorMask, motorMsg.data);
 
+   if(motorController == DEPTH_CONTROLLER)
+   {
+       m_motorDepthPublisher.publish(motorMsg);
+   }
+   else if(motorController == DRIVE_CONTROLLER)
+   {
+       m_motorDrivePublisher.publish(motorMsg);
+   }
+   else if(motorController == TURN_CONTROLLER)
+   {
+       m_motorTurnPublisher.publish(motorMsg);
+   }
 }
 
 /**
@@ -242,7 +248,7 @@ void SubConsole::motorControllerTempCallback(const std_msgs::Float32::ConstPtr& 
 {
    float temperature = msg->data;
 
-   m_pUi->motorControllerTempLineEdit->setText(QString::number(temperature));
+   m_pUi->motorControllerTempLineEdit->setText(QString::number(temperature/10.0));
 }
 
 /**
@@ -254,7 +260,7 @@ void SubConsole::motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg)
 {
    float temperature = msg->data;
 
-   m_pUi->motorCaseTempLineEdit->setText(QString::number(temperature));
+   m_pUi->motorCaseTempLineEdit->setText(QString::number(temperature/10.0));
 }
 
 /**
@@ -264,9 +270,12 @@ void SubConsole::motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 {
+   //fresh depth = psi / 0.432
+   //salt depth = psi / 0.445
    float pressure = msg->data;
 
-   m_pUi->pressureLineEdit->setText(QString::number(pressure));
+   m_pUi->freshDepthLineEdit->setText(QString::number(pressure / 0.432));
+   m_pUi->saltDepthLineEdit->setText(QString::number(pressure / 0.445));
 }
 
 /**
@@ -330,7 +339,11 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
 
    image = QImage(m_pForwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
    m_pUi->forwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
-   m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+
+   if(m_forwardPipEnabled)
+   {
+      m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+   }
 }
 
 /**
@@ -356,7 +369,11 @@ void SubConsole::downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
 
     image = QImage(m_pDownwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
     m_pUi->downwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
-    m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+
+    if(m_downPipEnabled)
+    {
+        m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+    }
 }
 
 /**
