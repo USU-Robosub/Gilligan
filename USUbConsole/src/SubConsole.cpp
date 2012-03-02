@@ -128,8 +128,8 @@ void SubConsole::readJoystickInput(void)
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_REVERSE, turnSpeed);
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_FORWARD, turnSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_REVERSE, turnSpeed);
        }
        else //Motor should be off
        {
