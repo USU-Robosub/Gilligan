@@ -45,11 +45,13 @@ void loop()
   ypr[2] /= 20.0;
   
   //Serial.print("Yaw: ");
+  Serial.print("S");
   Serial.print(ypr[0]);
   Serial.print(" ");
   Serial.print(ypr[1]);
   Serial.print(" ");
-  Serial.println(ypr[2]);
+  Serial.print(ypr[2]);
+  Serial.print("E"):
   
   delay(100);
 }
