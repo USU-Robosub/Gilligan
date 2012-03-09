@@ -6,11 +6,13 @@ PREV_DAY="0"
 FIRST_LOOP=1
 MONTHS=( Fake January February March April May June July August September October November December )
 
-# First clear out existing thumbnails
-rm *.thumb.jpg
-
 # Loop through remaining images in reverse
 for IMG in `ls *.jpg | tac`; do
+
+	# Skip existing thumbnails
+	if [[ $IMG = *.thumb.jpg ]]; then
+		continue
+	fi
 
 	# Build Out HTML. This only works with the filename format the existing
 	# photos use. I guess this should be implemented in Python or something if
@@ -33,8 +35,10 @@ for IMG in `ls *.jpg | tac`; do
 	THUMB=`echo "$IMG" | cut -d '.' -f 1`
 	echo "                <a class=\"media\" href=\"pictures/$IMG\"><img src=\"pictures/$THUMB.thumb.jpg\" /></a>"
 
-	# Create a thumbnail
-	convert "$IMG" -resize 175x "$THUMB.thumb.jpg"
+	# Create a thumbnail if it doesn't exist
+	if [ ! -f "$THUMB.thumb.jpg" ]; then
+		convert "$IMG" -resize 175x "$THUMB.thumb.jpg"
+	fi
 
 done
 

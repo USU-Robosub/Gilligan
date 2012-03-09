@@ -183,7 +183,7 @@ TOOLCHAINCONFIG:FILEPATH=TOOLCHAINCONFIG-NOTFOUND
 USERCONFIG:FILEPATH=USERCONFIG-NOTFOUND
 
 //Path to a file.
-_file_name:FILEPATH=/home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/src/TestAllMotors.cpp
+_file_name:FILEPATH=/home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/src/TestMotor.cpp
 
 //Value Computed by CMake
 motorTester_BINARY_DIR:STATIC=/home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build

@@ -212,6 +212,41 @@ clean: CMakeFiles/TestAllMotors.dir/clean
 .PHONY : clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/TestMotor.dir
+
+# All Build rule for target.
+CMakeFiles/TestMotor.dir/all: CMakeFiles/rosbuild_precompile.dir/all
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/depend
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/build
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles  2
+	@echo "Built target TestMotor"
+.PHONY : CMakeFiles/TestMotor.dir/all
+
+# Include target in all.
+all: CMakeFiles/TestMotor.dir/all
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/TestMotor.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles 1
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/TestMotor.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bholdaway/sub-workspace/robosub/rosWorkspace/motorTester/build/CMakeFiles 0
+.PHONY : CMakeFiles/TestMotor.dir/rule
+
+# Convenience name for target.
+TestMotor: CMakeFiles/TestMotor.dir/rule
+.PHONY : TestMotor
+
+# clean rule for target.
+CMakeFiles/TestMotor.dir/clean:
+	$(MAKE) -f CMakeFiles/TestMotor.dir/build.make CMakeFiles/TestMotor.dir/clean
+.PHONY : CMakeFiles/TestMotor.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/TestMotor.dir/clean
+.PHONY : clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/clean-test-results.dir
 
 # All Build rule for target.
