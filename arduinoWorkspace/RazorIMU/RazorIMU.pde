@@ -51,7 +51,7 @@ void loop()
   Serial.print(ypr[1]);
   Serial.print(" ");
   Serial.print(ypr[2]);
-  Serial.print("E"):
+  Serial.println("E");
   
   delay(100);
 }
