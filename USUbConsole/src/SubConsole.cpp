@@ -116,6 +116,8 @@ void SubConsole::readJoystickInput(void)
    int currentTwistAxis = m_pJoystick->getAxis(2);
    int currentThrottleAxis = m_pJoystick->getAxis(3);
 
+   double forwardRatio = 0.8;
+
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
        //Set the horizontal thrusters to opposite thrust to strafe
@@ -123,12 +125,12 @@ void SubConsole::readJoystickInput(void)
 
        if(currentXAxis > 0)  //Strafe right
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed * forwardRatio);
           sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_REVERSE, turnSpeed);
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_FORWARD, turnSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_FORWARD, turnSpeed * forwardRatio);
           sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_REVERSE, turnSpeed);
        }
        else //Motor should be off
@@ -168,7 +170,7 @@ void SubConsole::readJoystickInput(void)
       }
       else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
       {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed * forwardRatio);
       }
 
       m_lastTwistValue = currentTwistAxis;
