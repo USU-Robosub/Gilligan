@@ -37,7 +37,7 @@ for IMG in `ls *.jpg | tac`; do
 
 	# Create a thumbnail if it doesn't exist
 	if [ ! -f "$THUMB.thumb.jpg" ]; then
-		convert "$IMG" -resize 175x "$THUMB.thumb.jpg"
+		convert "$IMG" -resize x131 "$THUMB.thumb.jpg"
 	fi
 
 done
