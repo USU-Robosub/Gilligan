@@ -19,6 +19,7 @@
 void setupTTY(int fd);
 std::string getTTYLine(int fd);
 void tokenize(std::string line, float* buf);
+bool timeLeft(struct timeval* start, struct timeval* timeout);
 
 
 void error(char * msg)
@@ -36,13 +37,14 @@ int main(int argc, char **argv)
   if (argc > 1)
   {
     file = argv[1];
+    printf("Opening %s\n", file.c_str());
   }
 
   fd = open(file.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd == -1)
   {
-    printf("System failed to open /dev/ttyUSB0: %s(%d)\n", strerror(errno), errno);
+    printf("System failed to open %s: %s(%d)\n", file.c_str(), strerror(errno), errno);
     return -1;
   }
 
@@ -59,6 +61,7 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
+    printf("loop\n");
       std::string line = getTTYLine(fd);
       if (line.length() > 0)
       {
@@ -92,13 +95,19 @@ std::string getTTYLine(int fd)
   char lastChar;
   bool startFound = false;
   fd_set rdfs;
-  struct timeval timeout;
+  struct timeval timeout, start;
+  struct timezone tz;
+
+  FD_ZERO(&rdfs);
+  FD_SET(fd, &rdfs);
 
   timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
 
-  while (lastChar != '\n' && lastChar != 'E' && ros::ok())
+  gettimeofday(&start, &tz);
+  while (lastChar != '\n' && ros::ok() && timeLeft(&start, &timeout))
   {
-    if (select(fd, &rdfs, NULL, NULL, &timeout) > 0)
+    if (select(fd+1, &rdfs, NULL, NULL, &timeout) > 0)
     {
       if (read(fd, &lastChar, 1) == 1)
       {
@@ -106,7 +115,11 @@ std::string getTTYLine(int fd)
         {
           startFound = true;
         }
-        else if (startFound && lastChar != 'E')
+        else if (lastChar == 'E')
+        {
+          startFound = false;
+        }
+        else
         {
           ret += lastChar;
         }
@@ -114,9 +127,36 @@ std::string getTTYLine(int fd)
     }
     else
     {
-      break; //select timed out
+      printf("failure\n");
+      break;
     }
   }
+
+  return ret;
+}
+
+bool timeLeft(struct timeval* start, struct timeval* timeout)
+{
+  bool ret = true;
+  struct timeval now;
+  struct timezone tz;
+  gettimeofday(&now, &tz);
+
+  long int usec = (start->tv_sec + timeout->tv_sec) * 1000000 + (start->tv_usec + timeout->tv_usec);
+  long int nowUsec = (now.tv_sec * 1000000) + now.tv_usec;
+  long int left = usec - nowUsec;
+
+  if (usec <= nowUsec)
+  {
+    ret = false;
+  }
+  else
+  {
+    timeout->tv_sec = left / 1000000;
+    timeout->tv_usec = left % 1000000;
+  }
+
+  *start = now;
 
   return ret;
 }
