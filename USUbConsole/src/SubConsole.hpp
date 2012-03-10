@@ -53,10 +53,11 @@ private:
    ros::Subscriber m_forwardCameraSubscriber;       //!< Subscribes to the Forward_Camera topic
    ros::Subscriber m_downwardCameraSubscriber;      //!< Subscribes to the Downward_Camera topic
 
-   int m_lastXAxisValue;      //!< Stores the last joystick x-axis value
-   int m_lastYAxisValue;      //!< Stores the last joystick y-axis value
-   int m_lastThrottleValue;   //!< Stores the last joystick throttle value
-   int m_lastTwistValue;      //!< Stores the last joystick twist value
+   int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
+   int m_lastYAxisValue;            //!< Stores the last joystick y-axis value
+   int m_lastThrottleValue;         //!< Stores the last joystick throttle value
+   int m_lastTwistValue;            //!< Stores the last joystick twist value
+   double m_turnForwardPercentage;  //!< The percentage at which the turn thrusters are utilized in the forward direction for turning/straffing
 
    unsigned char* m_pForwardCameraData;     //!< Pointer to the the last received forward camera frame
    unsigned char* m_pDownwardCameraData;    //!< Pointer to the the last received downward camera frame
@@ -88,6 +89,7 @@ private slots:
    void joyConnect(void);
    void toggleDownwardPiP(void);
    void toggleForwardPiP(void);
+   void adjustFwdTurnMax(int sliderValue);
 
 };
 
