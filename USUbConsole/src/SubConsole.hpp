@@ -28,6 +28,7 @@ public:
    void imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void motorControllerTempCallback(const std_msgs::Float32::ConstPtr& msg);
    void motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg);
+   void moboTempCallback(const std_msgs::Float32::ConstPtr& msg);
    void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
    void motorStateCallback(const std_msgs::UInt8::ConstPtr& msg);
    void missionStateCallback(const std_msgs::UInt8::ConstPtr& msg);
@@ -47,6 +48,7 @@ private:
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Data topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_motorCaseTempSubscriber;       //!< Subscribes to the Motor_Case_Temp topic
+   ros::Subscriber m_moboTempSubscriber;            //!< Subscribes to the Mobo_Temp topic
    ros::Subscriber m_pressureSubscriber;            //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_motorStateSubscriber;          //!< Subscribes to the Pressure_Data topic
    ros::Subscriber m_missionStateSubscriber;        //!< Subscribes to the Mission_State topic

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>940</width>
-    <height>577</height>
+    <height>608</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,8 +20,8 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>430</y>
+      <x>680</x>
+      <y>470</y>
       <width>241</width>
       <height>131</height>
      </rect>
@@ -29,7 +29,7 @@
     <property name="title">
      <string>Joystick</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -227,7 +227,7 @@
       <x>680</x>
       <y>150</y>
       <width>251</width>
-      <height>161</height>
+      <height>201</height>
      </rect>
     </property>
     <property name="title">
@@ -239,7 +239,7 @@
        <x>20</x>
        <y>30</y>
        <width>221</width>
-       <height>130</height>
+       <height>163</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -259,6 +259,16 @@
          <widget class="QLabel" name="label_6">
           <property name="text">
            <string>Motor Case Temp</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>Motherboard Temp</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -307,6 +317,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QLineEdit" name="moboTempLineEdit">
+          <property name="text">
+           <string>0.0</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="freshDepthLineEdit">
           <property name="text">
            <string>0.0</string>
@@ -328,8 +345,8 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>320</y>
+      <x>680</x>
+      <y>360</y>
       <width>241</width>
       <height>101</height>
      </rect>
