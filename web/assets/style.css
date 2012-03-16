@@ -13,6 +13,9 @@ header {
     background: url(gradient.png) repeat-x;
     height: 145px;
 }
+h1 {
+    text-shadow: 1px 1px 1px #fff;
+}
 nav {
     position: absolute;
     right: 0;
@@ -51,15 +54,20 @@ time {
     font-style: italic;
 }
 .mugshot {
-    border: solid 1px #000;
+    border: solid 1px #333;
     float: left;
     height: 100px;
     margin: 0 1em 1em 0;
     width: 100px;
 }
 .media {
-    border: solid 1px #000;
     clear: right;
     float: left;
     margin: 0 1em 1em 0;
+}
+iframe, .media, .featured {
+    border: solid 1px #333;
+}
+.featured {
+    width: 800px;
 }

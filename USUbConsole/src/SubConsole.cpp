@@ -25,6 +25,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_imuSubscriber(),
      m_motorControllerTempSubscriber(),
      m_motorCaseTempSubscriber(),
+     m_moboTempSubscriber(),
      m_pressureSubscriber(),
      m_motorStateSubscriber(),
      m_forwardCameraSubscriber(),
@@ -33,6 +34,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_lastYAxisValue(0),
      m_lastThrottleValue(0),
      m_lastTwistValue(0),
+     m_turnForwardPercentage(0.8),
      m_pForwardCameraData(NULL),
      m_pDownwardCameraData(NULL),
      m_downPipEnabled(false),
@@ -47,6 +49,7 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
+   connect(m_pUi->turnThrustFwdSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustFwdTurnMax(int)));
 
    m_pCallbackTimer->start();
 
@@ -66,6 +69,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
    m_motorCaseTempSubscriber = m_nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
+   m_moboTempSubscriber = m_nodeHandle.subscribe("Mobo_Temp", 100, &SubConsole::moboTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
    m_forwardCameraSubscriber = m_nodeHandle.subscribe("/left/image_raw", 100, &SubConsole::forwardCameraCallback, this);
@@ -116,8 +120,6 @@ void SubConsole::readJoystickInput(void)
    int currentTwistAxis = m_pJoystick->getAxis(2);
    int currentThrottleAxis = m_pJoystick->getAxis(3);
 
-   double forwardRatio = 0.8;
-
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
        //Set the horizontal thrusters to opposite thrust to strafe
@@ -125,12 +127,12 @@ void SubConsole::readJoystickInput(void)
 
        if(currentXAxis > 0)  //Strafe right
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed * forwardRatio);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed * m_turnForwardPercentage);
           sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_REVERSE, turnSpeed);
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_FORWARD, turnSpeed * forwardRatio);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_FORWARD, turnSpeed * m_turnForwardPercentage);
           sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_REVERSE, turnSpeed);
        }
        else //Motor should be off
@@ -170,7 +172,7 @@ void SubConsole::readJoystickInput(void)
       }
       else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
       {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed * forwardRatio);
+          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed * m_turnForwardPercentage);
       }
 
       m_lastTwistValue = currentTwistAxis;
@@ -263,6 +265,18 @@ void SubConsole::motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg)
    float temperature = msg->data;
 
    m_pUi->motorCaseTempLineEdit->setText(QString::number(temperature/10.0));
+}
+
+/**
+ * @brief ROS callback for Mobo_Temp subscription
+ *
+ * @param msg The received message
+ **/
+void SubConsole::moboTempCallback(const std_msgs::Float32::ConstPtr& msg)
+{
+   float temperature = msg->data;
+
+   m_pUi->moboTempLineEdit->setText(QString::number(temperature));
 }
 
 /**
@@ -410,4 +424,18 @@ void SubConsole::toggleForwardPiP(void)
         m_pUi->forwardCameraImageThumb->show();
         m_forwardPipEnabled = true;
     }
+}
+
+/**
+ * @brief Called when the turn thruster fwd thrust percentage slider is moved
+ *
+ * @param sliderValue The value of the slider
+ **/
+void SubConsole::adjustFwdTurnMax(int sliderValue)
+{
+    QString percentString = QString::number(sliderValue);
+
+    percentString += "% Turn Fwd";
+    m_turnForwardPercentage = sliderValue / 100.0;
+    m_pUi->turnFwdPercentageLabel->setText(percentString);
 }
