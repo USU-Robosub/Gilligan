@@ -174,7 +174,23 @@ void setupTTY(int fd)
   port_settings.c_cflag &= ~CSIZE;
   port_settings.c_cflag |= CS8;
 
-  tcsetattr(fd, TCSANOW, &port_settings);    // apply the settings to the port
+  port_settings.c_cflag &= ~CRTSCTS;
+
+  port_settings.c_cflag |= CREAD | CLOCAL;  // turn on READ & ignore ctrl lines
+  port_settings.c_iflag &= ~(IXON | IXOFF | IXANY); // turn off s/w flow ctrl
+
+  port_settings.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // make raw
+  port_settings.c_oflag &= ~OPOST; // make raw
+
+  // see: http://unixwiz.net/techtips/termios-vmin-vtime.html
+  port_settings.c_cc[VMIN]  = 0;
+  port_settings.c_cc[VTIME] = 20;
+
+  if(tcsetattr(fd, TCSANOW, &port_settings) < 0)    // apply the settings to the port
+  {
+    printf("Failed to set serial settings\n");
+    exit(-1);
+  }
 
 }
 
