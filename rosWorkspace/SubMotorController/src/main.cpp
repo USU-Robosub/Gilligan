@@ -11,20 +11,26 @@
 #define FRONT_TURN_BIT  0x10
 #define REAR_TURN_BIT   0x20
 
+#define DRIVE_EXISTS 1
+//#define DEPTH_EXISTS 1
+//#define TURN_EXISTS  1
+
 using namespace LibSerial;
 
 enum MotorID {
 	DRIVE,
 	DEPTH,
-	TURN,
-	numMotorControllers
+	TURN
 };
+
+const int NUM_MOTOR_CONTROLLERS = 1;
+
 
 SerialStream motorController [3];
 
 void Error(char* message, char* responce) {
 			printf("Error: Responce did not match message\n");
-			printf("Sent \"%C%C %X %X %X %X %C\"\n",
+			printf("Sent \"%C %C %X %X %X %X %C\"\n",
 						 message[0],
 						 message[1],
 						 message[2],
@@ -32,7 +38,7 @@ void Error(char* message, char* responce) {
 						 message[4],
 						 message[5],
 						 message[6]);
-			printf("Recieved \"%C%C %X %X %X %X %C\"\n",
+			printf("Recieved \"%C %C %X %X %X %X %C\"\n",
 						 responce[0],
 						 responce[1],
 						 responce[2],
@@ -43,22 +49,30 @@ void Error(char* message, char* responce) {
 }
 
 void setMotorSpeed(MotorID controller, int rightSpeed, int leftSpeed) {
-	char message[] = "SD\0\0\0\0E";
-	char responce[] = "Sd\0\0\0\0E";
+	unsigned char message[] = "SD\0\0\0\0E";
+	unsigned char responce[] = "Sd\0\0\0\0E";
+	
+	printf("setMotorSpeed(%d, %d, %d)\n", controller, rightSpeed, leftSpeed);
+
 	if(rightSpeed < 0) {
-		message[2] = rightSpeed;
+		message[2] = leftSpeed;
 		message[3] = 0;
 	} else {
 		message[2] = 0;
-		message[3] = -rightSpeed;
+		message[3] = leftSpeed;
 	}
 	if(leftSpeed < 0) {
-		message[4] = leftSpeed;
+		message[4] = rightSpeed;
 		message[5] = 0;
 	} else {
 		message[4] = 0;
-		message[5] = -leftSpeed;
+		message[5] = rightSpeed;
 	}
+
+	printf("Array: ");
+	for (int i = 0; i < 7; i++)
+		printf("%d, ", message[i]);
+	printf("\n");
 
 	for(int i = 0;  i < 7; i++)
 		motorController[controller] << message[i];
@@ -66,7 +80,7 @@ void setMotorSpeed(MotorID controller, int rightSpeed, int leftSpeed) {
 		motorController[controller] >> responce[i];
 	for(int i = 0; i < 7; i++) {
 		if((i != 1 && message[i] != responce[i] ) || message[i]-'A'+'a' != responce[i]) {
-			Error(message, responce);
+			Error((char*)message, (char*)responce);
 		}
 	}
 }
@@ -107,31 +121,41 @@ void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 			   curFTurnSpeed = 0,
 			   curRTurnSpeed = 0;
 
+	printf("msg: %d, %d, %d, %d, %d, %d, %d\n", msg->mask, msg->Left, msg->Right, msg->FrontDepth, msg->RearDepth, msg->FrontTurn, msg->RearTurn);
+
 	curLDriveSpeed = msg->mask & LEFT_DRIVE_BIT  ? msg->Left       : curLDriveSpeed;
 	curRDriveSpeed = msg->mask & RIGHT_DRIVE_BIT ? msg->Right      : curRDriveSpeed;
-	curFDepthSpeed = msg->mask & FRONT_DEPTH_BIT ? msg->FrontDepth : curLDriveSpeed;
-	curRDepthSpeed = msg->mask & REAR_DEPTH_BIT  ? msg->RearDepth  : curLDriveSpeed;
-	curFTurnSpeed  = msg->mask & FRONT_TURN_BIT  ? msg->FrontTurn  : curLDriveSpeed;
-	curRTurnSpeed  = msg->mask & REAR_TURN_BIT   ? msg->RearTurn   : curLDriveSpeed;
+	curFDepthSpeed = msg->mask & FRONT_DEPTH_BIT ? msg->FrontDepth : curFDepthSpeed;
+	curRDepthSpeed = msg->mask & REAR_DEPTH_BIT  ? msg->RearDepth  : curRDepthSpeed;
+	curFTurnSpeed  = msg->mask & FRONT_TURN_BIT  ? msg->FrontTurn  : curFTurnSpeed;
+	curRTurnSpeed  = msg->mask & REAR_TURN_BIT   ? msg->RearTurn   : curRTurnSpeed;
 
 	setMotorSpeed(DRIVE, curLDriveSpeed, curRDriveSpeed);
-	setMotorSpeed(DEPTH, curFDepthSpeed, curFDepthSpeed);
-	setMotorSpeed(TURN,  curRTurnSpeed,  curRTurnSpeed);
+	//setMotorSpeed(DEPTH, curFDepthSpeed, curFDepthSpeed);
+	//setMotorSpeed(TURN,  curRTurnSpeed,  curRTurnSpeed);
 }
 
 int main(int argc, char** argv) {
-
 	motorController[DRIVE].Open( "/dev/ttyUSB0" );
-	motorController[DEPTH].Open( "/dev/ttyUSB1" );
-	motorController[TURN] .Open( "/dev/ttyUSB2" );
+	//motorController[DEPTH].Open( "/dev/ttyUSB1" );
+	//motorController[TURN] .Open( "/dev/ttyUSB2" );
 
-	for(int i = 0; i < numMotorControllers; i++) {
+	for (int i = 0; i < NUM_MOTOR_CONTROLLERS; i++) {
+		if (!motorController[i].IsOpen()) {
+			printf("Controller %d failed to open\n", i);
+			return -1;
+		}
+	}
+
+	for(int i = 0; i < NUM_MOTOR_CONTROLLERS; i++) {
 		motorController[i].SetBaudRate( SerialStreamBuf::BAUD_115200 );
 		motorController[i].SetCharSize( SerialStreamBuf::CHAR_SIZE_8 );
 		motorController[i].SetNumOfStopBits( 1 );
 		motorController[i].SetFlowControl( SerialStreamBuf::FLOW_CONTROL_NONE );
-		motorController[i].SetParity( SerialStreamBuf::PARITY_ODD );
+		motorController[i].SetParity( SerialStreamBuf::PARITY_NONE );
 	}
+
+	
 
 	ros::init(argc, argv, "SubImuController");
 
