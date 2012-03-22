@@ -1,5 +1,7 @@
 #include <string.h>
 
+#define MOTOR_KILL_PIN      2
+
 #define LmotorA             3  // Left  motor H bridge, input A
 #define LmotorB            11  // Left  motor H bridge, input B
 #define RmotorA             5  // Right motor H bridge, input A
@@ -41,6 +43,7 @@ float lMotorCurrent = 0.0;
 boolean lMotorOverload = false;
 boolean rMotorOverload = false;
 unsigned long startTime;
+boolean motorsKilled = false;
 
 void setup()
 {
@@ -66,7 +69,12 @@ void loop()
       //good packet
       if (buf[CMD_BYTE] == DRIVE_CMD)
       {
-        if (lMotorOverload)
+        if (motorsKilled)
+        {
+          byte tmp[] = {"BUTN"};
+          sendError(tmp, 4);
+        }
+        else if (lMotorOverload)
         {
           byte tmp[] = {"OL-L"};
           sendError(tmp, 4);
@@ -207,5 +215,19 @@ void checkHealth()
     analogWrite(RmotorA, 0);
     analogWrite(RmotorB, 0);
     startTime = millis();
+  }
+  
+  int killed = digitalRead(MOTOR_KILL_PIN);
+  if (killed == 0)
+  {
+    analogWrite(LmotorA, 0);
+    analogWrite(LmotorB, 0);
+    analogWrite(RmotorA, 0);
+    analogWrite(RmotorB, 0);
+    motorsKilled = true;
+  }
+  else
+  {
+    motorsKilled = false;
   }
 }
