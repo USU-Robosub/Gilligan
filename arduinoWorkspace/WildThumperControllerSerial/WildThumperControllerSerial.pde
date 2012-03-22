@@ -47,7 +47,8 @@ void setup()
   pinMode (Charger,OUTPUT);   // change Charger pin to output
   digitalWrite (Charger,1);   // disable current regulator to charge battery
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
+  Serial.begin(19200);
   startTime = millis();
 }
 
