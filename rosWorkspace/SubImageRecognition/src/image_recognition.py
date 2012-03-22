@@ -25,7 +25,7 @@ class ImageRecognition:
         self._downward_rect_pub = rospy.Publisher("downward_camera/orange_rectangle", OrangeRectangle)
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
-                "right/image_raw", Image, self.downward_callback)
+                "left/image_raw", Image, self.downward_callback) # TODO: Change back to right/image_raw at some point
     
     def forward_callback(self, data):
         # Get image

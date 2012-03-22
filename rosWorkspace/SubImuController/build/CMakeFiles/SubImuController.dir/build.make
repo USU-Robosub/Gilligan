@@ -31,14 +31,11 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
-# The program to use to edit the cache.
-CMAKE_EDIT_COMMAND = /usr/bin/cmake-gui
-
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController
+CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubImuController
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build
+CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImuController/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/SubImuController.dir/depend.make
@@ -70,17 +67,17 @@ CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o: /opt/ros/diamondback
 CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/msg_gen/generated
 CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/msg_gen/generated
 CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/srv_gen/generated
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build/CMakeFiles $(CMAKE_PROGRESS_1)
+	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/SubImuController/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o -c /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o -c /opt/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp
 
 CMakeFiles/SubImuController.dir/src/SubImuControllerMain.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/SubImuController.dir/src/SubImuControllerMain.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp > CMakeFiles/SubImuController.dir/src/SubImuControllerMain.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /opt/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp > CMakeFiles/SubImuController.dir/src/SubImuControllerMain.i
 
 CMakeFiles/SubImuController.dir/src/SubImuControllerMain.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/SubImuController.dir/src/SubImuControllerMain.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp -o CMakeFiles/SubImuController.dir/src/SubImuControllerMain.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /opt/robosub/rosWorkspace/SubImuController/src/SubImuControllerMain.cpp -o CMakeFiles/SubImuController.dir/src/SubImuControllerMain.s
 
 CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o.requires:
 .PHONY : CMakeFiles/SubImuController.dir/src/SubImuControllerMain.o.requires
@@ -117,6 +114,6 @@ CMakeFiles/SubImuController.dir/clean:
 .PHONY : CMakeFiles/SubImuController.dir/clean
 
 CMakeFiles/SubImuController.dir/depend:
-	cd /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build/CMakeFiles/SubImuController.dir/DependInfo.cmake --color=$(COLOR)
+	cd /opt/robosub/rosWorkspace/SubImuController/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /opt/robosub/rosWorkspace/SubImuController /opt/robosub/rosWorkspace/SubImuController /opt/robosub/rosWorkspace/SubImuController/build /opt/robosub/rosWorkspace/SubImuController/build /opt/robosub/rosWorkspace/SubImuController/build/CMakeFiles/SubImuController.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/SubImuController.dir/depend
 

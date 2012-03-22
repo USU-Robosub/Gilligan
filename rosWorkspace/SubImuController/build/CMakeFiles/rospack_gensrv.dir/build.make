@@ -31,14 +31,11 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
-# The program to use to edit the cache.
-CMAKE_EDIT_COMMAND = /usr/bin/cmake-gui
-
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController
+CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubImuController
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build
+CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImuController/build
 
 # Utility rule file for rospack_gensrv.
 
@@ -57,6 +54,6 @@ CMakeFiles/rospack_gensrv.dir/clean:
 .PHONY : CMakeFiles/rospack_gensrv.dir/clean
 
 CMakeFiles/rospack_gensrv.dir/depend:
-	cd /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build /home/bholdaway/sub-workspace/robosub/rosWorkspace/SubImuController/build/CMakeFiles/rospack_gensrv.dir/DependInfo.cmake --color=$(COLOR)
+	cd /opt/robosub/rosWorkspace/SubImuController/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /opt/robosub/rosWorkspace/SubImuController /opt/robosub/rosWorkspace/SubImuController /opt/robosub/rosWorkspace/SubImuController/build /opt/robosub/rosWorkspace/SubImuController/build /opt/robosub/rosWorkspace/SubImuController/build/CMakeFiles/rospack_gensrv.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/rospack_gensrv.dir/depend
 
