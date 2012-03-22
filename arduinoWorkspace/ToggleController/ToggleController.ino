@@ -8,7 +8,7 @@
 #define PUSHED 1
 
 int button = 0;
-byte state = 0;
+byte state = 1;
 int oldButton = 0;
 
 
@@ -35,6 +35,7 @@ void setup()
 {
   pinMode(outputPin, OUTPUT);
   pinMode(buttonPin, INPUT);
+  digitalWrite(outputPin, HIGH);
 }
 
 void loop()

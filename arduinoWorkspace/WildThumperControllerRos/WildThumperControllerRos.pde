@@ -19,6 +19,7 @@ byte lMotorA = 0;
 byte lMotorB = 0;
 byte rMotorA = 0;
 byte rMotorB = 0;
+boolean killed = false;
 
 void executeMotors()
 {
@@ -60,7 +61,10 @@ void setMotors(int val)
   }
   
   counter = 0;
-  executeMotors();
+  if (!killed)
+  {
+    executeMotors();
+  }
 }
 
 void messageCb( const std_msgs::Int16& msg)
@@ -107,5 +111,5 @@ void loop()
     executeMotors;
   }
   
-  delay(10);
+  //delay(10);
 }
