@@ -34,7 +34,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>200</width>
+       <width>221</width>
        <height>96</height>
       </rect>
      </property>
@@ -125,7 +125,7 @@
         <item>
          <widget class="QLabel" name="turnFwdPercentageLabel">
           <property name="text">
-           <string>80% Turn Fwd</string>
+           <string>80% FwdTurn Limit</string>
           </property>
          </widget>
         </item>

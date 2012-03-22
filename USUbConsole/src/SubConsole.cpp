@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "SubConsole.hpp"
+#include "USUbConsole/MotorMessage.h"
 #include "ui_SubConsole.h"
 
 /**
@@ -19,9 +20,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pCallbackTimer(new QTimer(this)),
      m_pJoystick(new Joystick()),
      m_nodeHandle(),
-     m_motorDepthPublisher(),
-     m_motorDrivePublisher(),
-     m_motorTurnPublisher(),
+     m_motorDriverPublisher(),
      m_imuSubscriber(),
      m_motorControllerTempSubscriber(),
      m_motorCaseTempSubscriber(),
@@ -62,9 +61,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->forwardCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
-   m_motorDepthPublisher = m_nodeHandle.advertise<std_msgs::Int16>("Motor_Driver_Depth", 100);
-   m_motorDrivePublisher = m_nodeHandle.advertise<std_msgs::Int16>("Motor_Driver_Drive", 100);
-   m_motorTurnPublisher = m_nodeHandle.advertise<std_msgs::Int16>("Motor_Driver_Turn", 100);
+   m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Driver", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -120,6 +117,14 @@ void SubConsole::readJoystickInput(void)
    int currentTwistAxis = m_pJoystick->getAxis(2);
    int currentThrottleAxis = m_pJoystick->getAxis(3);
 
+   unsigned char motorMask = 0;
+   short leftDriveValue = 0;
+   short rightDriveValue = 0;
+   short frontDepthValue = 0;
+   short rearDepthValue = 0;
+   short frontTurnValue = 0;
+   short rearTurnValue = 0;
+
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
        //Set the horizontal thrusters to opposite thrust to strafe
@@ -127,18 +132,16 @@ void SubConsole::readJoystickInput(void)
 
        if(currentXAxis > 0)  //Strafe right
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_FORWARD, turnSpeed * m_turnForwardPercentage);
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_REVERSE, turnSpeed);
+          frontTurnValue = turnSpeed * m_turnForwardPercentage;
+          rearTurnValue = turnSpeed * -1;
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_FORWARD, turnSpeed * m_turnForwardPercentage);
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_REVERSE, turnSpeed);
+          frontTurnValue = turnSpeed * -1;
+          rearTurnValue = turnSpeed * m_turnForwardPercentage;
        }
-       else //Motor should be off
-       {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_RIGHT | MOTOR_LEFT | MOTOR_FORWARD, turnSpeed);
-       }
+
+       motorMask |= (MOTOR_FRONT_TURN | MOTOR_REAR_TURN);
 
        m_lastXAxisValue = currentXAxis;
    }
@@ -151,12 +154,16 @@ void SubConsole::readJoystickInput(void)
       //A neg number means the stick is pushed forward, if positive we actually want reverse
       if(currentYAxis >= 0)
       {
-         sendMotorSpeedMsg(DRIVE_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed);
+         leftDriveValue = thrusterSpeed;
+         rightDriveValue = thrusterSpeed;
       }
       else if(currentYAxis < 0)
       {
-         sendMotorSpeedMsg(DRIVE_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_REVERSE, thrusterSpeed);
+          leftDriveValue = thrusterSpeed * -1;
+          rightDriveValue = thrusterSpeed * -1;
       }
+
+      motorMask |= (MOTOR_LEFT_DRIVE | MOTOR_RIGHT_DRIVE);
 
       m_lastYAxisValue = currentYAxis;
    }
@@ -168,12 +175,17 @@ void SubConsole::readJoystickInput(void)
 
       if(currentTwistAxis >= 0)  //Turn right, set both thrusters to reverse
       {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_REVERSE, thrusterSpeed);
+          frontTurnValue = thrusterSpeed * -1;
+          rearTurnValue = thrusterSpeed * -1;
+
       }
       else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
       {
-          sendMotorSpeedMsg(TURN_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed * m_turnForwardPercentage);
+          frontTurnValue = thrusterSpeed * m_turnForwardPercentage;
+          rearTurnValue = thrusterSpeed * m_turnForwardPercentage;
       }
+
+      motorMask |= (MOTOR_FRONT_TURN | MOTOR_REAR_TURN);
 
       m_lastTwistValue = currentTwistAxis;
    }
@@ -185,15 +197,21 @@ void SubConsole::readJoystickInput(void)
 
       if(currentThrottleAxis >= 0)
       {
-         sendMotorSpeedMsg(DEPTH_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_REVERSE, thrusterSpeed);
+         frontDepthValue = thrusterSpeed * -1;
+         rearDepthValue = thrusterSpeed * -1;
       }
       else if(currentThrottleAxis < 0)
       {
-         sendMotorSpeedMsg(DEPTH_CONTROLLER, MOTOR_LEFT | MOTOR_RIGHT | MOTOR_FORWARD, thrusterSpeed);
+          frontDepthValue = thrusterSpeed;
+          rearDepthValue = thrusterSpeed;
       }
+
+      motorMask |= (MOTOR_FRONT_DEPTH | MOTOR_REAR_DEPTH);
 
       m_lastThrottleValue = currentThrottleAxis;
    }
+
+   sendMotorSpeedMsg(motorMask, leftDriveValue, rightDriveValue, frontDepthValue, rearDepthValue, frontTurnValue, rearTurnValue);
 }
 
 /**
@@ -209,26 +227,19 @@ void SubConsole::handleRosCallbacks(void)
  *
  * @param motorMask Bit mask with the motors to drive at the specified speed
  **/
-void SubConsole::sendMotorSpeedMsg(int motorController, unsigned char motorMask, unsigned char motorSpeed)
+void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn)
 {
-   std_msgs::Int16 motorMsg;
+   USUbConsole::MotorMessage motorMsg;
 
-   motorMsg.data = ((short)motorMask << 8) | motorSpeed;
+   motorMsg.mask = motorMask;
+   motorMsg.Left = leftDrive;
+   motorMsg.Right = rightDrive;
+   motorMsg.FrontDepth = frontDepth;
+   motorMsg.RearDepth = rearDepth;
+   motorMsg.FrontTurn = frontTurn;
+   motorMsg.RearTurn = rearTurn;
 
-   //printf("Sending speed 0x%02x to motor mask 0x%02x.  As Int16: 0x%04x\n", motorSpeed, motorMask, motorMsg.data);
-
-   if(motorController == DEPTH_CONTROLLER)
-   {
-       m_motorDepthPublisher.publish(motorMsg);
-   }
-   else if(motorController == DRIVE_CONTROLLER)
-   {
-       m_motorDrivePublisher.publish(motorMsg);
-   }
-   else if(motorController == TURN_CONTROLLER)
-   {
-       m_motorTurnPublisher.publish(motorMsg);
-   }
+   m_motorDriverPublisher.publish(motorMsg);
 }
 
 /**
@@ -435,7 +446,7 @@ void SubConsole::adjustFwdTurnMax(int sliderValue)
 {
     QString percentString = QString::number(sliderValue);
 
-    percentString += "% Turn Fwd";
+    percentString += "% FwdTurn Limit";
     m_turnForwardPercentage = sliderValue / 100.0;
     m_pUi->turnFwdPercentageLabel->setText(percentString);
 }

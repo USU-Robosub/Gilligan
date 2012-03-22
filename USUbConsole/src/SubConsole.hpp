@@ -42,9 +42,7 @@ private:
    QTimer* m_pCallbackTimer;                        //!< Timer used to give processing time to ROS to handle callbacks
    Joystick* m_pJoystick;                           //!< Joystick++ library object
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
-   ros::Publisher m_motorDepthPublisher;            //!< Publishes the Motor_Driver_Depth topic
-   ros::Publisher m_motorDrivePublisher;            //!< Publishes the Motor_Driver_Drive topic
-   ros::Publisher m_motorTurnPublisher;             //!< Publishes the Motor_Driver_Turn topic
+   ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Data topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_motorCaseTempSubscriber;       //!< Subscribes to the Motor_Case_Temp topic
@@ -74,16 +72,15 @@ private:
       JOYSTICK_POLL_INTERVAL_MSEC = 100,
       JOYSTICK_MAX_VALUE = 32767,
       CALLBACK_HANDLE_INTERVAL_MSEC = 20,
-      DEPTH_CONTROLLER = 1,
-      DRIVE_CONTROLLER = 2,
-      TURN_CONTROLLER = 3,
-      MOTOR_LEFT = 0x04,
-      MOTOR_RIGHT = 0x02,
-      MOTOR_FORWARD = 0x01,
-      MOTOR_REVERSE = 0x00
+      MOTOR_LEFT_DRIVE = 0x01,
+      MOTOR_RIGHT_DRIVE = 0x02,
+      MOTOR_FRONT_DEPTH = 0x04,
+      MOTOR_REAR_DEPTH = 0x08,
+      MOTOR_FRONT_TURN = 0x10,
+      MOTOR_REAR_TURN = 0x20
    };
 
-   void sendMotorSpeedMsg(int motorController, unsigned char motorMask, unsigned char motorSpeed);
+   void sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn);
 
 private slots:
    void readJoystickInput(void);
