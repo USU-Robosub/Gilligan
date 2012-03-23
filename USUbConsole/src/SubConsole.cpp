@@ -61,7 +61,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->forwardCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
-   m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Driver", 100);
+   m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("motorControl", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -130,12 +130,12 @@ void SubConsole::readJoystickInput(void)
        //Set the horizontal thrusters to opposite thrust to strafe
        int turnSpeed = 255 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
 
-       if(currentXAxis > 0)  //Strafe right
+       if(currentXAxis < 0)  //Strafe right
        {
           frontTurnValue = turnSpeed * m_turnForwardPercentage;
           rearTurnValue = turnSpeed * -1;
        }
-       else if(currentXAxis < 0)//Strafe left
+       else if(currentXAxis > 0)//Strafe left
        {
           frontTurnValue = turnSpeed * -1;
           rearTurnValue = turnSpeed * m_turnForwardPercentage;
@@ -152,15 +152,15 @@ void SubConsole::readJoystickInput(void)
       int thrusterSpeed = 255 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
 
       //A neg number means the stick is pushed forward, if positive we actually want reverse
-      if(currentYAxis >= 0)
+      if(currentYAxis < 0)
       {
-         leftDriveValue = thrusterSpeed;
-         rightDriveValue = thrusterSpeed;
+         leftDriveValue = thrusterSpeed * -1;
+         rightDriveValue = thrusterSpeed  * -1;
       }
-      else if(currentYAxis < 0)
+      else if(currentYAxis > 0)
       {
-          leftDriveValue = thrusterSpeed * -1;
-          rightDriveValue = thrusterSpeed * -1;
+          leftDriveValue = thrusterSpeed;
+          rightDriveValue = thrusterSpeed;
       }
 
       motorMask |= (MOTOR_LEFT_DRIVE | MOTOR_RIGHT_DRIVE);
@@ -173,7 +173,7 @@ void SubConsole::readJoystickInput(void)
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
       int thrusterSpeed = 255 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis >= 0)  //Turn right, set both thrusters to reverse
+      if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
       {
           frontTurnValue = thrusterSpeed * -1;
           rearTurnValue = thrusterSpeed * -1;
@@ -211,7 +211,10 @@ void SubConsole::readJoystickInput(void)
       m_lastThrottleValue = currentThrottleAxis;
    }
 
-   sendMotorSpeedMsg(motorMask, leftDriveValue, rightDriveValue, frontDepthValue, rearDepthValue, frontTurnValue, rearTurnValue);
+   if(motorMask != 0x0)
+   {
+     sendMotorSpeedMsg(motorMask, leftDriveValue, rightDriveValue, frontDepthValue, rearDepthValue, frontTurnValue, rearTurnValue);
+   }
 }
 
 /**
