@@ -7,6 +7,7 @@ import rospy
 import math
 import time
 import cv
+from heapq import nlargest
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from SubImageRecognition.msg import OrangeRectangle
@@ -14,6 +15,10 @@ from cv_bridge import CvBridge, CvBridgeError
 
 
 class ImageRecognition:
+    sample_size = 17
+    min_point_set_len = 50
+    max_point_sets = 2
+    
     def __init__(self):
         self._bridge = CvBridge()
         
@@ -25,7 +30,7 @@ class ImageRecognition:
         self._downward_rect_pub = rospy.Publisher("downward_camera/orange_rectangle", OrangeRectangle)
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
-                "left/image_raw", Image, self.downward_callback) # TODO: Change back to right/image_raw at some point
+                "right/image_raw", Image, self.downward_callback)
     
     def forward_callback(self, data):
         # Get image
@@ -57,6 +62,10 @@ class ImageRecognition:
         # Publish image
         try:
             self._forward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
+        except ROSException:
+            # Generally this exception occurs if ROS wasn't ready yet. We'll
+            # just silently ignore it and next time should work
+            pass
         except CvBridgeError, e:
             print e
     
@@ -99,57 +108,85 @@ class ImageRecognition:
         cv.Dilate(threshold, threshold, element, 4)
         
         # Sample threshold for white points
-        # TODO: Segment points into grouped regions
-        points = []
-        for i in range(0, size[1], 13): # height
-            for j in range(0, size[0], 13): # width
+        point_sets = []
+        for i in range(0, size[1], self.sample_size): # height
+            for j in range(0, size[0], self.sample_size): # width
                 if cv.Get2D(threshold, i, j)[0] == 255.0:
-                    points.append((j, i))
+                    # Is this point in a point set already
+                    found = False
+                    for point_set in point_sets:
+                        if (j, i) in point_set:
+                            found = True
+                            break
+                    if not found:
+                        # No so create new set from adjacent points and add to list
+                        point_sets.append(self.find_adjacent_points(threshold, size, j, i))
         
-        # Throw away bad groups
-        # TODO: Do this for each of the grouped regions
-        if len(points) < 5:
-            points = None
+        # Throw away bad point sets
+        for index in range(len(point_sets)):
+            if len(point_sets[index]) < self.min_point_set_len:
+                point_sets[index] = []
         
-        # Find minimum area rotated rectangle around white points
-        #if points:
-        if points:
-            (center, dims, rotation) = cv.MinAreaRect2(points)
-            rotation *= math.pi / 180 # Convert rotation from degrees to radians
-            
-            # Correct dims/rotation so that the first dim is always larger
-            if dims[0] < dims[1]:
-                dims = (dims[1], dims[0])
-                rotation += math.pi / 2
-            
-            # Normalize rotation for drawing
-            if math.sin(rotation) > 0:
-                rotation += math.pi
-            rotation %= math.pi * 2
-            
-            # Mark rectangle on rotated image
-            v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
-            v1 = (dims[1]/2*math.cos(rotation+math.pi/2), dims[1]/2*math.sin(rotation+math.pi/2))
-            cv.Circle(rotated, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
-            cv.Line(rotated, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
-            cv.Circle(rotated, (int(center[0] + v0[0] + v1[0]), int(center[1] + v0[1] + v1[1])), 1 , (0, 0, 255), 5)
-            cv.Circle(rotated, (int(center[0] + v0[0] - v1[0]), int(center[1] + v0[1] - v1[1])), 1 , (0, 0, 255), 5)
-            cv.Circle(rotated, (int(center[0] - v0[0] + v1[0]), int(center[1] - v0[1] + v1[1])), 1 , (0, 0, 255), 5)
-            cv.Circle(rotated, (int(center[0] - v0[0] - v1[0]), int(center[1] - v0[1] - v1[1])), 1 , (0, 0, 255), 5)
-            
-            # Normalize rotation for publishing
-            if rotation == 0:
-                rotation = math.pi * 2
-            rotation -= 3 * math.pi / 2
-            
-            # Publish rectangle data
-            self._downward_rect_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), rotation=rotation))
+        # Limit maximum number of point sets
+        point_sets = nlargest(self.max_point_sets, point_sets, len)
+        
+        # Find minimum area rotated rectangle around each set of points
+        for points in point_sets:
+            if points:
+                (center, dims, rotation) = cv.MinAreaRect2(points)
+                rotation *= math.pi / 180 # Convert rotation from degrees to radians
+                
+                # Correct dims/rotation so that the first dim is always larger
+                if dims[0] < dims[1]:
+                    dims = (dims[1], dims[0])
+                    rotation += math.pi / 2
+                
+                # Normalize rotation for drawing
+                if math.sin(rotation) > 0:
+                    rotation += math.pi
+                rotation %= math.pi * 2
+                
+                # Mark rectangle on rotated image
+                v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
+                #v1 = (dims[1]/2*math.cos(rotation+math.pi/2), dims[1]/2*math.sin(rotation+math.pi/2))
+                cv.Circle(rotated, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
+                cv.Line(rotated, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
+                #cv.Circle(rotated, (int(center[0] + v0[0] + v1[0]), int(center[1] + v0[1] + v1[1])), 1 , (0, 0, 255), 5)
+                #cv.Circle(rotated, (int(center[0] + v0[0] - v1[0]), int(center[1] + v0[1] - v1[1])), 1 , (0, 0, 255), 5)
+                #cv.Circle(rotated, (int(center[0] - v0[0] + v1[0]), int(center[1] - v0[1] + v1[1])), 1 , (0, 0, 255), 5)
+                #cv.Circle(rotated, (int(center[0] - v0[0] - v1[0]), int(center[1] - v0[1] - v1[1])), 1 , (0, 0, 255), 5)
+                
+                # Normalize rotation for publishing
+                if rotation == 0:
+                    rotation = math.pi * 2
+                rotation -= 3 * math.pi / 2
+                
+                # Publish rectangle data
+                self._downward_rect_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), rotation=rotation))
         
         # Publish image
         try:
             self._downward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
+        except ROSException:
+            # Generally this exception occurs if ROS wasn't ready yet. We'll
+            # just silently ignore it and next time should work
+            pass
         except CvBridgeError, e:
             print e
+    
+    def find_adjacent_points(self, image, size, j, i, points=None):
+        if points is None:
+            points = []
+        points.append((j, i))
+        if j+self.sample_size < size[0] and cv.Get2D(image, i, j+self.sample_size)[0] == 255.0 and (j+self.sample_size, i) not in points:
+            self.find_adjacent_points(image, size, j+self.sample_size, i, points)
+        if j-self.sample_size >= 0 and cv.Get2D(image, i, j-self.sample_size)[0] == 255.0 and (j-self.sample_size, i) not in points:
+            self.find_adjacent_points(image, size, j-self.sample_size, i, points)
+        if i+self.sample_size < size[1] and cv.Get2D(image, i+self.sample_size, j)[0] == 255.0 and (j, i+self.sample_size) not in points:
+            self.find_adjacent_points(image, size, j, i+self.sample_size, points)
+        if i-self.sample_size >= 0 and cv.Get2D(image, i-self.sample_size, j)[0] == 255.0 and (j, i-self.sample_size) not in points:
+            self.find_adjacent_points(image, size, j, i-self.sample_size, points)
+        return points
     
     def rotate_image_ccw(self, image, rotated):
         cv.Transpose(image, rotated)
