@@ -20,7 +20,7 @@ void setupTTY(int fd);
 std::string getTTYLine(int fd);
 void tokenize(std::string line, float* buf);
 bool timeLeft(struct timeval* start, struct timeval* timeout);
-
+bool goodLine(std::string val);
 
 void error(char * msg)
 {
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 {
   int fd = 0;
   float buf[3];
-  std::string file = "/dev/ttyUSB0";
+  std::string file = "/dev/controller_Imu";
 
   if (argc > 1)
   {
@@ -50,27 +50,21 @@ int main(int argc, char **argv)
   
   setupTTY(fd);
 
-  ros::init(argc, argv, "SubImuController");
-  printf("ROS init complete\n");
+  sleep(5); //wait for IMU to boot and stabalize
 
+  ros::init(argc, argv, "SubImuController");
   ros::NodeHandle nh;
 
   ros::Publisher chatter_pub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Data", 1000);
-  printf("ros publisher\n");
-
   ros::Rate loop_rate(1);
-  printf("ros looprate\n");
 
   while (ros::ok())
   {
-    printf("loop\n");
       std::string line = getTTYLine(fd);
-      if (line.length() > 0)
+      if (line.length() > 0 && goodLine(line))
       {
         std_msgs::Float32MultiArray msg;
         tokenize(line, buf);
-        printf("Raw line: %s\n", line.c_str());
-        printf("Data is: %f, %f, %f\n", buf[0], buf[1], buf[2]);
         msg.data.push_back(buf[0]);
         msg.data.push_back(buf[1]);
         msg.data.push_back(buf[2]);
@@ -91,9 +85,13 @@ int main(int argc, char **argv)
   return 0;
 }
 
-bool goodLine(std::string)
+bool goodLine(std::string val)
 {
-  
+  for (int i = 0; i < val.size(); i++)
+  {
+    if (val[i] != ' ')
+	break;
+  }
 }
 
 std::string getTTYLine(int fd)
@@ -134,7 +132,6 @@ std::string getTTYLine(int fd)
     }
     else
     {
-      printf("failure\n");
       break;
     }
   }
