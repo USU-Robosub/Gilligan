@@ -47,6 +47,8 @@ int main(int argc, char **argv)
     printf("System failed to open %s: %s(%d)\n", file.c_str(), strerror(errno), errno);
     return -1;
   }
+  
+  setupTTY(fd);
 
   ros::init(argc, argv, "SubImuController");
   printf("ROS init complete\n");
@@ -87,6 +89,11 @@ int main(int argc, char **argv)
 
   close(fd);
   return 0;
+}
+
+bool goodLine(std::string)
+{
+  
 }
 
 std::string getTTYLine(int fd)
