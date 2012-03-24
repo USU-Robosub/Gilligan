@@ -13,7 +13,7 @@
 #define Charger            13  // Low=ON High=OFF
 #define MAX_MOTOR_CURRENT  550
 #define FUSE_BLOW          700
-#define HEART_BEAT_MS      1000
+#define HEART_BEAT_MS      5000
 #define LEFT_MAX_CURRENT   (MAX_MOTOR_CURRENT * 4.883)
 #define RIGHT_MAX_CURRENT  (MAX_MOTOR_CURRENT * 4.883)
 
@@ -50,8 +50,7 @@ void setup()
   pinMode (Charger,OUTPUT);   // change Charger pin to output
   digitalWrite (Charger,1);   // disable current regulator to charge battery
 
-  //Serial.begin(115200);
-  Serial.begin(19200);
+  Serial.begin(115200);
   startTime = millis();
 }
 
@@ -87,13 +86,14 @@ void loop()
         else
         {
           setMotors(&buf[DATA_BYTE]);
-          startTime = millis();
           sendMsg(DRIVE_RESP, &buf[DATA_BYTE], DATA_SIZE);
         }
+        startTime = millis();
       }
       else if (buf[CMD_BYTE] == VOLTAGE_CMD)
       {
-        sendMsg(CURRENT_RESP, voltage);
+        sendMsg(VOLTAGE_RESP, voltage);
+        startTime = millis();
       }
       else if (buf[CMD_BYTE] == CURRENT_CMD)
       {
@@ -105,9 +105,11 @@ void loop()
         {
           sendMsg(CURRENT_RESP, rMotorCurrent);
         }
+        startTime = millis();
       }
       else if (buf[CMD_BYTE] == CLEAR_CMD)
       {
+        startTime = millis();
         byte tmp[] = {"OK"};
         rMotorOverload = false;
         lMotorOverload = false;
@@ -116,6 +118,8 @@ void loop()
     }
   }
   
+  readVoltage();
+  readCurrents();
   checkHealth();
 }
 
@@ -217,6 +221,7 @@ void checkHealth()
     startTime = millis();
   }
   
+  /*
   int killed = digitalRead(MOTOR_KILL_PIN);
   if (killed == 0)
   {
@@ -230,4 +235,5 @@ void checkHealth()
   {
     motorsKilled = false;
   }
+  */
 }
