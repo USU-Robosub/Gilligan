@@ -3,7 +3,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
-#include "SubMotorController/MotorMessage.h"
+#include <SubMotorController/MotorMessage.h>
 
 #define LEFT_DRIVE_BIT  0x01
 #define RIGHT_DRIVE_BIT 0x02
