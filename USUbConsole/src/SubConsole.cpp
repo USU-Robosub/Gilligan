@@ -65,7 +65,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->forwardCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
-   m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("motorControl", 100);
+   m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -137,13 +137,13 @@ void SubConsole::readJoystickInput(void)
 
        if(currentXAxis < 0)  //Strafe right
        {
-          frontTurnValue = turnSpeed * m_turnForwardPercentage;
-          rearTurnValue = turnSpeed * -1;
+          frontTurnValue = turnSpeed * -1;
+          rearTurnValue = turnSpeed * m_turnForwardPercentage;;
        }
        else if(currentXAxis > 0)//Strafe left
        {
-          frontTurnValue = turnSpeed * -1;
-          rearTurnValue = turnSpeed * m_turnForwardPercentage;
+          frontTurnValue = turnSpeed * m_turnForwardPercentage;
+          rearTurnValue = turnSpeed * -1;
        }
 
        motorMask |= (MOTOR_FRONT_TURN | MOTOR_REAR_TURN);
@@ -159,13 +159,13 @@ void SubConsole::readJoystickInput(void)
       //A neg number means the stick is pushed forward, if positive we actually want reverse
       if(currentYAxis < 0)
       {
-         leftDriveValue = thrusterSpeed * -1;
-         rightDriveValue = thrusterSpeed  * -1;
+         leftDriveValue = thrusterSpeed;
+         rightDriveValue = thrusterSpeed;
       }
       else if(currentYAxis > 0)
       {
-          leftDriveValue = thrusterSpeed;
-          rightDriveValue = thrusterSpeed;
+          leftDriveValue = thrusterSpeed  * -1;
+          rightDriveValue = thrusterSpeed  * -1;
       }
 
       motorMask |= (MOTOR_LEFT_DRIVE | MOTOR_RIGHT_DRIVE);
@@ -180,14 +180,14 @@ void SubConsole::readJoystickInput(void)
 
       if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
       {
-          frontTurnValue = thrusterSpeed * -1;
-          rearTurnValue = thrusterSpeed * -1;
+          frontTurnValue = thrusterSpeed * m_turnForwardPercentage;
+          rearTurnValue = thrusterSpeed * m_turnForwardPercentage;
 
       }
       else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
       {
-          frontTurnValue = thrusterSpeed * m_turnForwardPercentage;
-          rearTurnValue = thrusterSpeed * m_turnForwardPercentage;
+          frontTurnValue = thrusterSpeed * -1;
+          rearTurnValue = thrusterSpeed * -1;
       }
 
       motorMask |= (MOTOR_FRONT_TURN | MOTOR_REAR_TURN);
@@ -202,13 +202,13 @@ void SubConsole::readJoystickInput(void)
 
       if(currentThrottleAxis >= 0)
       {
-         frontDepthValue = thrusterSpeed * -1;
-         rearDepthValue = thrusterSpeed * -1;
+         frontDepthValue = thrusterSpeed;
+         rearDepthValue = thrusterSpeed;
       }
       else if(currentThrottleAxis < 0)
       {
-          frontDepthValue = thrusterSpeed;
-          rearDepthValue = thrusterSpeed;
+          frontDepthValue = thrusterSpeed * -1;
+          rearDepthValue = thrusterSpeed * -1;
       }
 
       motorMask |= (MOTOR_FRONT_DEPTH | MOTOR_REAR_DEPTH);
@@ -293,10 +293,14 @@ void SubConsole::moboTempCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-   float pressure = msg->data;
+   //float pressure = msg->data;
 
-   m_pUi->freshDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.31));
-   m_pUi->saltDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.247));
+   //@todo temporarily just reporting ticks from the pressure sensor
+   //m_pUi->freshDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.31));
+   //m_pUi->saltDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.247));
+
+   m_pUi->freshDepthLineEdit->setText(QString::number(msg->data));
+   m_pUi->saltDepthLineEdit->setText(QString::number(msg->data));
 }
 
 /**
