@@ -1,7 +1,25 @@
 #include "motorController.h"
 #include "time.h"
+#include "ros/ros.h"
+#include "std_msgs/String.h"
+#include <string>
+
+using namespace std;
 
 void printMessageMismatchError() {
+}
+
+void print(string error) {
+	static ros::NodeHandle n;
+	static ros::Publisher errorOut;
+	bool init = false;
+	if(!init) {
+		errorOut = n.advertise<std_msgs::String>("/Error_Stream", 100);
+		init = true;
+	}
+	std_msgs::String msg;
+	msg.data = error;
+	errorOut.publish(msg);
 }
 
 MotorControllerHandler::MotorControllerHandler(const char* Port) 
@@ -15,7 +33,9 @@ MotorControllerHandler::MotorControllerHandler(const char* Port)
 	try {
 		serialPort.Open(BAUD, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
 	} catch (...) {
-		printf("%s error: Failed during initialization\n", name.c_str());
+		char temp[1000];
+		sprintf(temp, "%s error: Failed during initialization\n", name.c_str());
+		print(string(temp));
 	}
 	bufIndex = 0;
 }
@@ -41,7 +61,10 @@ void MotorControllerHandler::transmit() {
 		try {
 			serialPort.Open(BAUD, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
 		} catch (...) {
-			printf("%s: Unable to open port\n", name.c_str());
+			char temp[1000];
+			sprintf(temp, "%s error: Unable to open port\n", name.c_str());
+			print(string(temp));
+			return;
 		}
 	}
 	try {
@@ -52,13 +75,11 @@ void MotorControllerHandler::transmit() {
 		}
 		serialPort.WriteByte('E');
 	} catch (...) {
-		printf("%s error: Unable to send message\n", name.c_str());
+			char temp[1000];
+			sprintf(temp, "%s error: Unable to send message\n", name.c_str());
+			print(string(temp));
+			return;
 	}
-	//printf("sending message  %c %c %x %x %x %x %c\n", 'S', currentMessage.type, currentMessage.DataC[0],
-	//										currentMessage.DataC[1],
-	//										currentMessage.DataC[2],
-	//										currentMessage.DataC[3],
-	//										'E');
 	awaitingResponce = true;
 }
 
@@ -142,7 +163,10 @@ void MotorControllerHandler::recieve() {
 				}
 			}
 		} catch (...) {
-			printf("%s error: while attempting to read data\n", name.c_str());
+			char temp[1000];
+			sprintf(temp, "%s error: While attempting to read data\n", name.c_str());
+			print(string(temp));
+			return;
 		}
 	}
 }

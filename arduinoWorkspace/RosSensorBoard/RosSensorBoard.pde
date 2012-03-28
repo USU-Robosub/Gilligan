@@ -74,13 +74,14 @@ void checkDepthPsi()
   t /= 100.0;
   
   //convert to psi
+  /*
   t *= 0.0049; //mV
   t *= 21.375;
   
   //round
   //t = floor(t * 10 + 0.5)/10;
   t = floor(t);
-  
+  */
     //send update
     depthMsg.data = t;
     chatterDepth.publish(&depthMsg);
@@ -121,9 +122,8 @@ void checkCurrentVoltage()
   int cur = analogRead(computerCurrentPin);
   int vol = analogRead(computerVoltagePin);
   
-  computerCurrent = (cur * 1.514) / 49.44; //0 to 20.7 amps
-  computerVoltage = (vol * 1.514) / 14.9;  //0 to 68.69 volts
-  
+  computerCurrent = (cur / 14.99);
+  computerVoltage = (vol / 49.83);
   
   computerCurVolt.data[0] = computerCurrent;
   computerCurVolt.data[1] = computerVoltage;
@@ -154,10 +154,10 @@ void loop()
 {
   checkDepthPsi();
   checkMotorKilled();
+  checkCurrentVoltage();
   
-  if (millis() - timer > 1000)
+  if (millis() - timer > 2000)
   {
-    checkCurrentVoltage();
     checkControllerTemperature();
     timer = millis();
   }
