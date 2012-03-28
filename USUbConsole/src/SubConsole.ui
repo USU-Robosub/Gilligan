@@ -21,7 +21,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>430</y>
+      <y>450</y>
       <width>241</width>
       <height>131</height>
      </rect>
@@ -227,7 +227,7 @@
       <x>530</x>
       <y>150</y>
       <width>331</width>
-      <height>141</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="title">
@@ -239,7 +239,7 @@
        <x>20</x>
        <y>20</y>
        <width>301</width>
-       <height>111</height>
+       <height>136</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -269,6 +269,16 @@
          <widget class="QLabel" name="label_9">
           <property name="text">
            <string>Fresh/Salt Water Depth</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Current/Voltage</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -338,6 +348,24 @@
           </item>
          </layout>
         </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QLineEdit" name="currentLineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="voltageLineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </item>
      </layout>
@@ -351,7 +379,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>310</y>
+      <y>330</y>
       <width>241</width>
       <height>101</height>
      </rect>
