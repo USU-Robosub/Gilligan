@@ -11,6 +11,7 @@
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/Int16.h"
+#include "std_msgs/String.h"
 #include "sensor_msgs/CompressedImage.h"
 
 namespace Ui
@@ -33,7 +34,8 @@ public:
    void missionStateCallback(const std_msgs::UInt8::ConstPtr& msg);
    void forwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
    void downwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
-   void tempCallback(const std_msgs::String::ConstPtr& msg);
+   void currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
+   void errorLogCallback(const std_msgs::String::ConstPtr& msg);
 
 private:
    Ui::SubConsole* m_pUi;                           //!< Pointer to UI object
@@ -50,6 +52,9 @@ private:
    ros::Subscriber m_missionStateSubscriber;        //!< Subscribes to the Mission_State topic
    ros::Subscriber m_forwardCameraSubscriber;       //!< Subscribes to the Forward_Camera topic
    ros::Subscriber m_downwardCameraSubscriber;      //!< Subscribes to the Downward_Camera topic
+   ros::Subscriber m_voltageCurrentSubscriber;      //!< Subscribes to the Computer_Cur_Volt topic
+   ros::Subscriber m_errorLogSubscriber;            //!< Subscribes to the Error_Log topic
+
 
    int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
    int m_lastYAxisValue;            //!< Stores the last joystick y-axis value

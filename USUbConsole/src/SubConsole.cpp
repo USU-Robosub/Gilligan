@@ -31,6 +31,8 @@ SubConsole::SubConsole(QWidget* pParent)
      m_motorStateSubscriber(),
      m_forwardCameraSubscriber(),
      m_downwardCameraSubscriber(),
+     m_voltageCurrentSubscriber(),
+     m_errorLogSubscriber(),
      m_lastXAxisValue(0),
      m_lastYAxisValue(0),
      m_lastThrottleValue(0),
@@ -72,6 +74,8 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
    m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_compressed/compressed", 100, &SubConsole::forwardCameraCallback, this);
    m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
+   m_voltageCurrentSubscriber = m_nodeHandle.subscribe("Computer_Cur_Volt", 100, &SubConsole::currentVoltageCallback, this);
+   m_errorLogSubscriber = m_nodeHandle.subscribe("Error_Log", 100, &SubConsole::errorLogCallback, this);
 
    printf("Finished ROS topic publish and subscription initialization\n");
 }
@@ -332,6 +336,22 @@ void SubConsole::missionStateCallback(const std_msgs::UInt8::ConstPtr& msg)
       m_pUi->missionStateLineEdit->setText("Disabled");
    }
 }
+
+/**
+ * @brief ROS callback for Computer_Cur_Volt subscription
+ *
+ * @param msg The received message
+ **/
+void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{
+   m_pUi->currentLineEdit->setText(QString::number(msg->data[0]));
+   m_pUi->voltageLineEdit->setText(QString::number(msg->data[1]));
+}
+
+ void SubConsole::errorLogCallback(const std_msgs::String::ConstPtr& msg)
+ {
+     m_pUi->errorLogTextEdit->appendPlainText(QString::fromStdString(msg->data));
+ }
 
 /**
  * @brief ROS callback for Forward_Camera subscription
