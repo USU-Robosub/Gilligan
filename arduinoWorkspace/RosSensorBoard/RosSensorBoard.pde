@@ -154,10 +154,10 @@ void loop()
 {
   checkDepthPsi();
   checkMotorKilled();
+  checkCurrentVoltage();
   
-  if (millis() - timer > 1000)
+  if (millis() - timer > 2000)
   {
-    checkCurrentVoltage();
     checkControllerTemperature();
     timer = millis();
   }
