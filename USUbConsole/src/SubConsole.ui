@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>872</width>
+    <width>978</width>
     <height>741</height>
    </rect>
   </property>
@@ -599,6 +599,19 @@
       </property>
      </widget>
     </widget>
+   </widget>
+   <widget class="QPlainTextEdit" name="errorLogTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>590</y>
+      <width>421</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOn</enum>
+    </property>
    </widget>
   </widget>
  </widget>
