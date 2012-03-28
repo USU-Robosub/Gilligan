@@ -1,7 +1,10 @@
 #include <QPoint>
 #include<QDesktopWidget>
 #include <QImage>
+#include <QImageReader>
 #include <QPixmap>
+#include <QDebug>
+#include <iostream>
 #include <math.h>
 
 #include "SubConsole.hpp"
@@ -23,7 +26,6 @@ SubConsole::SubConsole(QWidget* pParent)
      m_motorDriverPublisher(),
      m_imuSubscriber(),
      m_motorControllerTempSubscriber(),
-     m_motorCaseTempSubscriber(),
      m_moboTempSubscriber(),
      m_pressureSubscriber(),
      m_motorStateSubscriber(),
@@ -64,13 +66,12 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("motorControl", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
-   m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Motor_Controller_Temp", 100, &SubConsole::motorControllerTempCallback, this);
-   m_motorCaseTempSubscriber = m_nodeHandle.subscribe("Motor_Case_Temp", 100, &SubConsole::motorCaseTempCallback, this);
+   m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
    m_moboTempSubscriber = m_nodeHandle.subscribe("Mobo_Temp", 100, &SubConsole::moboTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
-   m_forwardCameraSubscriber = m_nodeHandle.subscribe("/left/image_raw", 100, &SubConsole::forwardCameraCallback, this);
-   m_downwardCameraSubscriber = m_nodeHandle.subscribe("/right/image_raw", 100, &SubConsole::downwardCameraCallback, this);
+   m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_compressed/compressed", 100, &SubConsole::forwardCameraCallback, this);
+   m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
 
    printf("Finished ROS topic publish and subscription initialization\n");
 }
@@ -258,27 +259,15 @@ void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& ms
 }
 
 /**
- * @brief ROS callback for Motor_Controller_Temp subscription
+ * @brief ROS callback for Controller_Box_Temp subscription
  *
  * @param msg The received message
  **/
-void SubConsole::motorControllerTempCallback(const std_msgs::Float32::ConstPtr& msg)
+void SubConsole::motorControllerTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-   float temperature = msg->data;
-
-   m_pUi->motorControllerTempLineEdit->setText(QString::number(temperature/10.0));
-}
-
-/**
- * @brief ROS callback for Motor_Case_Temp subscription
- *
- * @param msg The received message
- **/
-void SubConsole::motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg)
-{
-   float temperature = msg->data;
-
-   m_pUi->motorCaseTempLineEdit->setText(QString::number(temperature/10.0));
+   m_pUi->motorController1TempLineEdit->setText(QString::number((int)msg->data[0]));
+   m_pUi->motorController2TempLineEdit->setText(QString::number((int)msg->data[1]));
+   m_pUi->motorController3TempLineEdit->setText(QString::number((int)msg->data[2]));
 }
 
 /**
@@ -300,12 +289,10 @@ void SubConsole::moboTempCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-   //fresh depth = psi / 0.432
-   //salt depth = psi / 0.445
    float pressure = msg->data;
 
-   m_pUi->freshDepthLineEdit->setText(QString::number(pressure / 0.432));
-   m_pUi->saltDepthLineEdit->setText(QString::number(pressure / 0.445));
+   m_pUi->freshDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.31));
+   m_pUi->saltDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.247));
 }
 
 /**
@@ -351,11 +338,8 @@ void SubConsole::missionStateCallback(const std_msgs::UInt8::ConstPtr& msg)
  *
  * @param msg The received message
  **/
-void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
+void SubConsole::forwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
 {
-   int imgHeight = msg->height;
-   int imgWidth = msg->width;
-   unsigned int step = msg->step;
    QImage image;
    QPixmap pixmap;
 
@@ -367,12 +351,12 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
    m_pForwardCameraData = new unsigned char[msg->data.size()];
    std::copy(msg->data.begin(), msg->data.end(), m_pForwardCameraData);
 
-   image = QImage(m_pForwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
+   image.loadFromData(m_pForwardCameraData, msg->data.size(), "JPG");
    m_pUi->forwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
 
    if(m_forwardPipEnabled)
    {
-      m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+      m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(192), 0));
    }
 }
 
@@ -381,11 +365,8 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
  *
  * @param msg The received message
  **/
-void SubConsole::downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
+void SubConsole::downwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
 {
-    int imgHeight = msg->height;
-    int imgWidth = msg->width;
-    unsigned int step = msg->step;
     QImage image;
     QPixmap pixmap;
 
@@ -397,12 +378,12 @@ void SubConsole::downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg)
     m_pDownwardCameraData = new unsigned char[msg->data.size()];
     std::copy(msg->data.begin(), msg->data.end(), m_pDownwardCameraData);
 
-    image = QImage(m_pDownwardCameraData, imgWidth, imgHeight, step, QImage::Format_RGB888);
+    image.loadFromData(m_pDownwardCameraData, msg->data.size(), "JPG");
     m_pUi->downwardCameraImage->setPixmap(pixmap.fromImage(image, 0));
 
     if(m_downPipEnabled)
     {
-        m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+        m_pUi->downCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(192), 0));
     }
 }
 

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>940</width>
-    <height>608</height>
+    <width>872</width>
+    <height>741</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,8 +20,8 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>470</y>
+      <x>530</x>
+      <y>430</y>
       <width>241</width>
       <height>131</height>
      </rect>
@@ -137,9 +137,9 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>530</x>
       <y>10</y>
-      <width>251</width>
+      <width>311</width>
       <height>131</height>
      </rect>
     </property>
@@ -224,41 +224,31 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>530</x>
       <y>150</y>
-      <width>251</width>
-      <height>201</height>
+      <width>331</width>
+      <height>141</height>
      </rect>
     </property>
     <property name="title">
      <string>Sensor Readings</string>
     </property>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>30</y>
-       <width>221</width>
-       <height>163</height>
+       <y>20</y>
+       <width>301</width>
+       <height>111</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Motor Controller Temp</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Motor Case Temp</string>
+           <string>Motor Controller Temps</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -278,17 +268,7 @@
         <item>
          <widget class="QLabel" name="label_9">
           <property name="text">
-           <string>Fresh Water Depth</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>Salt Water Depth</string>
+           <string>Fresh/Salt Water Depth</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -300,21 +280,38 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QLineEdit" name="motorControllerTempLineEdit">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="motorCaseTempLineEdit">
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLineEdit" name="motorController1TempLineEdit">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="motorController2TempLineEdit">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="motorController3TempLineEdit">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QLineEdit" name="moboTempLineEdit">
@@ -324,29 +321,37 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="freshDepthLineEdit">
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="saltDepthLineEdit">
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLineEdit" name="freshDepthLineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="saltDepthLineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
      </layout>
     </widget>
+    <zorder>layoutWidget</zorder>
+    <zorder>motorController3TempLineEdit</zorder>
+    <zorder>freshDepthLineEdit</zorder>
+    <zorder>saltDepthLineEdit</zorder>
    </widget>
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>360</y>
+      <x>530</x>
+      <y>310</y>
       <width>241</width>
       <height>101</height>
      </rect>
@@ -420,8 +425,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>661</width>
-      <height>551</height>
+      <width>501</width>
+      <height>721</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -436,8 +441,8 @@
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>640</width>
-        <height>480</height>
+        <width>480</width>
+        <height>640</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -459,10 +464,10 @@
      <widget class="QLabel" name="downCameraImageThumb">
       <property name="geometry">
        <rect>
-        <x>450</x>
-        <y>350</y>
-        <width>192</width>
-        <height>144</height>
+        <x>340</x>
+        <y>460</y>
+        <width>144</width>
+        <height>192</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -484,8 +489,8 @@
      <widget class="QPushButton" name="downPipButton">
       <property name="geometry">
        <rect>
-        <x>620</x>
-        <y>500</y>
+        <x>460</x>
+        <y>660</y>
         <width>31</width>
         <height>21</height>
        </rect>
@@ -494,6 +499,9 @@
        <string>PiP</string>
       </property>
      </widget>
+     <zorder>forwardCameraImage</zorder>
+     <zorder>downPipButton</zorder>
+     <zorder>downCameraImageThumb</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -504,8 +512,8 @@
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>640</width>
-        <height>480</height>
+        <width>480</width>
+        <height>640</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -527,10 +535,10 @@
      <widget class="QLabel" name="forwardCameraImageThumb">
       <property name="geometry">
        <rect>
-        <x>450</x>
-        <y>350</y>
-        <width>192</width>
-        <height>144</height>
+        <x>340</x>
+        <y>460</y>
+        <width>144</width>
+        <height>192</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -552,8 +560,8 @@
      <widget class="QPushButton" name="forwardPipButton">
       <property name="geometry">
        <rect>
-        <x>620</x>
-        <y>500</y>
+        <x>460</x>
+        <y>660</y>
         <width>31</width>
         <height>21</height>
        </rect>

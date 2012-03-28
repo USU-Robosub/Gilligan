@@ -11,7 +11,7 @@
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/Int16.h"
-#include "sensor_msgs/Image.h"
+#include "sensor_msgs/CompressedImage.h"
 
 namespace Ui
 {
@@ -26,14 +26,13 @@ public:
    ~SubConsole();
 
    void imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
-   void motorControllerTempCallback(const std_msgs::Float32::ConstPtr& msg);
-   void motorCaseTempCallback(const std_msgs::Float32::ConstPtr& msg);
+   void motorControllerTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void moboTempCallback(const std_msgs::Float32::ConstPtr& msg);
    void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
    void motorStateCallback(const std_msgs::UInt8::ConstPtr& msg);
    void missionStateCallback(const std_msgs::UInt8::ConstPtr& msg);
-   void forwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg);
-   void downwardCameraCallback(const sensor_msgs::Image::ConstPtr& msg);
+   void forwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
+   void downwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
    void tempCallback(const std_msgs::String::ConstPtr& msg);
 
 private:
@@ -45,7 +44,6 @@ private:
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Data topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
-   ros::Subscriber m_motorCaseTempSubscriber;       //!< Subscribes to the Motor_Case_Temp topic
    ros::Subscriber m_moboTempSubscriber;            //!< Subscribes to the Mobo_Temp topic
    ros::Subscriber m_pressureSubscriber;            //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_motorStateSubscriber;          //!< Subscribes to the Pressure_Data topic
