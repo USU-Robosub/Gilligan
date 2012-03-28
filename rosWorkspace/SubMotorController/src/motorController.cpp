@@ -10,9 +10,10 @@ MotorControllerHandler::MotorControllerHandler(const char* Port)
 	awaitingResponce = false;
 	currentMessage.type = NO_MESSAGE;
 	nextMessage.type = NO_MESSAGE;
+	gettimeofday(&lastQueryTime, NULL);
 	name = Port;
 	try {
-		serialPort.Open(SerialPort::BAUD_19200, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
+		serialPort.Open(BAUD, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
 	} catch (...) {
 		printf("%s error: Failed during initialization\n", name.c_str());
 	}
@@ -36,10 +37,11 @@ void MotorControllerHandler::transmit() {
 	gettimeofday(&lastSendTime, NULL);
 
 	if(!serialPort.IsOpen()) {
+		printf("%s: port not open attempting to re-open port\n", name.c_str());
 		try {
-			serialPort.Open(SerialPort::BAUD_19200, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
+			serialPort.Open(BAUD, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
 		} catch (...) {
-			printf("Unable to open port\n");
+			printf("%s: Unable to open port\n", name.c_str());
 		}
 	}
 	try {
@@ -52,6 +54,12 @@ void MotorControllerHandler::transmit() {
 	} catch (...) {
 		printf("%s error: Unable to send message\n", name.c_str());
 	}
+	//printf("sending message  %c %c %x %x %x %x %c\n", 'S', currentMessage.type, currentMessage.DataC[0],
+	//										currentMessage.DataC[1],
+	//										currentMessage.DataC[2],
+	//										currentMessage.DataC[3],
+	//										'E');
+	awaitingResponce = true;
 }
 
 void MotorControllerHandler::processResponce() {
@@ -70,10 +78,14 @@ void MotorControllerHandler::processResponce() {
 	for(int i = 0; i < 4; i++) {
 		responce.DataC[i] = buffer[i+2];
 	}
-
+	
+	//printf("got responce %c %c %x %x %x %x %c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6]);
 	switch (responce.type) {
 		case ERROR_TYPE:
 			printf("%s error: %c%c%c%c\n", name.c_str(), buffer[2], buffer[3], buffer[4], buffer[5]);
+			currentMessage = nextMessage;
+			nextMessage.type = NO_MESSAGE;
+			awaitingResponce = false;
 			break;
 		case MOTOR_RESPONCE_TYPE:
 			if(currentMessage.type != MOTOR_TYPE) {
@@ -82,6 +94,7 @@ void MotorControllerHandler::processResponce() {
 			}
 			currentMessage = nextMessage;
 			nextMessage.type = NO_MESSAGE;
+			awaitingResponce = false;
 			break;
 		case CURRENT_RESPONCE_TYPE:
 			if(currentMessage.type != CURRENT_TYPE) {
@@ -96,6 +109,7 @@ void MotorControllerHandler::processResponce() {
 
 			currentMessage = nextMessage;
 			nextMessage.type = NO_MESSAGE;
+			awaitingResponce = false;
 			break;
 		case VOLTAGE_RESPONCE_TYPE:
 			if(currentMessage.type != VOLTAGE_TYPE) {
@@ -103,6 +117,10 @@ void MotorControllerHandler::processResponce() {
 				break;
 			}
 			Voltage = responce.DataF;
+			currentMessage = nextMessage;
+			nextMessage.type = NO_MESSAGE;
+			awaitingResponce = false;
+			break;
 		default:
 			printf("Unrecognized responce type: %c\n", responce.type);
 	}
@@ -113,6 +131,11 @@ void MotorControllerHandler::recieve() {
 		try {
 			while(serialPort.IsDataAvailable()) {
 				unsigned char data = serialPort.ReadByte();
+				//printf("recieved byte \'%c\'\n", data);
+				while(bufIndex == 7) {
+					printf("You are not clearing bufIndex\n");
+					processResponce();
+				}
 				buffer[bufIndex++] = data;
 				if(bufIndex == 7) {
 					processResponce();
@@ -139,10 +162,23 @@ bool MotorControllerHandler::TransmitTimeout() {
 	return false;
 }
 
+void MotorControllerHandler::CheckPullTimes() {
+	timeval curTime;
+	gettimeofday(&curTime, NULL);
+	int elsaped = getMilliSecsBetween(lastQueryTime, curTime);
+	if(elsaped > QUERY_PERIOD) {
+		Message query;
+		query.type = VOLTAGE_TYPE;
+		sendMessage(query);
+		gettimeofday(&lastQueryTime, NULL);
+	}
+}
+
 void MotorControllerHandler::spinOnce() {
 	recieve();
+	CheckPullTimes();
 	if(awaitingResponce && TransmitTimeout()) {
-		printf("resending...\n");
+		//maybe we are out of sync?
 		transmit();
 	}
 } 

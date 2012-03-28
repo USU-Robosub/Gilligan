@@ -13,7 +13,11 @@ const char VOLTAGE_TYPE = 'V';
 const char VOLTAGE_RESPONCE_TYPE = 'v';
 const char ERROR_TYPE = 'e';
 
-const int RESEND_TIMEOUT = 100;
+const SerialPort::BaudRate BAUD = SerialPort::BAUD_115200;
+//const SerialPort::BaudRate BAUD = SerialPort::BAUD_19200;
+
+const int RESEND_TIMEOUT = 1000;
+const int QUERY_PERIOD = 500;
 
 struct Message {
 	char type;
@@ -34,12 +38,14 @@ class MotorControllerHandler {
 		void spinOnce();
 		void processResponce();
 		bool TransmitTimeout();
+		void CheckPullTimes();
 	private:
 		bool awaitingResponce;
 		Message currentMessage;
 		Message nextMessage;
 		string name;
 		timeval lastSendTime;
+		timeval lastQueryTime;
 		SerialPort serialPort;
 		float RightCurrent;
 		float LeftCurrent;
