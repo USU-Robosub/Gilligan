@@ -14,43 +14,9 @@
 
 using namespace LibSerial;
 
-MotorControllerHandler motorControllerDrive("/dev/controller_drive");
-MotorControllerHandler motorControllerDepth("/dev/controller_dive");
-MotorControllerHandler motorControllerTurn("/dev/controller_turn");
-
-void setMotorSpeed(MotorControllerHandler* controller, int rightSpeed, int leftSpeed) {
-	if(rightSpeed >= 256)
-		rightSpeed = 255;
-	if(rightSpeed <= -256)
-		rightSpeed = -255;	
-	if(leftSpeed >= 256)
-		leftSpeed = 255;
-	if(leftSpeed <= -256)
-		leftSpeed = -255;	
-
-	Message msg;
-	msg.type = MOTOR_TYPE;
-
-	if(leftSpeed > 0) {
-		msg.DataC[0] = leftSpeed;
-		msg.DataC[1] = 0;
-	} else {
-		int rev = -leftSpeed;
-		msg.DataC[0] = 0;
-		msg.DataC[1] = rev;
-	}
-	if(rightSpeed > 0) {
-		msg.DataC[2] = rightSpeed;
-		msg.DataC[3] = 0;
-	} else {
-		int rev = -rightSpeed;
-		msg.DataC[2] = 0;
-		msg.DataC[3] = rev;
-	}
-
-	controller->sendMessage(msg);
-}
-
+MotorControllerHandler* motorControllerDrive;
+MotorControllerHandler* motorControllerDepth;
+MotorControllerHandler* motorControllerTurn;
 
 void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 	static int curLDriveSpeed = 0,
@@ -69,25 +35,27 @@ void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 	curRTurnSpeed  = msg->mask & REAR_TURN_BIT   ? msg->RearTurn   : curRTurnSpeed;
 
 	if(msg->mask & (LEFT_DRIVE_BIT | RIGHT_DRIVE_BIT))
-		setMotorSpeed(&motorControllerDrive, curRDriveSpeed, curLDriveSpeed);
+		motorControllerDrive->setMotorSpeed(curRDriveSpeed, curLDriveSpeed);
 	if(msg->mask & (FRONT_DEPTH_BIT | REAR_DEPTH_BIT))
-		setMotorSpeed(&motorControllerDepth, curRDepthSpeed, curFDepthSpeed);
+		motorControllerDepth->setMotorSpeed(curRDepthSpeed, curFDepthSpeed);
 	if(msg->mask & (FRONT_TURN_BIT | REAR_TURN_BIT))
-		setMotorSpeed(&motorControllerTurn,  curRTurnSpeed,  curFTurnSpeed);
+		motorControllerTurn->setMotorSpeed(curRTurnSpeed,  curFTurnSpeed);
 }
 
 int main(int argc, char** argv) {
-
 	ros::init(argc, argv, "SubMotorController");
 	ros::NodeHandle nh;
 	printf("waiting for the controllers to reset...");
+	motorControllerDrive = new MotorControllerHandler(&nh, "/dev/controller_drive");
+	motorControllerDepth = new MotorControllerHandler(&nh, "/dev/controller_dive");
+	motorControllerTurn = new MotorControllerHandler(&nh, "/dev/controller_turn");
 	sleep(2);
 	ros::Subscriber MotorControl = nh.subscribe("/motorControl", 100, motorMessage);
 	//ros::Publisher MotorCurrent = nh.advertise("/motorStatus/Current/DriveR", 1, std_msgs::Float32);
 	while (ros::ok()) {
-		motorControllerDrive.spinOnce();
-		motorControllerDepth.spinOnce();
-		motorControllerTurn.spinOnce();
+		motorControllerDrive->spinOnce();
+		motorControllerDepth->spinOnce();
+		motorControllerTurn->spinOnce();
 		ros::spinOnce();
 		usleep(10000);
 	}

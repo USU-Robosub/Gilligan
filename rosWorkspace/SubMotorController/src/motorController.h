@@ -1,6 +1,7 @@
 #include <sys/time.h>
 #include <string>
 #include <SerialStream.h>
+#include <ros/ros.h>
 
 using namespace std;
 
@@ -17,12 +18,13 @@ const SerialPort::BaudRate BAUD = SerialPort::BAUD_115200;
 //const SerialPort::BaudRate BAUD = SerialPort::BAUD_19200;
 
 const int RESEND_TIMEOUT = 1000;
-const int QUERY_PERIOD = 500;
+const int QUERY_PERIOD = 500000;
+const int MOTOR_PERIOD = 70;
 
 struct Message {
 	char type;
 	union {
-		char DataC[4];
+		unsigned char DataC[4];
 		int DataI;
 		float DataF;
 	};
@@ -31,22 +33,33 @@ struct Message {
 const int Timeout = 100; //in msec
 class MotorControllerHandler {
 	public:
-		MotorControllerHandler(const char* Port);
+		MotorControllerHandler(ros::NodeHandle* nh, const char* Port);
 		void sendMessage(Message);
 		void transmit();
 		void recieve();
 		void spinOnce();
 		void processResponce();
 		bool TransmitTimeout();
-		void CheckPullTimes();
+		void CheckQuery();
+		void CheckMotor();
+		void setMotorSpeed(int right, int left);
+		void print(std::string error);
 	private:
+		int MaxStep;
 		bool awaitingResponce;
+		ros::Publisher errorOut;
 		Message currentMessage;
-		Message nextMessage;
 		string name;
 		timeval lastSendTime;
-		timeval lastQueryTime;
+		timeval lastQRCurTime;
+		timeval lastQLCurTime;
+		timeval lastQVoltTime;
+		timeval lastMotorTime;;
 		SerialPort serialPort;
+		int rightSpeed;
+		int leftSpeed;
+		int rightTargetSpeed;
+		int leftTargetSpeed;
 		float RightCurrent;
 		float LeftCurrent;
 		float Voltage;
