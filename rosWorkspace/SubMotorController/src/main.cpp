@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 	motorControllerDepth = new MotorControllerHandler(&nh, "/dev/controller_dive");
 	motorControllerTurn = new MotorControllerHandler(&nh, "/dev/controller_turn");
 	sleep(2);
-	ros::Subscriber MotorControl = nh.subscribe("/motorControl", 100, motorMessage);
+	ros::Subscriber MotorControl = nh.subscribe("/Motor_Control", 100, motorMessage);
 	//ros::Publisher MotorCurrent = nh.advertise("/motorStatus/Current/DriveR", 1, std_msgs::Float32);
 	while (ros::ok()) {
 		motorControllerDrive->spinOnce();
