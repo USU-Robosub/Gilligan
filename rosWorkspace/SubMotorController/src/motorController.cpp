@@ -15,9 +15,10 @@ ros::NodeHandle* n;
 void MotorControllerHandler::print(string error) {
 	bool init = false;
 	if(!init) {
-		errorOut = n->advertise<std_msgs::String>("/Error_Stream", 100);
+		errorOut = n.advertise<std_msgs::String>("/Error_Log", 100);
 		init = true;
 	}
+	printf("ErrorHandler: %s\n", error.c_str());
 	std_msgs::String msg;
 	msg.data = error;
 	errorOut.publish(msg);
@@ -42,9 +43,8 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 		char temp[1000];
 		sprintf(temp, "%s error: Failed during initialization\n", name.c_str());
 		print(string(temp));
+		bufIndex = 0;
 	}
-	bufIndex = 0;
-}
 
 void MotorControllerHandler::sendMessage(Message m) {
 	currentMessage = m;
@@ -93,6 +93,7 @@ Message createMessageFromSpeed(int rightSpeed, int leftSpeed) {
 void MotorControllerHandler::transmit() {
 	if(currentMessage.type == NO_MESSAGE) 
 		return;
+	printf("%s: attempting to send message of type %c\n", name.c_str(), currentMessage.type);
 
 	gettimeofday(&lastSendTime, NULL);
 	printf("sending message %c %d %d %d %d\n", currentMessage.type,
@@ -107,10 +108,10 @@ void MotorControllerHandler::transmit() {
 		try {
 			serialPort.Open(BAUD, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
 		} catch (...) {
+			printf("crap I couldn't open the port\n");
 			char temp[1000];
 			sprintf(temp, "%s error: Unable to open port\n", name.c_str());
 			print(string(temp));
-			return;
 		}
 	}
 	try {
@@ -120,18 +121,19 @@ void MotorControllerHandler::transmit() {
 			serialPort.WriteByte(currentMessage.DataC[i]);
 		}
 		serialPort.WriteByte('E');
+		awaitingResponce = true;
 	} catch (...) {
-			char temp[1000];
-			sprintf(temp, "%s error: Unable to send message\n", name.c_str());
-			print(string(temp));
-			return;
+		printf("crap I couldn't get it to send\n");
+		char temp[1000];
+		sprintf(temp, "%s error: Unable to send message\n", name.c_str());
+		print(string(temp));
 	}
-	awaitingResponce = true;
 }
 
 void MotorControllerHandler::processResponce() {
 	if(buffer[0] != 'S' || buffer[6] != 'E') {
 		//Misaligned data? throw out bytes until you get it to align correctly
+		printf("Misaligned data\n");
 		for(int i = 0; i < 6; i++) {
 			buffer[i] = buffer[i+1];
 			bufIndex--;
@@ -145,13 +147,15 @@ void MotorControllerHandler::processResponce() {
 	for(int i = 0; i < 4; i++) {
 		responce.DataC[i] = buffer[i+2];
 	}
-	
+	printf("%s: got a responce of type %c\n", name.c_str(), responce.type);
+
 	//printf("got responce %c %c %x %x %x %x %c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6]);
 	switch (responce.type) {
 		case ERROR_TYPE:
 			char temp[1000];
 			sprintf(temp, "%s error from controller: %c%c%c%c\n", name.c_str(), buffer[2], buffer[3], buffer[4], buffer[5]);
 			print(string(temp));
+
 			awaitingResponce = false;
 			break;
 		case MOTOR_RESPONCE_TYPE:
@@ -219,7 +223,6 @@ void MotorControllerHandler::recieve() {
 			char temp[1000];
 			sprintf(temp, "%s error: While attempting to read data\n", name.c_str());
 			print(string(temp));
-			return;
 		}
 	}
 }

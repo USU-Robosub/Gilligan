@@ -1,4 +1,3 @@
-#include <SerialStream.h>
 #include "motorController.h"
 
 #include "ros/ros.h"
@@ -18,6 +17,40 @@ MotorControllerHandler* motorControllerDrive;
 MotorControllerHandler* motorControllerDepth;
 MotorControllerHandler* motorControllerTurn;
 
+void setMotorSpeed(MotorControllerHandler* controller, int rightSpeed, int leftSpeed) {
+	if(rightSpeed >= 256)
+		rightSpeed = 255;
+	if(rightSpeed <= -256)
+		rightSpeed = -255;	
+	if(leftSpeed >= 256)
+		leftSpeed = 255;
+	if(leftSpeed <= -256)
+		leftSpeed = -255;	
+
+	Message msg;
+	msg.type = MOTOR_TYPE;
+
+	if(leftSpeed > 0) {
+		msg.DataC[0] = 0;
+		msg.DataC[1] = leftSpeed;
+	} else {
+		int rev = -leftSpeed;
+		msg.DataC[0] = rev;
+		msg.DataC[1] = 0;
+	}
+	if(rightSpeed > 0) {
+		msg.DataC[2] = 0;
+		msg.DataC[3] = rightSpeed;
+	} else {
+		int rev = -rightSpeed;
+		msg.DataC[2] = rev;
+		msg.DataC[3] = 0;
+	}
+
+	controller->sendMessage(msg);
+}
+
+
 void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 	static int curLDriveSpeed = 0,
 			   curRDriveSpeed = 0,
@@ -27,6 +60,7 @@ void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 			   curRTurnSpeed = 0;
 
 
+	printf("got a message\n");
 	curLDriveSpeed = msg->mask & LEFT_DRIVE_BIT  ? msg->Left       : curLDriveSpeed;
 	curRDriveSpeed = msg->mask & RIGHT_DRIVE_BIT ? msg->Right      : curRDriveSpeed;
 	curFDepthSpeed = msg->mask & FRONT_DEPTH_BIT ? msg->FrontDepth : curFDepthSpeed;
@@ -45,7 +79,7 @@ void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "SubMotorController");
 	ros::NodeHandle nh;
-	printf("waiting for the controllers to reset...");
+	printf("waiting for the controllers to reset...\n");
 	motorControllerDrive = new MotorControllerHandler(&nh, "/dev/controller_drive");
 	motorControllerDepth = new MotorControllerHandler(&nh, "/dev/controller_dive");
 	motorControllerTurn = new MotorControllerHandler(&nh, "/dev/controller_turn");

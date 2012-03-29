@@ -10,7 +10,7 @@ void setMotors(unsigned int mask,
 	static ros::Publisher motorController;
 	static ros::NodeHandle nh;
 	if(!initialized) {
-		motorController = nh.advertise<SubMotorController::MotorMessage>("/motorControl", 1);
+		motorController = nh.advertise<SubMotorController::MotorMessage>("/Motor_Control", 1);
 		initialized = true;
 	}
 	SubMotorController::MotorMessage msg;
