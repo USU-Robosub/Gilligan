@@ -15,7 +15,7 @@ ros::NodeHandle* n;
 void MotorControllerHandler::print(string error) {
 	bool init = false;
 	if(!init) {
-		errorOut = n.advertise<std_msgs::String>("/Error_Log", 100);
+		errorOut = n->advertise<std_msgs::String>("/Error_Log", 100);
 		init = true;
 	}
 	printf("ErrorHandler: %s\n", error.c_str());
@@ -25,8 +25,8 @@ void MotorControllerHandler::print(string error) {
 }
 
 MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* Port) 
-		: serialPort(Port) {
-	n = nh;
+	: serialPort(Port) {
+		n = nh;
 
 	awaitingResponce = false;
 	currentMessage.type = NO_MESSAGE;
@@ -45,6 +45,7 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 		print(string(temp));
 		bufIndex = 0;
 	}
+}
 
 void MotorControllerHandler::sendMessage(Message m) {
 	currentMessage = m;
