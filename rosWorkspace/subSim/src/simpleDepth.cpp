@@ -16,7 +16,7 @@ void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 }
 
 void setDepthSpeed(float speed) {
-	speed *= 255;
+	speed *= -255;
 	int speedInt = speed; //truncate to an integer value
 	if(speedInt > 255)
 		speedInt = 255;
@@ -49,7 +49,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "SimpleDepthController");
 	ros::NodeHandle nh;
-	ros::Subscriber curDepth = nh.subscribe("/sim/sensor/depth", 1, mCurrentDepthCallback);
-	ros::Subscriber targetDepth = nh.subscribe("/target/depth", 1, mTargetDepthCallback);
+	ros::Subscriber curDepth = nh.subscribe("Sub_Depth", 1, mCurrentDepthCallback);
+	ros::Subscriber targetDepth = nh.subscribe("/Target_Depth", 1, mTargetDepthCallback);
 	ros::spin();
 }
