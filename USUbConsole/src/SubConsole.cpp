@@ -24,6 +24,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pJoystick(new Joystick()),
      m_nodeHandle(),
      m_motorDriverPublisher(),
+     m_depthPublisher(),
      m_imuSubscriber(),
      m_motorControllerTempSubscriber(),
      m_moboTempSubscriber(),
@@ -66,6 +67,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->downCameraImageThumb->hide();
 
    m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
+   m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -125,10 +127,10 @@ void SubConsole::readJoystickInput(void)
    unsigned char motorMask = 0;
    short leftDriveValue = 0;
    short rightDriveValue = 0;
-   short frontDepthValue = 0;
-   short rearDepthValue = 0;
    short frontTurnValue = 0;
    short rearTurnValue = 0;
+   short frontDepthValue = 0;
+   short rearDepthValue = 0;
 
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
@@ -197,23 +199,38 @@ void SubConsole::readJoystickInput(void)
 
    if(m_lastThrottleValue != currentThrottleAxis)  //Submerge/surface
    {
-      //Set the vertical thrusters to the same value to control depth
-      int thrusterSpeed = 255 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
-
-      if(currentThrottleAxis >= 0)
+      if(m_pUi->depthCheckBox->isChecked())
       {
-         frontDepthValue = thrusterSpeed;
-         rearDepthValue = thrusterSpeed;
+          m_lastThrottleValue = currentThrottleAxis;
+          currentThrottleAxis += JOYSTICK_MAX_VALUE;
+
+          float desiredDepth = MAXIMUM_DEPTH * (currentThrottleAxis / (double)(JOYSTICK_MAX_VALUE * 2));
+          std_msgs::Float32 depthMsg;
+
+          depthMsg.data = desiredDepth;
+
+          m_depthPublisher.publish(depthMsg);
       }
-      else if(currentThrottleAxis < 0)
+      else
       {
-          frontDepthValue = thrusterSpeed * -1;
-          rearDepthValue = thrusterSpeed * -1;
+          //Set the vertical thrusters to the same value to control depth
+          int thrusterSpeed = 255 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
+
+          if(currentThrottleAxis >= 0)
+          {
+             frontDepthValue = thrusterSpeed;
+             rearDepthValue = thrusterSpeed;
+          }
+          else if(currentThrottleAxis < 0)
+          {
+              frontDepthValue = thrusterSpeed * -1;
+              rearDepthValue = thrusterSpeed * -1;
+          }
+
+          motorMask |= (MOTOR_FRONT_DEPTH | MOTOR_REAR_DEPTH);
+
+          m_lastThrottleValue = currentThrottleAxis;
       }
-
-      motorMask |= (MOTOR_FRONT_DEPTH | MOTOR_REAR_DEPTH);
-
-      m_lastThrottleValue = currentThrottleAxis;
    }
 
    if(motorMask != 0x0)
