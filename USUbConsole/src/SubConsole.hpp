@@ -44,6 +44,7 @@ private:
    Joystick* m_pJoystick;                           //!< Joystick++ library object
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
+   ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Data topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_moboTempSubscriber;            //!< Subscribes to the Mobo_Temp topic
@@ -54,7 +55,6 @@ private:
    ros::Subscriber m_downwardCameraSubscriber;      //!< Subscribes to the Downward_Camera topic
    ros::Subscriber m_voltageCurrentSubscriber;      //!< Subscribes to the Computer_Cur_Volt topic
    ros::Subscriber m_errorLogSubscriber;            //!< Subscribes to the Error_Log topic
-
 
    int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
    int m_lastYAxisValue;            //!< Stores the last joystick y-axis value
@@ -80,7 +80,8 @@ private:
       MOTOR_FRONT_DEPTH = 0x04,
       MOTOR_REAR_DEPTH = 0x08,
       MOTOR_FRONT_TURN = 0x10,
-      MOTOR_REAR_TURN = 0x20
+      MOTOR_REAR_TURN = 0x20,
+      MAXIMUM_DEPTH = 14
    };
 
    void sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn);

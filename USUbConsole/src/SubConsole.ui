@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>978</width>
+    <width>874</width>
     <height>741</height>
    </rect>
   </property>
@@ -23,19 +23,19 @@
       <x>530</x>
       <y>450</y>
       <width>241</width>
-      <height>131</height>
+      <height>161</height>
      </rect>
     </property>
     <property name="title">
      <string>Joystick</string>
     </property>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
+       <y>31</y>
        <width>221</width>
-       <height>96</height>
+       <height>124</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -115,7 +115,7 @@
            <number>10</number>
           </property>
           <property name="value">
-           <number>80</number>
+           <number>100</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -130,6 +130,16 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="depthCheckBox">
+        <property name="text">
+         <string>Use Target_Depth</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -233,7 +243,7 @@
     <property name="title">
      <string>Sensor Readings</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -370,10 +380,6 @@
       </item>
      </layout>
     </widget>
-    <zorder>layoutWidget</zorder>
-    <zorder>motorController3TempLineEdit</zorder>
-    <zorder>freshDepthLineEdit</zorder>
-    <zorder>saltDepthLineEdit</zorder>
    </widget>
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
@@ -604,9 +610,9 @@
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>590</y>
-      <width>421</width>
-      <height>131</height>
+      <y>620</y>
+      <width>321</width>
+      <height>101</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
