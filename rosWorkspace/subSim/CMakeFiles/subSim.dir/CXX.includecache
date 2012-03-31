@@ -6,6 +6,26 @@
 
 #IncludeRegexTransform: 
 
+/home/daniel/sub12/rosWorkspace/SubMotorController/msg_gen/cpp/include/SubMotorController/MotorMessage.h
+string
+-
+vector
+-
+ostream
+-
+ros/serialization.h
+/home/daniel/sub12/rosWorkspace/SubMotorController/msg_gen/cpp/include/SubMotorController/ros/serialization.h
+ros/builtin_message_traits.h
+/home/daniel/sub12/rosWorkspace/SubMotorController/msg_gen/cpp/include/SubMotorController/ros/builtin_message_traits.h
+ros/message_operations.h
+/home/daniel/sub12/rosWorkspace/SubMotorController/msg_gen/cpp/include/SubMotorController/ros/message_operations.h
+ros/message.h
+/home/daniel/sub12/rosWorkspace/SubMotorController/msg_gen/cpp/include/SubMotorController/ros/message.h
+ros/time.h
+/home/daniel/sub12/rosWorkspace/SubMotorController/msg_gen/cpp/include/SubMotorController/ros/time.h
+
+/home/daniel/sub12/rosWorkspace/subSim/src/motor.h
+
 /home/daniel/sub12/rosWorkspace/subSim/src/simulator.cpp
 sub.h
 /home/daniel/sub12/rosWorkspace/subSim/src/sub.h
@@ -15,6 +35,10 @@ std_msgs/Int16.h
 /home/daniel/sub12/rosWorkspace/subSim/src/std_msgs/Int16.h
 std_msgs/Float32.h
 /home/daniel/sub12/rosWorkspace/subSim/src/std_msgs/Float32.h
+SubMotorController/MotorMessage.h
+/home/daniel/sub12/rosWorkspace/subSim/src/SubMotorController/MotorMessage.h
+motor.h
+/home/daniel/sub12/rosWorkspace/subSim/src/motor.h
 stdlib.h
 -
 

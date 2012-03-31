@@ -6,24 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/daniel/sub12/rosWorkspace/subSim/src/objLoader.cpp
-GL/gl.h
--
-GL/glu.h
--
-vector
--
-string
--
-algorithm
--
-fstream
--
-iostream
--
-objLoader.h
-/home/daniel/sub12/rosWorkspace/subSim/src/objLoader.h
-
 /home/daniel/sub12/rosWorkspace/subSim/src/viz.cpp
 GL/glut.h
 -

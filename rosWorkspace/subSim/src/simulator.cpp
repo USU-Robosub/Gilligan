@@ -2,6 +2,8 @@
 #include "ros/ros.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
+#include "SubMotorController/MotorMessage.h"
+#include "motor.h"
 #include <stdlib.h>
 
 Submarine sub;
@@ -19,6 +21,32 @@ struct MotorMessage {
 	bool rightMotor;
 	bool leftMotor;
 };
+
+float setPower(int level) {
+	level = -level;
+	if(abs(level) < 55)
+		return 0.0;
+	bool reversed = false;
+	if(level < 0)
+		return (level + 55)/200.0;
+	else
+		return (level - 55)/200.0;
+}
+
+void mMotorCallback(const SubMotorController::MotorMessage::ConstPtr& msg) {
+	if(RIGHT_DRIVE_MOTOR_BIT & msg->mask) 
+		sub.motor.mainR = setPower(msg->Right);
+	if(LEFT_DRIVE_MOTOR_BIT & msg->mask) 
+		sub.motor.mainL = setPower(msg->Left);
+	if(FRONT_DEPTH_MOTOR_BIT & msg->mask) 
+		sub.motor.depthF = setPower(msg->FrontDepth);
+	if(REAR_DEPTH_MOTOR_BIT & msg->mask) 
+		sub.motor.depthR = setPower(msg->RearDepth);
+	if(FRONT_TURN_MOTOR_BIT & msg->mask) 
+		sub.motor.turnF = setPower(msg->FrontTurn);
+	if(REAR_TURN_MOTOR_BIT & msg->mask) 
+		sub.motor.turnR = setPower(msg->RearTurn);
+}
 
 void mDriveCallback(const std_msgs::Int16::ConstPtr& msg) {
 	MotorMessage message(msg->data);
@@ -148,6 +176,7 @@ int main(int argc, char** argv) {
 	ros::Subscriber mDriveSub = n.subscribe("/Motor_Driver_Drive", 1, mDriveCallback);
 	ros::Subscriber mDepthSub = n.subscribe("/Motor_Driver_Depth", 1, mDepthCallback);
 	ros::Subscriber mTurnSub = n.subscribe("/Motor_Driver_Turn", 1, mTurnCallback);
+	ros::Subscriber mMotorSub = n.subscribe("/motorControl", 1, mMotorCallback);
 	
 	ros::Rate loop_rate(30);
 
