@@ -30,7 +30,7 @@ class ImageRecognition:
         self._downward_rect_pub = rospy.Publisher("downward_camera/orange_rectangle", OrangeRectangle)
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
-                "right/image_raw", Image, self.downward_callback)
+                "left/image_raw", Image, self.downward_callback) # TODO: Change back to right at some point
     
     def forward_callback(self, data):
         # Get image
@@ -62,7 +62,7 @@ class ImageRecognition:
         # Publish image
         try:
             self._forward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
-        except ROSException:
+        except rospy.ROSException:
             # Generally this exception occurs if ROS wasn't ready yet. We'll
             # just silently ignore it and next time should work
             pass
@@ -167,25 +167,27 @@ class ImageRecognition:
         # Publish image
         try:
             self._downward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
-        except ROSException:
+        except rospy.ROSException:
             # Generally this exception occurs if ROS wasn't ready yet. We'll
             # just silently ignore it and next time should work
             pass
         except CvBridgeError, e:
             print e
     
-    def find_adjacent_points(self, image, size, j, i, points=None):
-        if points is None:
-            points = []
-        points.append((j, i))
-        if j+self.sample_size < size[0] and cv.Get2D(image, i, j+self.sample_size)[0] == 255.0 and (j+self.sample_size, i) not in points:
-            self.find_adjacent_points(image, size, j+self.sample_size, i, points)
-        if j-self.sample_size >= 0 and cv.Get2D(image, i, j-self.sample_size)[0] == 255.0 and (j-self.sample_size, i) not in points:
-            self.find_adjacent_points(image, size, j-self.sample_size, i, points)
-        if i+self.sample_size < size[1] and cv.Get2D(image, i+self.sample_size, j)[0] == 255.0 and (j, i+self.sample_size) not in points:
-            self.find_adjacent_points(image, size, j, i+self.sample_size, points)
-        if i-self.sample_size >= 0 and cv.Get2D(image, i-self.sample_size, j)[0] == 255.0 and (j, i-self.sample_size) not in points:
-            self.find_adjacent_points(image, size, j, i-self.sample_size, points)
+    def find_adjacent_points(self, image, size, j, i):
+        index = 0
+        points = [(j, i)]
+        while index < len(points):
+            j, i = points[index]
+            if j+self.sample_size < size[0] and cv.Get2D(image, i, j+self.sample_size)[0] == 255.0 and (j+self.sample_size, i) not in points:
+                points.append((j+self.sample_size, i))
+            if j-self.sample_size >= 0 and cv.Get2D(image, i, j-self.sample_size)[0] == 255.0 and (j-self.sample_size, i) not in points:
+                points.append((j-self.sample_size, i))
+            if i+self.sample_size < size[1] and cv.Get2D(image, i+self.sample_size, j)[0] == 255.0 and (j, i+self.sample_size) not in points:
+                points.append((j, i+self.sample_size))
+            if i-self.sample_size >= 0 and cv.Get2D(image, i-self.sample_size, j)[0] == 255.0 and (j, i-self.sample_size) not in points:
+                points.append((j, i-self.sample_size))
+            index += 1
         return points
     
     def rotate_image_ccw(self, image, rotated):
