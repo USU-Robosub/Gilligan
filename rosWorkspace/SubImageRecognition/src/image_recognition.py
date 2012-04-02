@@ -79,7 +79,7 @@ class ImageRecognition:
         # Rotate so that 'up' is the front of the sub
         size = (image_raw.height, image_raw.width)
         rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        self.rotate_image_ccw(image_raw, rotated)
+        self.rotate_image_cw(image_raw, rotated) # TODO: Change back to ccw at some point
         
         # TODO: Right now this callback just looks for orange rectangles and
         #       published data about them. It needs to have a good idea of
@@ -99,37 +99,27 @@ class ImageRecognition:
         threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         cv.InRangeS(segmented, (5, 50, 50), (15, 255, 255), threshold)
         
-        # Reduce noise in threshold using erode and dilate
-        element = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_ELLIPSE)
-        cv.Erode(threshold, threshold, element, 2)
-        cv.Dilate(threshold, threshold, element, 4)
-        element = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.Erode(threshold, threshold, element, 2)
-        cv.Dilate(threshold, threshold, element, 4)
+        self.reduce_noise(threshold)
         
-        # Sample threshold for white points
-        point_sets = []
-        for i in range(0, size[1], self.sample_size): # height
-            for j in range(0, size[0], self.sample_size): # width
-                if cv.Get2D(threshold, i, j)[0] == 255.0:
-                    # Is this point in a point set already
-                    found = False
-                    for point_set in point_sets:
-                        if (j, i) in point_set:
-                            found = True
-                            break
-                    if not found:
-                        # No so create new set from adjacent points and add to list
-                        point_sets.append(self.find_adjacent_points(threshold, size, j, i))
-        
-        # Throw away bad point sets
-        for index in range(len(point_sets)):
-            if len(point_sets[index]) < self.min_point_set_len:
-                point_sets[index] = []
+        point_sets = self.sample_points(threshold, size)
         
         # Limit maximum number of point sets
         point_sets = nlargest(self.max_point_sets, point_sets, len)
         
+        callback = lambda center, rotation: self._downward_rect_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), rotation=rotation))
+        self.publish_points(point_sets, rotated, callback)
+        
+        # Publish image
+        try:
+            self._downward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
+        except rospy.ROSException:
+            # Generally this exception occurs if ROS wasn't ready yet. We'll
+            # just silently ignore it and next time should work
+            pass
+        except CvBridgeError, e:
+            print e
+    
+    def publish_points(self, point_sets, image, callback):
         # Find minimum area rotated rectangle around each set of points
         for points in point_sets:
             if points:
@@ -146,15 +136,10 @@ class ImageRecognition:
                     rotation += math.pi
                 rotation %= math.pi * 2
                 
-                # Mark rectangle on rotated image
+                # Mark rectangle on image
                 v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
-                #v1 = (dims[1]/2*math.cos(rotation+math.pi/2), dims[1]/2*math.sin(rotation+math.pi/2))
-                cv.Circle(rotated, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
-                cv.Line(rotated, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
-                #cv.Circle(rotated, (int(center[0] + v0[0] + v1[0]), int(center[1] + v0[1] + v1[1])), 1 , (0, 0, 255), 5)
-                #cv.Circle(rotated, (int(center[0] + v0[0] - v1[0]), int(center[1] + v0[1] - v1[1])), 1 , (0, 0, 255), 5)
-                #cv.Circle(rotated, (int(center[0] - v0[0] + v1[0]), int(center[1] - v0[1] + v1[1])), 1 , (0, 0, 255), 5)
-                #cv.Circle(rotated, (int(center[0] - v0[0] - v1[0]), int(center[1] - v0[1] - v1[1])), 1 , (0, 0, 255), 5)
+                cv.Circle(image, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
+                cv.Line(image, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
                 
                 # Normalize rotation for publishing
                 if rotation == 0:
@@ -162,17 +147,39 @@ class ImageRecognition:
                 rotation -= 3 * math.pi / 2
                 
                 # Publish rectangle data
-                self._downward_rect_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), rotation=rotation))
+                callback(center, rotation)
+    
+    def sample_points(self, image, size):
+        # Sample image for white points
+        point_sets = []
+        for i in range(0, size[1], self.sample_size): # height
+            for j in range(0, size[0], self.sample_size): # width
+                if cv.Get2D(image, i, j)[0] == 255.0:
+                    # Is this point in a point set already
+                    found = False
+                    for point_set in point_sets:
+                        if (j, i) in point_set:
+                            found = True
+                            break
+                    if not found:
+                        # No so create new set from adjacent points and add to list
+                        point_sets.append(self.find_adjacent_points(image, size, j, i))
         
-        # Publish image
-        try:
-            self._downward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
-        except rospy.ROSException:
-            # Generally this exception occurs if ROS wasn't ready yet. We'll
-            # just silently ignore it and next time should work
-            pass
-        except CvBridgeError, e:
-            print e
+        # Throw away bad point sets
+        for index in range(len(point_sets)):
+            if len(point_sets[index]) < self.min_point_set_len:
+                point_sets[index] = []
+        
+        return point_sets
+    
+    def reduce_noise(self, image):
+        # Reduce noise in image using erode and dilate
+        element = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_ELLIPSE)
+        cv.Erode(image, image, element, 2)
+        cv.Dilate(image, image, element, 4)
+        element = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
+        cv.Erode(image, image, element, 2)
+        cv.Dilate(image, image, element, 4)
     
     def find_adjacent_points(self, image, size, j, i):
         index = 0
