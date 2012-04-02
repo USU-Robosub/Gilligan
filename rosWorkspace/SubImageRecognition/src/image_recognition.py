@@ -15,9 +15,13 @@ from cv_bridge import CvBridge, CvBridgeError
 
 
 class ImageRecognition:
-    sample_size = 17
-    min_point_set_len = 50
+    # Settings: These should be moved to a config file someday?
+    sample_size = 9
+    min_point_set_len = 30
     max_point_sets = 2
+    
+    forward_callback_counter = 0
+    downward_callback_counter = 0
     
     def __init__(self):
         self._bridge = CvBridge()
@@ -101,7 +105,10 @@ class ImageRecognition:
         
         self.reduce_noise(threshold)
         
-        point_sets = self.sample_points(threshold, size)
+        point_sets = self.sample_points(threshold, size, self.downward_callback_counter)
+        self.downward_callback_counter += 1
+        if self.downward_callback_counter == self.sample_size:
+            self.downward_callback_counter = 0
         
         # Limit maximum number of point sets
         point_sets = nlargest(self.max_point_sets, point_sets, len)
@@ -149,11 +156,11 @@ class ImageRecognition:
                 # Publish rectangle data
                 callback(center, rotation)
     
-    def sample_points(self, image, size):
+    def sample_points(self, image, size, offset):
         # Sample image for white points
         point_sets = []
-        for i in range(0, size[1], self.sample_size): # height
-            for j in range(0, size[0], self.sample_size): # width
+        for i in range(offset, size[1], self.sample_size): # height
+            for j in range(offset, size[0], self.sample_size): # width
                 if cv.Get2D(image, i, j)[0] == 255.0:
                     # Is this point in a point set already
                     found = False
