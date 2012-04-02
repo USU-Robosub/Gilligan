@@ -29,6 +29,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_motorControllerTempSubscriber(),
      m_moboTempSubscriber(),
      m_pressureSubscriber(),
+     m_depthSubscriber(),
      m_motorStateSubscriber(),
      m_forwardCameraSubscriber(),
      m_downwardCameraSubscriber(),
@@ -73,6 +74,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
    m_moboTempSubscriber = m_nodeHandle.subscribe("Mobo_Temp", 100, &SubConsole::moboTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
+   m_depthSubscriber = m_nodeHandle.subscribe("Sub_Depth", 100, &SubConsole::depthCallback, this);
    m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
    m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_compressed/compressed", 100, &SubConsole::forwardCameraCallback, this);
    m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
@@ -296,11 +298,10 @@ void SubConsole::motorControllerTempCallback(const std_msgs::Float32MultiArray::
  *
  * @param msg The received message
  **/
-void SubConsole::moboTempCallback(const std_msgs::Float32::ConstPtr& msg)
+void SubConsole::moboTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-   float temperature = msg->data;
-
-   m_pUi->moboTempLineEdit->setText(QString::number(temperature));
+   m_pUi->moboTempLineEdit->setText(QString::number(msg->data[0]));
+   m_pUi->moboTemp2LineEdit->setText(QString::number(msg->data[1]));
 }
 
 /**
@@ -310,14 +311,17 @@ void SubConsole::moboTempCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-   //float pressure = msg->data;
+   m_pUi->ticksDepthLineEdit->setText(QString::number(msg->data));
+}
 
-   //@todo temporarily just reporting ticks from the pressure sensor
-   //m_pUi->freshDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.31));
-   //m_pUi->saltDepthLineEdit->setText(QString::number((pressure - 14.5) * 2.247));
-
-   m_pUi->freshDepthLineEdit->setText(QString::number(msg->data));
-   m_pUi->saltDepthLineEdit->setText(QString::number(msg->data));
+/**
+ * @brief ROS callback for Sub_Depth subscription
+ *
+ * @param msg The received message
+ **/
+void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
+{
+   m_pUi->depthLineEdit->setText(QString::number(msg->data));
 }
 
 /**

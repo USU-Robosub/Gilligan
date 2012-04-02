@@ -2,7 +2,7 @@
 #include "std_msgs/Float32.h"
 
 float offset = 83;
-float scalingFactor = 0.2; //feet per tick
+float scalingFactor = 0.297; //feet per tick
 float currentDepthRaw = 16.6;
 float lastTicks = 83;
 

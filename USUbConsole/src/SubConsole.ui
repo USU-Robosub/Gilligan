@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>874</width>
+    <width>950</width>
     <height>741</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>450</y>
+      <y>460</y>
       <width>241</width>
       <height>161</height>
      </rect>
@@ -134,7 +134,7 @@
       <item>
        <widget class="QCheckBox" name="depthCheckBox">
         <property name="text">
-         <string>Use Target_Depth</string>
+         <string>Use Throttle Target_Depth</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -236,8 +236,8 @@
      <rect>
       <x>530</x>
       <y>150</y>
-      <width>331</width>
-      <height>171</height>
+      <width>411</width>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -246,10 +246,10 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>20</y>
-       <width>301</width>
-       <height>136</height>
+       <x>10</x>
+       <y>30</y>
+       <width>381</width>
+       <height>141</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -278,7 +278,7 @@
         <item>
          <widget class="QLabel" name="label_9">
           <property name="text">
-           <string>Fresh/Salt Water Depth</string>
+           <string>Depth(Ft)/Ticks</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -334,23 +334,34 @@
          </layout>
         </item>
         <item>
-         <widget class="QLineEdit" name="moboTempLineEdit">
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
           <item>
-           <widget class="QLineEdit" name="freshDepthLineEdit">
+           <widget class="QLineEdit" name="moboTempLineEdit">
             <property name="text">
              <string>0.0</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="saltDepthLineEdit">
+           <widget class="QLineEdit" name="moboTemp2LineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLineEdit" name="depthLineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="ticksDepthLineEdit">
             <property name="text">
              <string>0.0</string>
             </property>
@@ -385,13 +396,13 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>330</y>
+      <y>340</y>
       <width>241</width>
       <height>101</height>
      </rect>
     </property>
     <property name="title">
-     <string>Motor State</string>
+     <string>States</string>
     </property>
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
