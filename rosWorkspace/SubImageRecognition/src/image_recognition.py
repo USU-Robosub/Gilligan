@@ -16,7 +16,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class ImageRecognition:
     # Settings: These should be moved to a config file someday?
-    sample_size = 9
+    sample_size = 6
     min_point_set_len = 30
     max_point_sets = 2
     
@@ -191,16 +191,21 @@ class ImageRecognition:
     def find_adjacent_points(self, image, size, j, i):
         index = 0
         points = [(j, i)]
+        cv.Set2D(image, i, j, 0)
         while index < len(points):
             j, i = points[index]
-            if j+self.sample_size < size[0] and cv.Get2D(image, i, j+self.sample_size)[0] == 255.0 and (j+self.sample_size, i) not in points:
+            if j+self.sample_size < size[0] and cv.Get2D(image, i, j+self.sample_size)[0] == 255.0:
                 points.append((j+self.sample_size, i))
-            if j-self.sample_size >= 0 and cv.Get2D(image, i, j-self.sample_size)[0] == 255.0 and (j-self.sample_size, i) not in points:
+                cv.Set2D(image, i, j+self.sample_size, 0)
+            if j-self.sample_size >= 0 and cv.Get2D(image, i, j-self.sample_size)[0] == 255.0:
                 points.append((j-self.sample_size, i))
-            if i+self.sample_size < size[1] and cv.Get2D(image, i+self.sample_size, j)[0] == 255.0 and (j, i+self.sample_size) not in points:
+                cv.Set2D(image, i, j-self.sample_size, 0)
+            if i+self.sample_size < size[1] and cv.Get2D(image, i+self.sample_size, j)[0] == 255.0:
                 points.append((j, i+self.sample_size))
-            if i-self.sample_size >= 0 and cv.Get2D(image, i-self.sample_size, j)[0] == 255.0 and (j, i-self.sample_size) not in points:
+                cv.Set2D(image, i+self.sample_size, j, 0)
+            if i-self.sample_size >= 0 and cv.Get2D(image, i-self.sample_size, j)[0] == 255.0:
                 points.append((j, i-self.sample_size))
+                cv.Set2D(image, i-self.sample_size, j, 0)
             index += 1
         return points
     
