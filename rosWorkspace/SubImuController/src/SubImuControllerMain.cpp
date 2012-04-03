@@ -15,6 +15,11 @@
 #define YAW   0
 #define PITCH 1
 #define ROLL  2
+#define ACCEL 0
+#define GYRO  3
+#define MAGN  6
+
+#define VARIABLE_COUNT 12
 
 void setupTTY(int fd);
 std::string getTTYLine(int fd);
@@ -31,7 +36,7 @@ void error(char * msg)
 int main(int argc, char **argv)
 {
   int fd = 0;
-  float buf[3];
+  float buf[VARIABLE_COUNT];
   std::string file = "/dev/controller_Imu";
 
   if (argc > 1)
@@ -55,7 +60,8 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "SubImuController");
   ros::NodeHandle nh;
 
-  ros::Publisher chatter_pub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Data", 1000);
+  ros::Publisher headingPub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Attitude", 1000);
+  ros::Publisher rawPub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Raw", 1000);
   ros::Rate loop_rate(1);
 
   while (ros::ok())
@@ -63,18 +69,23 @@ int main(int argc, char **argv)
       std::string line = getTTYLine(fd);
       if (line.length() > 0 && goodLine(line))
       {
-        std_msgs::Float32MultiArray msg;
         tokenize(line, buf);
-        msg.data.push_back(buf[0]);
-        msg.data.push_back(buf[1]);
-        msg.data.push_back(buf[2]);
-        /**
-         * This is a message object. You stuff it with data, and then publish it.
-         */
 
-        //ROS_INFO("publishing value of %u", msg.data);
+        //send headings
+        std_msgs::Float32MultiArray msg;
+        msg.data.push_back(buf[YAW]);
+        msg.data.push_back(buf[PITCH]);
+        msg.data.push_back(buf[ROLL]);
+        headingPub.publish(msg);
 
-        chatter_pub.publish(msg);
+        //send accel
+        std_msgs::Float32MultiArray rawMsg;
+        for (int i = ACCEL; i < VARIABLE_COUNT; i++)
+        {
+          rawMsg.data.push_back(buf[i]);
+        }
+        rawPub.publish(rawMsg);
+
         ROS_INFO("published");
 
         ros::spinOnce();
@@ -87,11 +98,18 @@ int main(int argc, char **argv)
 
 bool goodLine(std::string val)
 {
+  bool ret = false;
+  int counter = 0;
+
   for (int i = 0; i < val.size(); i++)
   {
-    if (val[i] != ' ')
-	break;
+    if (val[i] == ',')
+      counter++;
   }
+
+  if (counter == VARIABLE_COUNT)
+
+  return ret;
 }
 
 std::string getTTYLine(int fd)
@@ -122,9 +140,9 @@ std::string getTTYLine(int fd)
         }
         else if (lastChar == 'E')
         {
-          startFound = false;
+          break;
         }
-        else
+        else if (lastChar >= '+' && lastChar <= '9')
         {
           ret += lastChar;
         }
@@ -200,47 +218,23 @@ void setupTTY(int fd)
 
 void tokenize(std::string line, float* buf)
 {
-  std::string yaw, pitch, roll;
+  std::string tmp = "";
   int mode = 0;
-  buf[0] = 0.0;
-  buf[1] = 0.0;
-  buf[2] = 0.0;
+
+  for (int i = 0; i < VARIABLE_COUNT; i++)
+    buf[i] = 0.0;
 
   for (int i = 0; i < line.length(); i++)
   {
-    if (line[i] != ' ')
+    if (line[i] != ',')
     {
-      if (mode == 0)
-      {
-        yaw += line[i];
-      }
-      else if (mode == 1)
-      {
-        pitch += line[i];
-      }
-      else
-      {
-        roll += line[i];
-      }
+      tmp += line[i];
     }
     else
     {
+      buf[mode] = atof(tmp.c_str());
       mode++;
+
     }
-  }
-
-  if (yaw.length() >= 1)
-  {
-    buf[0] = atof(yaw.c_str());
-  }
-
-  if (pitch.length() >= 1)
-  {
-    buf[1] = atof(pitch.c_str());
-  }
-
-  if (roll.length() >= 1)
-  {
-    buf[2] = atof(roll.c_str());
   }
 }
