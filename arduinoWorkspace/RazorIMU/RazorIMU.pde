@@ -9,10 +9,11 @@
 #include "CommunicationUtils.h"
 #include <Wire.h>
 
-int raw_values[9];
+//int raw_values[9];
 //char str[512];
 float ypr[3]; // yaw pitch roll
-float val[9];
+//float val[9];
+float myVals[9];
 
 // Set the FreeIMU object
 FreeIMU my3IMU = FreeIMU();
@@ -35,22 +36,35 @@ void loop()
   for (int i = 0; i < 20; i++)
   {
     float yprTmp[3];
-    my3IMU.getYawPitchRoll(yprTmp);
+    float accel[9];
+    my3IMU.getYawPitchRoll(yprTmp, accel);
     ypr[0] += yprTmp[0];
     ypr[1] += yprTmp[1];
     ypr[2] += yprTmp[2];
+    
+    for (int i = 0; i < 9; i++)
+      myVals[i] += accel[i];
   }
+  
   ypr[0] /= 20.0;
   ypr[1] /= 20.0;
   ypr[2] /= 20.0;
   
+  for (int i = 0; i < 9; i++)
+      myVals[i] /= 20.0;
+  
   //Serial.print("Yaw: ");
   Serial.print("S");
   Serial.print(ypr[0]);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.print(ypr[1]);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.print(ypr[2]);
+  for (int i = 0; i < 9; i++)
+  {
+    Serial.print(",");
+    Serial.print(myVals[i]);
+  }
   Serial.println("E");
   
   delay(100);
