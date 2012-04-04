@@ -21,20 +21,20 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>460</y>
-      <width>241</width>
-      <height>161</height>
+      <y>450</y>
+      <width>261</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
      <string>Joystick</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>31</y>
-       <width>221</width>
+       <y>20</y>
+       <width>231</width>
        <height>124</height>
       </rect>
      </property>
@@ -125,7 +125,7 @@
         <item>
          <widget class="QLabel" name="turnFwdPercentageLabel">
           <property name="text">
-           <string>80% FwdTurn Limit</string>
+           <string>100% FwdTurn Limit</string>
           </property>
          </widget>
         </item>
@@ -144,89 +144,107 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_2">
+   <widget class="QGroupBox" name="imuGroupBox">
     <property name="geometry">
      <rect>
       <x>530</x>
       <y>10</y>
-      <width>311</width>
-      <height>131</height>
+      <width>411</width>
+      <height>161</height>
      </rect>
     </property>
     <property name="title">
      <string>IMU Data</string>
     </property>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>141</width>
-       <height>97</height>
+       <x>20</x>
+       <y>120</y>
+       <width>351</width>
+       <height>29</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Yaw</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Pitch</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Roll</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Yaw</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QLineEdit" name="yawLineEdit">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="pitchLineEdit">
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="rollLineEdit">
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QLineEdit" name="yawLineEdit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Pitch</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="pitchLineEdit">
+        <property name="text">
+         <string>0.0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Roll</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="rollLineEdit">
+        <property name="text">
+         <string>0.0</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -235,7 +253,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>150</y>
+      <y>180</y>
       <width>411</width>
       <height>181</height>
      </rect>
@@ -396,9 +414,9 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>340</y>
-      <width>241</width>
-      <height>101</height>
+      <y>370</y>
+      <width>411</width>
+      <height>71</height>
      </rect>
     </property>
     <property name="title">
@@ -409,37 +427,23 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>191</width>
-       <height>64</height>
+       <width>351</width>
+       <height>31</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <layout class="QHBoxLayout" name="horizontalLayout_12">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <item>
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>Motor State</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Mission State</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Motor State/Mission State</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
         <item>
          <widget class="QLineEdit" name="motorStateLineEdit">
           <property name="enabled">
@@ -620,14 +624,41 @@
    <widget class="QPlainTextEdit" name="errorLogTextEdit">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>620</y>
-      <width>321</width>
+      <x>530</x>
+      <y>630</y>
+      <width>411</width>
       <height>101</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
      <enum>Qt::ScrollBarAlwaysOn</enum>
+    </property>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>2</width>
+      <height>2</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>600</y>
+      <width>71</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Error Log</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
   </widget>

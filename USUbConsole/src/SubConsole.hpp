@@ -5,6 +5,8 @@
 #include <QTimer>
 
 #include "joystick.h"
+#include "qwt/qwt_compass.h"
+#include "attitude_indicator.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/UInt8.h"
@@ -68,6 +70,10 @@ private:
    unsigned char* m_pDownwardCameraData;    //!< Pointer to the the last received downward camera frame
    bool m_downPipEnabled;                   //!< Flag if downward picture in picture is enabled
    bool m_forwardPipEnabled;                //!< Flag if forward picture in picture is enabled
+
+   QwtCompass* m_pCompass;                   //!< Qwt compass widget
+   AttitudeIndicator* m_pPitchIndicator;     //!< Qwt attitude indicator used for pitch
+   AttitudeIndicator* m_pRollIndicator;      //!< Qwt attitude indicator used for roll
 
    /**
     * @brief Class constants and mask values

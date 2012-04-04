@@ -19,9 +19,9 @@ set(QT_INCLUDE_DIR ${QT_ROOT}/include)
 set(QT_LIBRARY_DIR ${QT_ROOT}/lib)
 set(QT_QTCORE_LIBRARY ${QT_ROOT}/lib)
 
-SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp)
+SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp)
 SET(subConsole_FORMS src/SubConsole.ui)
-SET(subConsole_HEADERS src/SubConsole.hpp)
+SET(subConsole_HEADERS src/SubConsole.hpp src/attitude_indicator.h)
 
 QT4_WRAP_CPP(subConsole_HEADERS_MOC ${subConsole_HEADERS})
 QT4_WRAP_UI(subConsole_FORMS_HEADERS ${subConsole_FORMS})
@@ -31,6 +31,7 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 
 rosbuild_add_executable(USUbConsole ${subConsole_SOURCES} ${subConsole_HEADERS_MOC} ${subConsole_FORMS_HEADERS})
 target_link_libraries(USUbConsole joystick++)
+target_link_libraries(USUbConsole qwt)
 target_link_libraries(USUbConsole ${QT_LIBRARIES})
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})

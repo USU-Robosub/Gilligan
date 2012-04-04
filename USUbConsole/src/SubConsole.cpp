@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <iostream>
 #include <math.h>
+#include "qwt/qwt_dial_needle.h"
 
 #include "SubConsole.hpp"
 #include "USUbConsole/MotorMessage.h"
@@ -43,7 +44,10 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pForwardCameraData(NULL),
      m_pDownwardCameraData(NULL),
      m_downPipEnabled(false),
-     m_forwardPipEnabled(false)
+     m_forwardPipEnabled(false),
+     m_pCompass(NULL),
+     m_pPitchIndicator(NULL),
+     m_pRollIndicator(NULL)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -82,6 +86,19 @@ SubConsole::SubConsole(QWidget* pParent)
    m_errorLogSubscriber = m_nodeHandle.subscribe("Error_Log", 100, &SubConsole::errorLogCallback, this);
 
    printf("Finished ROS topic publish and subscription initialization\n");
+
+   m_pCompass = new QwtCompass(m_pUi->imuGroupBox);
+   m_pCompass->resize(80, 80);
+   m_pCompass->move(40, 25);
+   m_pCompass->setNeedle(new QwtCompassMagnetNeedle());
+
+   m_pPitchIndicator = new AttitudeIndicator(m_pUi->imuGroupBox);
+   m_pPitchIndicator->resize(80, 80);
+   m_pPitchIndicator->move(165, 25);
+
+   m_pRollIndicator = new AttitudeIndicator(m_pUi->imuGroupBox);
+   m_pRollIndicator->resize(80, 80);
+   m_pRollIndicator->move(290, 25);
 }
 
 /**
@@ -89,6 +106,9 @@ SubConsole::SubConsole(QWidget* pParent)
  **/
 SubConsole::~SubConsole()
 {
+   delete m_pCompass;
+   delete m_pPitchIndicator;
+   delete m_pRollIndicator;
    delete m_pUi;
 
    m_pJoystickTimer->stop();
@@ -277,8 +297,13 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
 void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
    m_pUi->yawLineEdit->setText(QString::number(msg->data[0]));
+   m_pCompass->setValue(msg->data[0]);
+
    m_pUi->pitchLineEdit->setText(QString::number(msg->data[1]));
+   m_pPitchIndicator->setGradient(msg->data[1]);
+
    m_pUi->rollLineEdit->setText(QString::number(msg->data[2]));
+   m_pRollIndicator->setAngle(msg->data[2]);
 }
 
 /**
