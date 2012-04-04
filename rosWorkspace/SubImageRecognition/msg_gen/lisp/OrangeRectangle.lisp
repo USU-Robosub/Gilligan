@@ -26,6 +26,11 @@
     :reader rotation
     :initarg :rotation
     :type cl:float
+    :initform 0.0)
+   (confidence
+    :reader confidence
+    :initarg :confidence
+    :type cl:float
     :initform 0.0))
 )
 
@@ -56,6 +61,11 @@
 (cl:defmethod rotation-val ((m <OrangeRectangle>))
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader SubImageRecognition-msg:rotation-val is deprecated.  Use SubImageRecognition-msg:rotation instead.")
   (rotation m))
+
+(cl:ensure-generic-function 'confidence-val :lambda-list '(m))
+(cl:defmethod confidence-val ((m <OrangeRectangle>))
+  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader SubImageRecognition-msg:confidence-val is deprecated.  Use SubImageRecognition-msg:confidence instead.")
+  (confidence m))
 (cl:defmethod roslisp-msg-protocol:serialize ((msg <OrangeRectangle>) ostream)
   "Serializes a message object of type '<OrangeRectangle>"
   (cl:let ((__sec (cl:floor (cl:slot-value msg 'stamp)))
@@ -73,6 +83,11 @@
   (cl:write-byte (cl:ldb (cl:byte 8 0) (cl:slot-value msg 'center_y)) ostream)
   (cl:write-byte (cl:ldb (cl:byte 8 8) (cl:slot-value msg 'center_y)) ostream)
   (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'rotation))))
+    (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 24) bits) ostream))
+  (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'confidence))))
     (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
@@ -100,6 +115,12 @@
       (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
     (cl:setf (cl:slot-value msg 'rotation) (roslisp-utils:decode-single-float-bits bits)))
+    (cl:let ((bits 0))
+      (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
+    (cl:setf (cl:slot-value msg 'confidence) (roslisp-utils:decode-single-float-bits bits)))
   msg
 )
 (cl:defmethod roslisp-msg-protocol:ros-datatype ((msg (cl:eql '<OrangeRectangle>)))
@@ -110,21 +131,22 @@
   "SubImageRecognition/OrangeRectangle")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<OrangeRectangle>)))
   "Returns md5sum for a message object of type '<OrangeRectangle>"
-  "2ada05e34d1ee5ab63cd781bf91803ce")
+  "f4d874cbf5602fc8af32db3aa825d47e")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'OrangeRectangle)))
   "Returns md5sum for a message object of type 'OrangeRectangle"
-  "2ada05e34d1ee5ab63cd781bf91803ce")
+  "f4d874cbf5602fc8af32db3aa825d47e")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<OrangeRectangle>)))
   "Returns full string definition for message of type '<OrangeRectangle>"
-  (cl:format cl:nil "time stamp~%uint16 center_x~%uint16 center_y~%float32 rotation~%~%~%"))
+  (cl:format cl:nil "time stamp~%uint16 center_x~%uint16 center_y~%float32 rotation~%float32 confidence~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'OrangeRectangle)))
   "Returns full string definition for message of type 'OrangeRectangle"
-  (cl:format cl:nil "time stamp~%uint16 center_x~%uint16 center_y~%float32 rotation~%~%~%"))
+  (cl:format cl:nil "time stamp~%uint16 center_x~%uint16 center_y~%float32 rotation~%float32 confidence~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <OrangeRectangle>))
   (cl:+ 0
      8
      2
      2
+     4
      4
 ))
 (cl:defmethod roslisp-msg-protocol:ros-message-to-list ((msg <OrangeRectangle>))
@@ -134,4 +156,5 @@
     (cl:cons ':center_x (center_x msg))
     (cl:cons ':center_y (center_y msg))
     (cl:cons ':rotation (rotation msg))
+    (cl:cons ':confidence (confidence msg))
 ))

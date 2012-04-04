@@ -33,7 +33,7 @@ void loop()
   ypr[1] = 0.0;
   ypr[2] = 0.0;
   
-  for (int i = 0; i < 20; i++)
+  for (int i = 0; i < 10; i++)
   {
     float yprTmp[3];
     float accel[9];
@@ -46,12 +46,12 @@ void loop()
       myVals[i] += accel[i];
   }
   
-  ypr[0] /= 20.0;
-  ypr[1] /= 20.0;
-  ypr[2] /= 20.0;
+  ypr[0] /= 10.0;
+  ypr[1] /= 10.0;
+  ypr[2] /= 10.0;
   
   for (int i = 0; i < 9; i++)
-      myVals[i] /= 20.0;
+      myVals[i] /= 10.0;
   
   //Serial.print("Yaw: ");
   Serial.print("S");
@@ -67,7 +67,7 @@ void loop()
   }
   Serial.println("E");
   
-  delay(100);
+  delay(10);
 }
 
 
