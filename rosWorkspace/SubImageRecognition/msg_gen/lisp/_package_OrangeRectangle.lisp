@@ -7,4 +7,6 @@
           CENTER_Y
           ROTATION-VAL
           ROTATION
+          CONFIDENCE-VAL
+          CONFIDENCE
 ))
