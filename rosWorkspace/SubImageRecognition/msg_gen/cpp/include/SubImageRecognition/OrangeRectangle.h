@@ -23,6 +23,7 @@ struct OrangeRectangle_ : public ros::Message
   , center_x(0)
   , center_y(0)
   , rotation(0.0)
+  , confidence(0.0)
   {
   }
 
@@ -31,6 +32,7 @@ struct OrangeRectangle_ : public ros::Message
   , center_x(0)
   , center_y(0)
   , rotation(0.0)
+  , confidence(0.0)
   {
   }
 
@@ -46,6 +48,9 @@ struct OrangeRectangle_ : public ros::Message
   typedef float _rotation_type;
   float rotation;
 
+  typedef float _confidence_type;
+  float confidence;
+
 
 private:
   static const char* __s_getDataType_() { return "SubImageRecognition/OrangeRectangle"; }
@@ -55,7 +60,7 @@ public:
   ROS_DEPRECATED const std::string __getDataType() const { return __s_getDataType_(); }
 
 private:
-  static const char* __s_getMD5Sum_() { return "2ada05e34d1ee5ab63cd781bf91803ce"; }
+  static const char* __s_getMD5Sum_() { return "f4d874cbf5602fc8af32db3aa825d47e"; }
 public:
   ROS_DEPRECATED static const std::string __s_getMD5Sum() { return __s_getMD5Sum_(); }
 
@@ -66,6 +71,7 @@ private:
 uint16 center_x\n\
 uint16 center_y\n\
 float32 rotation\n\
+float32 confidence\n\
 \n\
 "; }
 public:
@@ -80,6 +86,7 @@ public:
     ros::serialization::serialize(stream, center_x);
     ros::serialization::serialize(stream, center_y);
     ros::serialization::serialize(stream, rotation);
+    ros::serialization::serialize(stream, confidence);
     return stream.getData();
   }
 
@@ -90,6 +97,7 @@ public:
     ros::serialization::deserialize(stream, center_x);
     ros::serialization::deserialize(stream, center_y);
     ros::serialization::deserialize(stream, rotation);
+    ros::serialization::deserialize(stream, confidence);
     return stream.getData();
   }
 
@@ -100,6 +108,7 @@ public:
     size += ros::serialization::serializationLength(center_x);
     size += ros::serialization::serializationLength(center_y);
     size += ros::serialization::serializationLength(rotation);
+    size += ros::serialization::serializationLength(confidence);
     return size;
   }
 
@@ -128,12 +137,12 @@ template<class ContainerAllocator>
 struct MD5Sum< ::SubImageRecognition::OrangeRectangle_<ContainerAllocator> > {
   static const char* value() 
   {
-    return "2ada05e34d1ee5ab63cd781bf91803ce";
+    return "f4d874cbf5602fc8af32db3aa825d47e";
   }
 
   static const char* value(const  ::SubImageRecognition::OrangeRectangle_<ContainerAllocator> &) { return value(); } 
-  static const uint64_t static_value1 = 0x2ada05e34d1ee5abULL;
-  static const uint64_t static_value2 = 0x63cd781bf91803ceULL;
+  static const uint64_t static_value1 = 0xf4d874cbf5602fc8ULL;
+  static const uint64_t static_value2 = 0xaf32db3aa825d47eULL;
 };
 
 template<class ContainerAllocator>
@@ -154,6 +163,7 @@ struct Definition< ::SubImageRecognition::OrangeRectangle_<ContainerAllocator> >
 uint16 center_x\n\
 uint16 center_y\n\
 float32 rotation\n\
+float32 confidence\n\
 \n\
 ";
   }
@@ -178,6 +188,7 @@ template<class ContainerAllocator> struct Serializer< ::SubImageRecognition::Ora
     stream.next(m.center_x);
     stream.next(m.center_y);
     stream.next(m.rotation);
+    stream.next(m.confidence);
   }
 
   ROS_DECLARE_ALLINONE_SERIALIZER;
@@ -203,6 +214,8 @@ struct Printer< ::SubImageRecognition::OrangeRectangle_<ContainerAllocator> >
     Printer<uint16_t>::stream(s, indent + "  ", v.center_y);
     s << indent << "rotation: ";
     Printer<float>::stream(s, indent + "  ", v.rotation);
+    s << indent << "confidence: ";
+    Printer<float>::stream(s, indent + "  ", v.confidence);
   }
 };
 
