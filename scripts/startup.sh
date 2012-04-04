@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ##Stage 1
-roscore &
+#roscore &
 
-sleep 2
+#sleep 2
 
 ##Stage 2
 
@@ -18,6 +18,9 @@ rosrun SubImuController SubImuController /dev/controller_Imu &
 
 # start the motor controllers
 rosrun SubMotorController SubMotorController &
+
+# start the moboTemp module
+rosrun moboTemp moboTemp &
 
 sleep 1
 
