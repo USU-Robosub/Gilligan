@@ -11,7 +11,7 @@
 #define FRONT_TURN_BIT  0x10
 #define REAR_TURN_BIT   0x20
 
-using namespace LibSerial;
+//using namespace LibSerial;
 
 MotorControllerHandler* motorControllerDrive;
 MotorControllerHandler* motorControllerDepth;
@@ -60,7 +60,6 @@ void motorMessage(const SubMotorController::MotorMessage::ConstPtr& msg) {
 			   curRTurnSpeed = 0;
 
 
-	printf("got a message\n");
 	curLDriveSpeed = msg->mask & LEFT_DRIVE_BIT  ? msg->Left       : curLDriveSpeed;
 	curRDriveSpeed = msg->mask & RIGHT_DRIVE_BIT ? msg->Right      : curRDriveSpeed;
 	curFDepthSpeed = msg->mask & FRONT_DEPTH_BIT ? msg->FrontDepth : curFDepthSpeed;
