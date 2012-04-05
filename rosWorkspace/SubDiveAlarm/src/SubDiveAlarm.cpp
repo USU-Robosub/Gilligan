@@ -22,8 +22,8 @@ int main(int argc, char ** argv)
   ros::init(argc, argv, "SubDiveAlarm");
   ros::NodeHandle nh;
 
-  ros::Subscriber targetSub = nh.subscribe("Target_Depth", 1000, pressureDataCallback);
-  ros::Subscriber depthSub = nh.subscribe("Sub_Depth", 1000, subDepthCallback);
+  ros::Subscriber targetSub = nh.subscribe("Target_Depth", 1, pressureDataCallback);
+  ros::Subscriber depthSub = nh.subscribe("Sub_Depth", 1, subDepthCallback);
 
   ros::spin();
   return 0;
@@ -31,10 +31,8 @@ int main(int argc, char ** argv)
 
 void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-  printf("Depth will be %f\n", msg->data);
   if (DEPTH < msg->data)
   {
-    printf("playing\n");
     system("mplayer -really-quiet /opt/robosub/sounds/klaxonAlarm.ogg");
   }
 }
@@ -42,5 +40,4 @@ void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 void subDepthCallback(const std_msgs::Float32::ConstPtr& msg)
 {
   DEPTH = msg->data;
-  printf("Depth is %f\n", DEPTH);
 }
