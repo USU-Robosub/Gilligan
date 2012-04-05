@@ -45,7 +45,7 @@ sleep 1
 /opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=downward_camera/image_raw compressed out:=downward_camera/image_compressed &
 
 # save compressed cameras in a bag
-rosbag record -O cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed &
+rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed &
 
 #Simple Depth Controller maintains a target depth
 rosrun subSim simpleDepth
