@@ -121,7 +121,7 @@ int main(int argc, char **argv)
             ros::spinOnce();
           }
 
-          printf("motorKilled %d:%d, %d\n", motorKilled, tmotorKilled, motorTimer.isTimeout());
+          //printf("motorKilled %d:%d, %d\n", motorKilled, tmotorKilled, motorTimer.isTimeout());
           if (motorKilled != tmotorKilled || motorTimer.isTimeout())
           {
             //motorkilled

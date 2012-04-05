@@ -11,7 +11,7 @@
 roslaunch SubCameraDriver cameras.launch &
 
 # start the sensor board
-rosrun rosserial_python serial_node.py /dev/controller_sensor &
+rosrun SubSensorController SubSensorController /dev/controller_sensor &
 
 # start the imu
 rosrun SubImuController SubImuController /dev/controller_Imu &
