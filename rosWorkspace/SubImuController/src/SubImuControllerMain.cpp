@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   float data[VARIABLE_COUNT];
   float tdata[VARIABLE_COUNT];
 
-  ros::init(argc, argv, "SubSensorController");
+  ros::init(argc, argv, "SubImuController");
   ros::NodeHandle nh;
 
   ros::Publisher headingPub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Attitude", 1000);
