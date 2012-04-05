@@ -31,13 +31,16 @@ int main(int argc, char ** argv)
 
 void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-  if (msg->data < DEPTH)
+  printf("Depth will be %f\n", msg->data);
+  if (DEPTH < msg->data)
   {
-    system("mplayer /opt/robosub/sounds/klaxonAlarm.ogg");
+    printf("playing\n");
+    system("mplayer -really-quiet /opt/robosub/sounds/klaxonAlarm.ogg");
   }
 }
 
 void subDepthCallback(const std_msgs::Float32::ConstPtr& msg)
 {
   DEPTH = msg->data;
+  printf("Depth is %f\n", DEPTH);
 }
