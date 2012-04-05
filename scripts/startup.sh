@@ -22,6 +22,9 @@ rosrun SubMotorController SubMotorController &
 # start the moboTemp module
 rosrun moboTemp moboTemp &
 
+#Translation from ticks to actual depth
+rosrun SubTranslators DepthTranslator
+
 sleep 1
 
 ##Stage 3
@@ -43,4 +46,7 @@ sleep 1
 
 # save compressed cameras in a bag
 rosbag record -O cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed &
+
+#Simple Depth Controller maintains a target depth
+rosrun subSim simpleDepth
 
