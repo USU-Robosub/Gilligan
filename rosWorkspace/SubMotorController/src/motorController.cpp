@@ -29,6 +29,7 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 		n = nh;
 
 	awaitingResponce = false;
+	bufIndex = 0;
 	currentMessage.type = NO_MESSAGE;
 	gettimeofday(&lastQRCurTime, NULL);
 	gettimeofday(&lastQLCurTime, NULL);
@@ -67,7 +68,6 @@ void MotorControllerHandler::setMotorSpeed(int right, int left) {
 }
 
 Message createMessageFromSpeed(int rightSpeed, int leftSpeed) {
-	printf("creating message for %d %d", rightSpeed, leftSpeed);
 	Message msg;
 	msg.type = MOTOR_TYPE;
 
@@ -94,22 +94,14 @@ Message createMessageFromSpeed(int rightSpeed, int leftSpeed) {
 void MotorControllerHandler::transmit() {
 	if(currentMessage.type == NO_MESSAGE) 
 		return;
-	printf("%s: attempting to send message of type %c\n", name.c_str(), currentMessage.type);
 
 	gettimeofday(&lastSendTime, NULL);
-	printf("sending message %c %d %d %d %d\n", currentMessage.type,
-			currentMessage.DataC[0],
-			currentMessage.DataC[1],
-			currentMessage.DataC[2],
-			currentMessage.DataC[3]);
 	awaitingResponce = true;
 
 	if(!serialPort.IsOpen()) {
-		printf("%s: port not open attempting to re-open port\n", name.c_str());
 		try {
 			serialPort.Open(BAUD, SerialPort::CHAR_SIZE_8, SerialPort::PARITY_NONE, SerialPort::STOP_BITS_1, SerialPort::FLOW_CONTROL_NONE);
 		} catch (...) {
-			printf("crap I couldn't open the port\n");
 			char temp[1000];
 			sprintf(temp, "%s error: Unable to open port\n", name.c_str());
 			print(string(temp));
@@ -124,7 +116,6 @@ void MotorControllerHandler::transmit() {
 		serialPort.WriteByte('E');
 		awaitingResponce = true;
 	} catch (...) {
-		printf("crap I couldn't get it to send\n");
 		char temp[1000];
 		sprintf(temp, "%s error: Unable to send message\n", name.c_str());
 		print(string(temp));
@@ -134,21 +125,22 @@ void MotorControllerHandler::transmit() {
 void MotorControllerHandler::processResponce() {
 	if(buffer[0] != 'S' || buffer[6] != 'E') {
 		//Misaligned data? throw out bytes until you get it to align correctly
-		printf("Misaligned data\n");
+		printf("Misaligned data: ");
+		for(int i = 0; i < 7; i++) 
+			printf("\'%c\' (%x)", buffer[i], buffer[i]);
+		printf("\n");
 		for(int i = 0; i < 6; i++) {
 			buffer[i] = buffer[i+1];
-			bufIndex--;
-			return;
 		}
+		bufIndex--;
+		return;
 	}
 	bufIndex = 0;
 	Message responce;
 	responce.type = buffer[1];
-	printf("got responce of type %c\n", responce.type);
 	for(int i = 0; i < 4; i++) {
 		responce.DataC[i] = buffer[i+2];
 	}
-	printf("%s: got a responce of type %c\n", name.c_str(), responce.type);
 
 	//printf("got responce %c %c %x %x %x %x %c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6]);
 	switch (responce.type) {
@@ -173,7 +165,6 @@ void MotorControllerHandler::processResponce() {
 				rightSpeed = responce.DataC[2];
 			else
 				rightSpeed = -responce.DataC[3];
-			printf("new speeds right=%d(%d) left=%d(%d)\n", rightSpeed, rightTargetSpeed, leftSpeed, leftTargetSpeed);
 			currentMessage.type = NO_MESSAGE;
 			awaitingResponce = false;
 			break;
@@ -210,9 +201,8 @@ void MotorControllerHandler::recieve() {
 		try {
 			while(serialPort.IsDataAvailable()) {
 				unsigned char data = serialPort.ReadByte();
-				//printf("recieved byte \'%c\'\n", data);
+//				printf("recieved byte \'%c\'\n", data);
 				while(bufIndex == 7) {
-					printf("You are not clearing bufIndex\n");
 					processResponce();
 				}
 				buffer[bufIndex++] = data;

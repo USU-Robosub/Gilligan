@@ -1,7 +1,7 @@
 #include <sys/time.h>
 #include <string>
-#include <SerialStream.h>
 #include <ros/ros.h>
+#include <SerialPort.h>
 
 using namespace std;
 

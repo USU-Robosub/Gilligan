@@ -14,6 +14,9 @@ from SubImageRecognition.msg import OrangeRectangle
 from cv_bridge import CvBridge, CvBridgeError
 
 
+# TODO: All values used (thresholds, max sets, etc.) should be kept in a
+#       central configuration to allow for quick modification from one place.
+
 class ImageRecognition:
     # Settings: These should be moved to a config file someday?
     sample_size = 6
@@ -26,7 +29,7 @@ class ImageRecognition:
     def __init__(self):
         self._bridge = CvBridge()
         
-        #self._forward_data_pub = rospy.Publisher("forward_camera/data", TODO)
+        self._forward_gate_pub = rospy.Publisher("forward_camera/gate", OrangeRectangle)
         self._forward_img_pub = rospy.Publisher("forward_camera/image_raw", Image)
         self._forward_sub = rospy.Subscriber(
                  "left/image_raw", Image, self.forward_callback)
@@ -34,7 +37,7 @@ class ImageRecognition:
         self._downward_rect_pub = rospy.Publisher("downward_camera/orange_rectangle", OrangeRectangle)
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
-                "left/image_raw", Image, self.downward_callback) # TODO: Change back to right at some point
+                "right/image_raw", Image, self.downward_callback)
     
     def forward_callback(self, data):
         # Get image
@@ -44,24 +47,29 @@ class ImageRecognition:
             print e
         
         # Rotate so that 'up' is the top of the sub
-        rotated = cv.CreateImage((image_raw.height, image_raw.width), cv.IPL_DEPTH_8U, 3)
+        size = (image_raw.height, image_raw.width)
+        rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         self.rotate_image_cw(image_raw, rotated)
         
-        # TODO: Right now this callback just runs 'good features to track'
-        #       algorithm against a grayscale version of the rotated image.
-        #       It needs to have a good idea of where it is in the pool (some
-        #       other node should keep track of that and publish it) and then
-        #       run different sets of image recognition algorithms based on
-        #       what is expected to be around it.
+        # Segment image into HSV channels
+        segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
-        # Look for good features to track and mark them
-        (cols, rows) = cv.GetSize(rotated)
-        gray = cv.CreateImage((cols, rows), cv.IPL_DEPTH_8U, 1)
-        cv.CvtColor(rotated, gray, cv.CV_RGB2GRAY)
-        eig_image = cv.CreateMat(rows, cols, cv.CV_32FC1)
-        temp_image = cv.CreateMat(rows, cols, cv.CV_32FC1)
-        for (x, y) in cv.GoodFeaturesToTrack(gray, eig_image, temp_image, 10, 0.04, 1.0, useHarris=True):
-            cv.Circle(rotated, (int(x), int(y)), 1 , (0, 0, 255), 5)
+        # Perform threshold to isolate a range of colors
+        threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+        cv.InRangeS(segmented, (165, 0, 0), (225, 255, 150), threshold)
+        
+        self.reduce_noise(threshold)
+        
+        point_sets = self.sample_points(threshold, size, self.forward_callback_counter)
+        self.forward_callback_counter += 1
+        if self.forward_callback_counter == self.sample_size:
+            self.forward_callback_counter = 0
+        
+        # Limit maximum number of point sets
+        point_sets = nlargest(self.max_point_sets, point_sets, len)
+        
+        self.publish_points(point_sets, rotated, self.forward_gate_callback)
         
         # Publish image
         try:
@@ -83,17 +91,7 @@ class ImageRecognition:
         # Rotate so that 'up' is the front of the sub
         size = (image_raw.height, image_raw.width)
         rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        self.rotate_image_cw(image_raw, rotated) # TODO: Change back to ccw at some point
-        
-        # TODO: Right now this callback just looks for orange rectangles and
-        #       published data about them. It needs to have a good idea of
-        #       where it is (some other node should keep track of that and
-        #       publish it) and then optionally run additional algorithms
-        #       based on what is expected to be around it.
-        
-        # TODO: All values used in operations (thresholds, amount/type of
-        #       erode/dilate, etc.) should be kept in a central configuration
-        #       to allow for quick modification from one place.
+        self.rotate_image_ccw(image_raw, rotated)
         
         # Segment image into HSV channels
         segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
@@ -125,9 +123,14 @@ class ImageRecognition:
         except CvBridgeError, e:
             print e
     
+    def forward_gate_callback(self, center, rotation, dims, points_len):
+        expected_points = (dims[0] * dims[1]) / (self.sample_size ** 2)
+        confidence = min(points_len / expected_points, 1)
+        self._forward_gate_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), confidence=confidence))
+    
     def downward_orange_rectangle_callback(self, center, rotation, dims, points_len):
         expected_points = (dims[0] * dims[1]) / (self.sample_size ** 2)
-        confidence = points_len / expected_points
+        confidence = min(points_len / expected_points, 1)
         self._downward_rect_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), rotation=rotation, confidence=confidence))
     
     def publish_points(self, point_sets, image, callback):
