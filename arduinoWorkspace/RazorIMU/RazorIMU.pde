@@ -9,6 +9,8 @@
 #include "CommunicationUtils.h"
 #include <Wire.h>
 
+#define AVERAGE  1
+
 //int raw_values[9];
 //char str[512];
 float ypr[3]; // yaw pitch roll
@@ -33,7 +35,7 @@ void loop()
   ypr[1] = 0.0;
   ypr[2] = 0.0;
   
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < AVERAGE; i++)
   {
     float yprTmp[3];
     float accel[9];
@@ -46,12 +48,12 @@ void loop()
       myVals[i] += accel[i];
   }
   
-  ypr[0] /= 10.0;
-  ypr[1] /= 10.0;
-  ypr[2] /= 10.0;
+  ypr[0] /= AVERAGE;
+  ypr[1] /= AVERAGE;
+  ypr[2] /= AVERAGE;
   
   for (int i = 0; i < 9; i++)
-      myVals[i] /= 10.0;
+      myVals[i] /= AVERAGE;
   
   //Serial.print("Yaw: ");
   Serial.print("S");
@@ -66,8 +68,6 @@ void loop()
     Serial.print(myVals[i]);
   }
   Serial.println("E");
-  
-  delay(10);
 }
 
 
