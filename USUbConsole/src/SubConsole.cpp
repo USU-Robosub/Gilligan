@@ -74,7 +74,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
    m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
 
-   m_imuSubscriber = m_nodeHandle.subscribe("IMU_Data", 100, &SubConsole::imuDataCallback, this);
+   m_imuSubscriber = m_nodeHandle.subscribe("IMU_Attitude", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
    m_moboTempSubscriber = m_nodeHandle.subscribe("Mobo_Temp", 100, &SubConsole::moboTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
@@ -290,7 +290,7 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
 }
 
 /**
- * @brief ROS callback for IMU_Data subscription
+ * @brief ROS callback for IMU_Attitude subscription
  *
  * @param msg The received message
  **/
@@ -302,7 +302,7 @@ void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& ms
    m_pUi->pitchLineEdit->setText(QString::number(msg->data[1]));
    m_pPitchIndicator->setGradient(msg->data[1]);
 
-   m_pUi->rollLineEdit->setText(QString::number(msg->data[2]));
+   m_pUi->rollLineEdit->setText(QString::number(msg->data[2]/180.0));
    m_pRollIndicator->setAngle(msg->data[2]);
 }
 
