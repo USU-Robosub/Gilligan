@@ -56,6 +56,11 @@ void setup()
 
 void loop()
 {
+  while (Serial.available() && Serial.peek() != 'S')
+  {
+    Serial.read();
+  }
+  
   if (Serial.available() >= PACKET_SIZE)
   {
     for (int i = 0; i < PACKET_SIZE; i++)

@@ -1,3 +1,10 @@
+/*
+ * NewSubImuControllerMain.cpp
+ *
+ *  Created on: Apr 4, 2012
+ *      Author: bholdaway
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -11,21 +18,25 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
 
+#define STATE_WAITING_ON_FD 0
+#define STATE_WORKING       1
+#define VERBOSE             0
 
 #define YAW   0
 #define PITCH 1
 #define ROLL  2
-#define ACCEL 0
-#define GYRO  3
-#define MAGN  6
+#define ACCEL 3
+#define GYRO  6
+#define MAGN  9
 
 #define VARIABLE_COUNT 12
 
-void setupTTY(int fd);
+int setupTTY(int fd);
 std::string getTTYLine(int fd);
-void tokenize(std::string line, float* buf);
 bool timeLeft(struct timeval* start, struct timeval* timeout);
-bool goodLine(std::string val);
+bool goodLine(std::string val, int varCount);
+
+int controllerState = STATE_WAITING_ON_FD;
 
 void error(char * msg)
 {
@@ -35,8 +46,7 @@ void error(char * msg)
 
 int main(int argc, char **argv)
 {
-  int fd = 0;
-  float buf[VARIABLE_COUNT];
+  int fd;
   std::string file = "/dev/controller_Imu";
 
   if (argc > 1)
@@ -45,17 +55,8 @@ int main(int argc, char **argv)
     printf("Opening %s\n", file.c_str());
   }
 
-  fd = open(file.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-
-  if (fd == -1)
-  {
-    printf("System failed to open %s: %s(%d)\n", file.c_str(), strerror(errno), errno);
-    return -1;
-  }
-  
-  setupTTY(fd);
-
-  sleep(5); //wait for IMU to boot and stabalize
+  float data[VARIABLE_COUNT];
+  float tdata[VARIABLE_COUNT];
 
   ros::init(argc, argv, "SubImuController");
   ros::NodeHandle nh;
@@ -66,48 +67,88 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-      std::string line = getTTYLine(fd);
-      if (line.length() > 0 && goodLine(line))
+    if (controllerState == STATE_WAITING_ON_FD)
+    {
+      fd = open(file.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+
+      if (fd == -1)
       {
-        tokenize(line, buf);
-
-        //send headings
-        std_msgs::Float32MultiArray msg;
-        msg.data.push_back(buf[YAW]);
-        msg.data.push_back(buf[PITCH]);
-        msg.data.push_back(buf[ROLL]);
-        headingPub.publish(msg);
-
-        //send accel
-        std_msgs::Float32MultiArray rawMsg;
-        for (int i = ACCEL; i < VARIABLE_COUNT; i++)
-        {
-          rawMsg.data.push_back(buf[i]);
-        }
-        rawPub.publish(rawMsg);
-
-        ROS_INFO("published");
-
-        ros::spinOnce();
+        printf("System failed to open %s: %s(%d)\n", file.c_str(), strerror(errno), errno);
+        sleep(1);
       }
+      else
+      {
+        if (setupTTY(fd) == 0)
+        {
+          controllerState = STATE_WORKING;
+
+          sleep(5); //wait for sensor to boot and stabilize
+        }
+        else
+          close(fd);
+      }
+    }
+    else if (controllerState == STATE_WORKING)
+    {
+      std::string line = "";
+      line = getTTYLine(fd);
+      //printf("line: %s\n", line.c_str());
+      if (line.length() > 0 && goodLine(line, VARIABLE_COUNT))
+      {
+        int scanfVal;
+
+        if ((scanfVal = sscanf(line.c_str(), "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", &tdata[0], &tdata[1], &tdata[2], &tdata[3], &tdata[4],
+            &tdata[5], &tdata[6], &tdata[7], &tdata[8], &tdata[9], &tdata[10], &tdata[11])) == VARIABLE_COUNT)
+        {
+          //publish attitude
+          std_msgs::Float32MultiArray attitudeMsg;
+          for (int i = YAW; i < ACCEL; i++)
+          {
+            attitudeMsg.data.push_back(tdata[i]);
+          }
+          headingPub.publish(attitudeMsg);
+
+          //publish raw
+          std_msgs::Float32MultiArray rawMsg;
+          for (int i = ACCEL; i < VARIABLE_COUNT; i++)
+          {
+            rawMsg.data.push_back(tdata[i]);
+          }
+          rawPub.publish(rawMsg);
+
+          if (VERBOSE)
+            ROS_INFO("published");
+        }
+        else
+        {
+          printf("Throwing away %d:\"%s\"\n", scanfVal, line.c_str());
+          fflush(stdout);
+        }
+      }
+    }
   }
 
   close(fd);
   return 0;
 }
 
-bool goodLine(std::string val)
+
+bool goodLine(std::string val, int varCount)
 {
   bool ret = false;
-  int counter = 0;
-
+  int commaCount = 0;
   for (int i = 0; i < val.size(); i++)
   {
     if (val[i] == ',')
-      counter++;
+      commaCount++;
   }
 
-  if (counter == VARIABLE_COUNT)
+  if (commaCount == varCount - 1)
+  {
+    ret = true;
+  }
+  else
+    printf("not enough commans\n");
 
   return ret;
 }
@@ -120,6 +161,7 @@ std::string getTTYLine(int fd)
   fd_set rdfs;
   struct timeval timeout, start;
   struct timezone tz;
+  int val;
 
   FD_ZERO(&rdfs);
   FD_SET(fd, &rdfs);
@@ -132,7 +174,7 @@ std::string getTTYLine(int fd)
   {
     if (select(fd+1, &rdfs, NULL, NULL, &timeout) > 0)
     {
-      if (read(fd, &lastChar, 1) == 1)
+      if ((val = read(fd, &lastChar, 1)) == 1)
       {
         if (lastChar == 'S')
         {
@@ -147,9 +189,17 @@ std::string getTTYLine(int fd)
           ret += lastChar;
         }
       }
+      else
+      {
+        printf("Error: fd failed!\n");
+        controllerState = STATE_WAITING_ON_FD;
+        close(fd);
+      }
     }
     else
     {
+      printf("timeout %s\n", ret.c_str());
+      ret = "";
       break;
     }
   }
@@ -183,8 +233,10 @@ bool timeLeft(struct timeval* start, struct timeval* timeout)
   return ret;
 }
 
-void setupTTY(int fd)
+int setupTTY(int fd)
 {
+  int ret = 0;
+
   fcntl(fd, F_SETFL, 0);
   struct termios port_settings;      // structure to store the port settings in
 
@@ -211,30 +263,9 @@ void setupTTY(int fd)
   if(tcsetattr(fd, TCSANOW, &port_settings) < 0)    // apply the settings to the port
   {
     printf("Failed to set serial settings\n");
-    exit(-1);
+    ret = -1;
   }
 
+  return ret;
 }
 
-void tokenize(std::string line, float* buf)
-{
-  std::string tmp = "";
-  int mode = 0;
-
-  for (int i = 0; i < VARIABLE_COUNT; i++)
-    buf[i] = 0.0;
-
-  for (int i = 0; i < line.length(); i++)
-  {
-    if (line[i] != ',')
-    {
-      tmp += line[i];
-    }
-    else
-    {
-      buf[mode] = atof(tmp.c_str());
-      mode++;
-
-    }
-  }
-}
