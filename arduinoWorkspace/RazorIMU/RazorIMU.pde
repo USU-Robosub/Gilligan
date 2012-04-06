@@ -59,9 +59,9 @@ void loop()
   Serial.print("S");
   Serial.print(ypr[0]);
   Serial.print(",");
-  Serial.print(ypr[1]);
-  Serial.print(",");
   Serial.print(ypr[2]);
+  Serial.print(",");
+  Serial.print(ypr[1]);
   for (int i = 0; i < 9; i++)
   {
     Serial.print(",");
