@@ -7,6 +7,8 @@ import rospy
 import math
 import time
 import cv
+import Settings
+import Algorithm
 from heapq import nlargest
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
@@ -54,6 +56,8 @@ class ImageRecognition:
         # Segment image into HSV channels
         segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
+        
+        
         
         # Perform threshold to isolate a range of colors
         threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
