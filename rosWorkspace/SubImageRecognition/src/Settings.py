@@ -1,3 +1,4 @@
+import rospy
 import Algorithm
 
 class Settings:
@@ -6,39 +7,48 @@ class Settings:
     min_point_set_len = 30
     root_topic = 'image_recognition/'
     
-    algorithms = {
+    algorithms = [
         
-        'forward_gate': Algorithm(
+        # Forward Gate
+        Algorithm(
             enabled = True,
+            topic = root_topic + 'forward/gate',
+            camera = Algorithm.FORWARD,
             thresholds = {
-                'default': ((0, 0, 0), (143, 220, 70)),
+                Algorithm.DEFAULT: ((0, 0, 0), (143, 220, 70)),
             },
             max_point_sets = 2,
-            confidence_type = 'circle'
+            confidence_type = Algorithm.RECTANGLE
         ),
         
-        'forward_buoys': Algorithm(
+        # Forward Buoys
+        Algorithm(
             enabled = False,
+            topic = root_topic + 'forward/buoys',
+            camera = Algorithm.FORWARD
             thresholds = {
-                'red': None, # TODO: Get good threshold for red buoy
-                'green': None, # TODO: Get good threshold for green buoy
-                'yellow': None, # TODO: Get good threshold for yellow buoy
+                'red': None, # TODO: Get good thresholds for red buoy
+                'green': None, # TODO: Get good thresholds for green buoy
+                'yellow': None, # TODO: Get good thresholds for yellow buoy
             },
             max_point_sets = 1,
-            confidence_type = 'circle'
+            confidence_type = Algorithm.CIRCLE
         ),
         
         # TODO: Add more forward algorithms here
         
-        'downward_orange_rectangles': Algorithm(
+        # Downward Orange Rectangles
+        Algorithm(
             enabled = True,
+            topic = root_topic + 'downward/orange_rectangles',
+            camera = Algorithm.DOWNWARD
             thresholds = {
-                'default': ((5, 50, 50), (15, 255, 255)),
+                Algorithm.DEFAULT: ((5, 50, 50), (15, 255, 255)), # TODO: Get better thresholds for this
             },
             max_point_sets = 2,
-            confidence_type = 'rectangle'
+            confidence_type = Algorithm.RECTANGLE
         ),
         
         # TODO: Add more downward algorithms here
         
-    }
+    ]

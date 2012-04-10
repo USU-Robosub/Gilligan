@@ -12,34 +12,49 @@ import Algorithm
 from heapq import nlargest
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
-from SubImageRecognition.msg import OrangeRectangle
+from SubImageRecognition.msg import ImgRecObject
 from cv_bridge import CvBridge, CvBridgeError
 
 
-# TODO: All values used (thresholds, max sets, etc.) should be kept in a
-#       central configuration to allow for quick modification from one place.
-
 class ImageRecognition:
-    # Settings: These should be moved to a config file someday?
-    sample_size = 6
-    min_point_set_len = 30
-    max_point_sets = 2
-    
     forward_callback_counter = 0
     downward_callback_counter = 0
     
     def __init__(self):
         self._bridge = CvBridge()
         
-        self._forward_gate_pub = rospy.Publisher("forward_camera/gate", OrangeRectangle)
         self._forward_img_pub = rospy.Publisher("forward_camera/image_raw", Image)
         self._forward_sub = rospy.Subscriber(
-                 "left/image_raw", Image, self.forward_callback)
+                "left/image_raw", Image, self.forward_callback)
         
-        self._downward_rect_pub = rospy.Publisher("downward_camera/orange_rectangle", OrangeRectangle)
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
                 "right/image_raw", Image, self.downward_callback)
+        
+        self._rotated = None
+        self._segmented = None
+        self._threshold = None
+        self._temp_img = None
+    
+    def get_rotated(self, size):
+        if self._rotated is None:
+            self._rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        return self._rotated
+    
+    def get_segmented(self, size):
+        if self._segmented is None:
+            self._segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        return self._segmented
+    
+    def get_threshold(self, size):
+        if self._threshold is None:
+            self._threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+        return self._threshold
+    
+    def get_temp_img(self, size):
+        if self._temp_img is None:
+            self._temp_img = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+        return self._temp_img
     
     def forward_callback(self, data):
         # Get image
@@ -50,30 +65,33 @@ class ImageRecognition:
         
         # Rotate so that 'up' is the top of the sub
         size = (image_raw.height, image_raw.width)
-        rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        rotated = self.get_rotated(size)
         self.rotate_image_cw(image_raw, rotated)
         
         # Segment image into HSV channels
-        segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        segmented = self.get_segmented(size)
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
+        # Access threshold object for possible use
+        threshold = self.get_threshold(size)
         
+        for algorithm in Settings.algorithms:
+            
+            if algorithm.enabled and algorithm.camera is Algorithm.FORWARD:
+                
+                for threshold_name in algorithm.thresholds:
+                    
+                    # Perform threshold to isolate a range of colors
+                    threshold_values = algorithm.thresholds[threshold_name]
+                    cv.InRangeS(segmented, threshold_values[0], threshold_values[1], threshold)
+                    
+                    self.reduce_noise(threshold)
+                    
+                    point_sets = self.sample_points(threshold, size, self.forward_callback_counter)
+                    
+                    self.publish_points(algorithm, point_sets, rotated, name=threshold_name)
         
-        # Perform threshold to isolate a range of colors
-        threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-        cv.InRangeS(segmented, (165, 0, 0), (225, 255, 150), threshold)
-        
-        self.reduce_noise(threshold)
-        
-        point_sets = self.sample_points(threshold, size, self.forward_callback_counter)
-        self.forward_callback_counter += 1
-        if self.forward_callback_counter == self.sample_size:
-            self.forward_callback_counter = 0
-        
-        # Limit maximum number of point sets
-        point_sets = nlargest(self.max_point_sets, point_sets, len)
-        
-        self.publish_points(point_sets, rotated, self.forward_gate_callback)
+        self.forward_callback_counter = (self.forward_callback_counter + 1) % Settings.sample_size
         
         # Publish image
         try:
@@ -101,21 +119,26 @@ class ImageRecognition:
         segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
-        # Perform threshold to isolate a range of colors
-        threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-        cv.InRangeS(segmented, (5, 50, 50), (15, 255, 255), threshold)
+        # Access threshold object for possible use
+        threshold = self.get_threshold(size)
         
-        self.reduce_noise(threshold)
+        for algorithm in Settings.algorithms:
+            
+            if algorithm.enabled and algorithm.camera is Algorithm.DOWNWARD:
+                
+                for threshold_name in algorithm.thresholds:
+                    
+                    # Perform threshold to isolate a range of colors
+                    threshold_values = algorithm.thresholds[threshold_name]
+                    cv.InRangeS(segmented, threshold_values[0], threshold_values[1], threshold)
+                    
+                    self.reduce_noise(threshold)
+                    
+                    point_sets = self.sample_points(threshold, size, self.downward_callback_counter)
+                    
+                    self.publish_points(algorithm, point_sets, rotated, name=threshold_name)
         
-        point_sets = self.sample_points(threshold, size, self.downward_callback_counter)
-        self.downward_callback_counter += 1
-        if self.downward_callback_counter == self.sample_size:
-            self.downward_callback_counter = 0
-        
-        # Limit maximum number of point sets
-        point_sets = nlargest(self.max_point_sets, point_sets, len)
-        
-        self.publish_points(point_sets, rotated, self.downward_orange_rectangle_callback)
+        self.downward_callback_counter = (self.forward_callback_counter + 1) % Settings.sample_size
         
         # Publish image
         try:
@@ -127,17 +150,10 @@ class ImageRecognition:
         except CvBridgeError, e:
             print e
     
-    def forward_gate_callback(self, center, rotation, dims, points_len):
-        expected_points = (dims[0] * dims[1]) / (self.sample_size ** 2)
-        confidence = min(points_len / expected_points, 1)
-        self._forward_gate_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), confidence=confidence))
-    
-    def downward_orange_rectangle_callback(self, center, rotation, dims, points_len):
-        expected_points = (dims[0] * dims[1]) / (self.sample_size ** 2)
-        confidence = min(points_len / expected_points, 1)
-        self._downward_rect_pub.publish(OrangeRectangle(stamp=roslib.rostime.Time(time.time()), center_x=int(center[0]), center_y=int(center[1]), rotation=rotation, confidence=confidence))
-    
-    def publish_points(self, point_sets, image, callback):
+    def publish_points(self, algorithm, point_sets, image, name):
+        # Limit number of sets to publish based on algorithm
+        point_sets = nlargest(algorithm.max_point_sets, point_sets, len)
+        
         # Find minimum area rotated rectangle around each set of points
         for points in point_sets:
             if points:
@@ -164,14 +180,30 @@ class ImageRecognition:
                     rotation = math.pi * 2
                 rotation -= 3 * math.pi / 2
                 
-                # Publish rectangle data
-                callback(center, rotation, dims, len(points))
+                # Calculate confidence based on algorithm
+                if algorithm.confidence_type is Algorithm.RECTANGLE:
+                    expected_points = (dims[0] * dims[1]) / (Settings.sample_size ** 2)
+                elif algorithm.confidence_type is Algorithm.CIRCLE:
+                    expected_points = (math.pi * dims[0] * dims[1]) / (4 * Settings.sample_size ** 2)
+                confidence = min(len(points) / expected_points, 1)
+                
+                # Publish object data
+                algorithm.publisher.publisher(ImgRecObject(
+                    stamp = roslib.rostime.Time(time.time()),
+                    name = name,
+                    center_x = int(center[0]),
+                    center_y = int(center[1]),
+                    rotation = rotation,
+                    height = int(dim[0]),
+                    width = int(dim[1]),
+                    confidence = confidence
+                ))
     
     def sample_points(self, image, size, offset):
         # Sample image for white points
         point_sets = []
-        for i in range(offset, size[1], self.sample_size): # height
-            for j in range(offset, size[0], self.sample_size): # width
+        for i in range(offset, size[1], Settings.sample_size): # height
+            for j in range(offset, size[0], Settings.sample_size): # width
                 if cv.Get2D(image, i, j)[0] == 255.0:
                     # Is this point in a point set already
                     found = False
@@ -205,18 +237,18 @@ class ImageRecognition:
         cv.Set2D(image, i, j, 0)
         while index < len(points):
             j, i = points[index]
-            if j+self.sample_size < size[0] and cv.Get2D(image, i, j+self.sample_size)[0] == 255.0:
-                points.append((j+self.sample_size, i))
-                cv.Set2D(image, i, j+self.sample_size, 0)
-            if j-self.sample_size >= 0 and cv.Get2D(image, i, j-self.sample_size)[0] == 255.0:
-                points.append((j-self.sample_size, i))
-                cv.Set2D(image, i, j-self.sample_size, 0)
-            if i+self.sample_size < size[1] and cv.Get2D(image, i+self.sample_size, j)[0] == 255.0:
-                points.append((j, i+self.sample_size))
-                cv.Set2D(image, i+self.sample_size, j, 0)
-            if i-self.sample_size >= 0 and cv.Get2D(image, i-self.sample_size, j)[0] == 255.0:
-                points.append((j, i-self.sample_size))
-                cv.Set2D(image, i-self.sample_size, j, 0)
+            if j+Settings.sample_size < size[0] and cv.Get2D(image, i, j+Settings.sample_size)[0] == 255.0:
+                points.append((j+Settings.sample_size, i))
+                cv.Set2D(image, i, j+Settings.sample_size, 0)
+            if j-Settings.sample_size >= 0 and cv.Get2D(image, i, j-Settings.sample_size)[0] == 255.0:
+                points.append((j-Settings.sample_size, i))
+                cv.Set2D(image, i, j-Settings.sample_size, 0)
+            if i+Settings.sample_size < size[1] and cv.Get2D(image, i+Settings.sample_size, j)[0] == 255.0:
+                points.append((j, i+Settings.sample_size))
+                cv.Set2D(image, i+Settings.sample_size, j, 0)
+            if i-Settings.sample_size >= 0 and cv.Get2D(image, i-Settings.sample_size, j)[0] == 255.0:
+                points.append((j, i-Settings.sample_size))
+                cv.Set2D(image, i-Settings.sample_size, j, 0)
             index += 1
         return points
     
