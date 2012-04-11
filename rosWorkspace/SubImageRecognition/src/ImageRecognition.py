@@ -34,7 +34,7 @@ class ImageRecognition:
         self._rotated = None
         self._segmented = None
         self._threshold = None
-        self._temp_img = None
+        self._temp_threshold = None
     
     def get_rotated(self, size):
         if self._rotated is None:
@@ -51,10 +51,11 @@ class ImageRecognition:
             self._threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         return self._threshold
     
-    def get_temp_img(self, size):
-        if self._temp_img is None:
-            self._temp_img = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-        return self._temp_img
+    def get_temp_threshold(self, threshold):
+        if self._temp_threshold is None:
+            self._temp_threshold = cv.CreateImage(cv.GetSize(threshold), cv.IPL_DEPTH_8U, 1)
+        cv.Copy(threshold, self._temp_threshold)
+        return self._temp_threshold
     
     def forward_callback(self, data):
         # Get image
@@ -199,7 +200,10 @@ class ImageRecognition:
                     confidence = confidence
                 ))
     
-    def sample_points(self, image, size, offset):
+    def sample_points(self, threshold, size, offset):
+        # Get a copy of the image so we can modify it
+        image = self.get_temp_threshold(threshold)
+        
         # Sample image for white points
         point_sets = []
         for i in range(offset, size[1], Settings.sample_size): # height
