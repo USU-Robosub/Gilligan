@@ -1,6 +1,6 @@
 FILE(REMOVE_RECURSE
-  "src/SubImageRecognition/msg"
   "msg_gen"
+  "src/SubImageRecognition/msg"
   "msg_gen"
   "CMakeFiles/tests"
 )

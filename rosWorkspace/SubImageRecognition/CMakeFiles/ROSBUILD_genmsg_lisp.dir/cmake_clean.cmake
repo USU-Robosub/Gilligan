@@ -1,11 +1,11 @@
 FILE(REMOVE_RECURSE
+  "msg_gen"
   "src/SubImageRecognition/msg"
   "msg_gen"
-  "msg_gen"
   "CMakeFiles/ROSBUILD_genmsg_lisp"
-  "msg_gen/lisp/OrangeRectangle.lisp"
+  "msg_gen/lisp/ImgRecObject.lisp"
   "msg_gen/lisp/_package.lisp"
-  "msg_gen/lisp/_package_OrangeRectangle.lisp"
+  "msg_gen/lisp/_package_ImgRecObject.lisp"
 )
 
 # Per-language clean rules from dependency scanning.

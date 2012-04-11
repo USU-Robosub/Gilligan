@@ -39,78 +39,78 @@ CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImageRecognition
 
 # Utility rule file for ROSBUILD_genmsg_lisp.
 
-CMakeFiles/ROSBUILD_genmsg_lisp: msg_gen/lisp/OrangeRectangle.lisp
+CMakeFiles/ROSBUILD_genmsg_lisp: msg_gen/lisp/ImgRecObject.lisp
 CMakeFiles/ROSBUILD_genmsg_lisp: msg_gen/lisp/_package.lisp
-CMakeFiles/ROSBUILD_genmsg_lisp: msg_gen/lisp/_package_OrangeRectangle.lisp
+CMakeFiles/ROSBUILD_genmsg_lisp: msg_gen/lisp/_package_ImgRecObject.lisp
 
-msg_gen/lisp/OrangeRectangle.lisp: msg/OrangeRectangle.msg
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/roslisp/scripts/genmsg_lisp.py
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/core/roslib/scripts/gendeps
-msg_gen/lisp/OrangeRectangle.lisp: manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/tools/rospack/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/core/roslib/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/core/rosbuild/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/core/roslang/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/vision_opencv/opencv2/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/cpp_common/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_traits/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/rostime/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_serialization/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/xmlrpcpp/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosconsole/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/tools/rosclean/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosgraph/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosparam/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosmaster/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosout/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/roslaunch/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/ros/tools/rosunit/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rostest/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosbag/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosbagmigration/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/vision_opencv/cv_bridge/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/yaml_cpp/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/image_common/camera_calibration_parsers/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/image_common/camera_info_manager/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/tinyxml/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/pluginlib/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/message_filters/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/image_common/image_transport/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/bond/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/smclib/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/bondcpp/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/nodelet/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/camera_umd/uvc_camera/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/robosub/rosWorkspace/SubCameraDriver/manifest.xml
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/msg_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/msg_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/msg_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/srv_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/srv_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/msg_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/msg_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/srv_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/bond/msg_gen/generated
-msg_gen/lisp/OrangeRectangle.lisp: /opt/ros/diamondback/stacks/common/nodelet/srv_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: msg/ImgRecObject.msg
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/roslisp/scripts/genmsg_lisp.py
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/core/roslib/scripts/gendeps
+msg_gen/lisp/ImgRecObject.lisp: manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/tools/rospack/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/core/roslib/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/core/rosbuild/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/core/roslang/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/vision_opencv/opencv2/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/cpp_common/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_traits/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/rostime/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_serialization/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/xmlrpcpp/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosconsole/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/tools/rosclean/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosgraph/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosparam/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosmaster/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosout/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/roslaunch/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/ros/tools/rosunit/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rostest/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosbag/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/rosbagmigration/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/vision_opencv/cv_bridge/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/yaml_cpp/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/image_common/camera_calibration_parsers/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/image_common/camera_info_manager/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/tinyxml/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/pluginlib/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/utilities/message_filters/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/image_common/image_transport/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/bond/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/smclib/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/bondcpp/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/nodelet/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/camera_umd/uvc_camera/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/robosub/rosWorkspace/SubCameraDriver/manifest.xml
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/msg_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/msg_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/msg_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/srv_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/srv_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/msg_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/msg_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/srv_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/bond/msg_gen/generated
+msg_gen/lisp/ImgRecObject.lisp: /opt/ros/diamondback/stacks/common/nodelet/srv_gen/generated
 	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles $(CMAKE_PROGRESS_1)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating msg_gen/lisp/OrangeRectangle.lisp, msg_gen/lisp/_package.lisp, msg_gen/lisp/_package_OrangeRectangle.lisp"
-	/opt/ros/diamondback/stacks/ros_comm/clients/roslisp/scripts/genmsg_lisp.py /opt/robosub/rosWorkspace/SubImageRecognition/msg/OrangeRectangle.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating msg_gen/lisp/ImgRecObject.lisp, msg_gen/lisp/_package.lisp, msg_gen/lisp/_package_ImgRecObject.lisp"
+	/opt/ros/diamondback/stacks/ros_comm/clients/roslisp/scripts/genmsg_lisp.py /opt/robosub/rosWorkspace/SubImageRecognition/msg/ImgRecObject.msg
 
-msg_gen/lisp/_package.lisp: msg_gen/lisp/OrangeRectangle.lisp
+msg_gen/lisp/_package.lisp: msg_gen/lisp/ImgRecObject.lisp
 
-msg_gen/lisp/_package_OrangeRectangle.lisp: msg_gen/lisp/OrangeRectangle.lisp
+msg_gen/lisp/_package_ImgRecObject.lisp: msg_gen/lisp/ImgRecObject.lisp
 
 ROSBUILD_genmsg_lisp: CMakeFiles/ROSBUILD_genmsg_lisp
-ROSBUILD_genmsg_lisp: msg_gen/lisp/OrangeRectangle.lisp
+ROSBUILD_genmsg_lisp: msg_gen/lisp/ImgRecObject.lisp
 ROSBUILD_genmsg_lisp: msg_gen/lisp/_package.lisp
-ROSBUILD_genmsg_lisp: msg_gen/lisp/_package_OrangeRectangle.lisp
+ROSBUILD_genmsg_lisp: msg_gen/lisp/_package_ImgRecObject.lisp
 ROSBUILD_genmsg_lisp: CMakeFiles/ROSBUILD_genmsg_lisp.dir/build.make
 .PHONY : ROSBUILD_genmsg_lisp
 
