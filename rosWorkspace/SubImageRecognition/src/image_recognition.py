@@ -29,7 +29,7 @@ class ImageRecognition:
         
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
-                "right/image_raw", Image, self.downward_callback)
+                "left/image_raw", Image, self.downward_callback)
         
         self._rotated = None
         self._segmented = None
@@ -67,7 +67,7 @@ class ImageRecognition:
         # Rotate so that 'up' is the top of the sub
         size = (image_raw.height, image_raw.width)
         rotated = self.get_rotated(size)
-        self.rotate_image_cw(image_raw, rotated)
+        self.rotate_image_ccw(image_raw, rotated)
         
         # Segment image into HSV channels
         segmented = self.get_segmented(size)
@@ -189,14 +189,14 @@ class ImageRecognition:
                 confidence = min(len(points) / expected_points, 1)
                 
                 # Publish object data
-                algorithm.publisher.publisher(ImgRecObject(
+                algorithm.publisher.publish(ImgRecObject(
                     stamp = roslib.rostime.Time(time.time()),
                     name = name,
                     center_x = int(center[0]),
                     center_y = int(center[1]),
                     rotation = rotation,
-                    height = int(dim[0]),
-                    width = int(dim[1]),
+                    height = int(dims[0]),
+                    width = int(dims[1]),
                     confidence = confidence
                 ))
     
@@ -221,7 +221,7 @@ class ImageRecognition:
         
         # Throw away bad point sets
         for index in range(len(point_sets)):
-            if len(point_sets[index]) < self.min_point_set_len:
+            if len(point_sets[index]) < Settings.min_point_set_len:
                 point_sets[index] = []
         
         return point_sets

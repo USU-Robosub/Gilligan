@@ -1,4 +1,5 @@
 import rospy
+from SubImageRecognition.msg import ImgRecObject
 
 class Algorithm:
     
