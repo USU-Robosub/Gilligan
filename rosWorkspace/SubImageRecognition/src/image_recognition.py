@@ -7,8 +7,8 @@ import rospy
 import math
 import time
 import cv
-import Settings
-import Algorithm
+from settings import Settings
+from algorithm import Algorithm
 from heapq import nlargest
 from std_msgs.msg import String
 from sensor_msgs.msg import Image

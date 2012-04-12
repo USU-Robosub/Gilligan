@@ -1,5 +1,4 @@
-import rospy
-import Algorithm
+from algorithm import Algorithm
 
 class Settings:
     
