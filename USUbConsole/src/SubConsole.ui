@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>950</width>
+    <width>1006</width>
     <height>741</height>
    </rect>
   </property>
@@ -156,7 +156,7 @@
     <property name="title">
      <string>IMU Data</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -254,7 +254,7 @@
      <rect>
       <x>530</x>
       <y>180</y>
-      <width>411</width>
+      <width>461</width>
       <height>181</height>
      </rect>
     </property>
@@ -266,7 +266,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>381</width>
+       <width>441</width>
        <height>141</height>
       </rect>
      </property>
@@ -371,6 +371,13 @@
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLineEdit" name="targetDepthLineEdit">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QLineEdit" name="depthLineEdit">
             <property name="text">

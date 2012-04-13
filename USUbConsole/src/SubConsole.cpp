@@ -231,6 +231,8 @@ void SubConsole::readJoystickInput(void)
 
           depthMsg.data = desiredDepth;
 
+          m_pUi->targetDepthLineEdit->setText(QString::number(desiredDepth));
+
           m_depthPublisher.publish(depthMsg);
       }
       else
@@ -238,7 +240,7 @@ void SubConsole::readJoystickInput(void)
           //Set the vertical thrusters to the same value to control depth
           int thrusterSpeed = 255 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
 
-          if(currentThrottleAxis >= 0)
+          if(currentThrottleAxis > 0)
           {
              frontDepthValue = thrusterSpeed;
              rearDepthValue = thrusterSpeed;
@@ -300,9 +302,9 @@ void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& ms
    m_pCompass->setValue(msg->data[0]);
 
    m_pUi->pitchLineEdit->setText(QString::number(msg->data[1]));
-   m_pPitchIndicator->setGradient(msg->data[1]);
+   m_pPitchIndicator->setGradient(msg->data[1]/45.0);
 
-   m_pUi->rollLineEdit->setText(QString::number(msg->data[2]/180.0));
+   m_pUi->rollLineEdit->setText(QString::number(msg->data[2]));
    m_pRollIndicator->setAngle(msg->data[2]);
 }
 
