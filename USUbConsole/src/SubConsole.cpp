@@ -159,12 +159,12 @@ void SubConsole::readJoystickInput(void)
        //Set the horizontal thrusters to opposite thrust to strafe
        int turnSpeed = 255 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
 
-       if(currentXAxis < 0)  //Strafe right
+       if(currentXAxis > 0)  //Strafe right
        {
           frontTurnValue = turnSpeed * -1;
           rearTurnValue = turnSpeed * m_turnForwardPercentage;;
        }
-       else if(currentXAxis > 0)//Strafe left
+       else if(currentXAxis < 0)//Strafe left
        {
           frontTurnValue = turnSpeed * m_turnForwardPercentage;
           rearTurnValue = turnSpeed * -1;
@@ -181,12 +181,12 @@ void SubConsole::readJoystickInput(void)
       int thrusterSpeed = 255 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
 
       //A neg number means the stick is pushed forward, if positive we actually want reverse
-      if(currentYAxis < 0)
+      if(currentYAxis > 0)
       {
          leftDriveValue = thrusterSpeed;
          rightDriveValue = thrusterSpeed;
       }
-      else if(currentYAxis > 0)
+      else if(currentYAxis < 0)
       {
           leftDriveValue = thrusterSpeed  * -1;
           rightDriveValue = thrusterSpeed  * -1;
@@ -202,13 +202,13 @@ void SubConsole::readJoystickInput(void)
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
       int thrusterSpeed = 255 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
+      if(currentTwistAxis < 0)  //Turn right, set both thrusters to reverse
       {
           frontTurnValue = thrusterSpeed * m_turnForwardPercentage;
           rearTurnValue = thrusterSpeed * m_turnForwardPercentage;
 
       }
-      else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
+      else if(currentTwistAxis > 0)    //Turn left, set both thrusters to forward
       {
           frontTurnValue = thrusterSpeed * -1;
           rearTurnValue = thrusterSpeed * -1;
