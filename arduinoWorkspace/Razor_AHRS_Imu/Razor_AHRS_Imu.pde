@@ -135,7 +135,7 @@
 // OUTPUT OPTIONS
 /*****************************************************************/
 // Set your serial port baud rate used to send out data here!
-#define OUTPUT__BAUD_RATE 57600
+#define OUTPUT__BAUD_RATE 115200
 
 // Sensor data output interval in milliseconds
 // This may not work, if faster than 20ms (=50Hz)
@@ -152,6 +152,9 @@ int output_mode = OUTPUT__MODE_ANGLES_TEXT;
 
 // Select if serial continuous streaming output is enabled per default on startup.
 #define OUTPUT__STARTUP_STREAM_ON true  // true or false
+
+float myVals[12];
+boolean first = true;
 
 // If set true, an error message will be output if we fail to read sensor data.
 // Message format: "!ERR: reading <sensor>", followed by "\r\n".

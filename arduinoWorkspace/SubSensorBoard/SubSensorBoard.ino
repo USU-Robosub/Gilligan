@@ -139,6 +139,7 @@ void setup()
 {
   calibrateFloodSensor();
   pinMode(motorKilledPin, INPUT);
+  digitalWrite(motorKilledPin, HIGH);
   pinMode(2, OUTPUT);
   pinMode(2, HIGH);
   

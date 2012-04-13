@@ -22,24 +22,31 @@ void output_angles()
 
 void output_subData()
 {
-  //output angles
-  Serial.print("S");
-  Serial.print(TO_DEG(yaw)); Serial.print(",");
-  Serial.print(TO_DEG(pitch)); Serial.print(",");
-  Serial.print(TO_DEG(roll)); Serial.print(",");
+  myVals[0] += TO_DEG(yaw);
+  myVals[1] += TO_DEG(pitch);
+  myVals[2] += TO_DEG(roll);
   
-  //output sensors
-  Serial.print(accel[0]); Serial.print(",");
-  Serial.print(accel[1]); Serial.print(",");
-  Serial.print(accel[2]); Serial.print(",");
-
-  Serial.print(magnetom[0]); Serial.print(",");
-  Serial.print(magnetom[1]); Serial.print(",");
-  Serial.print(magnetom[2]); Serial.print(",");
-
-  Serial.print(gyro[0]); Serial.print(",");
-  Serial.print(gyro[1]); Serial.print(",");
-  Serial.print(gyro[2]); Serial.println("E");
+  for (int i = 0; i < 3; i++)
+  {
+    myVals[3+i] += accel[0];
+    myVals[6+i] += magnetom[0];
+    myVals[9+i] += gyro[0];
+  }
+  
+  if (!first)
+  {
+    Serial.print("S");
+    for (int i = 0; i < 12; i++)
+    {
+      myVals[i] /= 2;
+      if (i != 0)
+        Serial.print(",");
+      Serial.print(myVals[i]);
+    }
+    Serial.println("E");
+  }
+  
+  first = false;
 }
 
 void output_calibration(int calibration_sensor)
