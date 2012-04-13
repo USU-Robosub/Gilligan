@@ -1,11 +1,11 @@
 #include <string.h>
 
-#define MOTOR_KILL_PIN      2
-
-#define LmotorA             3  // Left  motor H bridge, input A
-#define LmotorB            11  // Left  motor H bridge, input B
-#define RmotorA             5  // Right motor H bridge, input A
-#define RmotorB             6  // Right motor H bridge, input B
+#define MOTOR_KILL_PIN       1
+#define MOTOR_KILL_THRESHOLD 500
+#define LmotorA              3  // Left  motor H bridge, input A
+#define LmotorB              11  // Left  motor H bridge, input B
+#define RmotorA              5  // Right motor H bridge, input A
+#define RmotorB              6  // Right motor H bridge, input B
 
 #define Battery             0  // Analog input 00
 #define RmotorC             6  // Analog input 06
@@ -226,9 +226,9 @@ void checkHealth()
     startTime = millis();
   }
   
-  /*
-  int killed = digitalRead(MOTOR_KILL_PIN);
-  if (killed == 0)
+  
+  int killed = analogRead(MOTOR_KILL_PIN);
+  if (killed < MOTOR_KILL_THRESHOLD)
   {
     analogWrite(LmotorA, 0);
     analogWrite(LmotorB, 0);
@@ -240,5 +240,5 @@ void checkHealth()
   {
     motorsKilled = false;
   }
-  */
+  
 }

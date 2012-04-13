@@ -1,10 +1,10 @@
 FILE(REMOVE_RECURSE
-  "src/SubImageRecognition/msg"
   "msg_gen"
+  "src/SubImageRecognition/msg"
   "msg_gen"
   "CMakeFiles/ROSBUILD_genmsg_py"
   "src/SubImageRecognition/msg/__init__.py"
-  "src/SubImageRecognition/msg/_OrangeRectangle.py"
+  "src/SubImageRecognition/msg/_ImgRecObject.py"
 )
 
 # Per-language clean rules from dependency scanning.

@@ -1,1 +1,1 @@
-from _OrangeRectangle import *
+from _ImgRecObject import *
