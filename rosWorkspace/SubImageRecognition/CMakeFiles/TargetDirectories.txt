@@ -3,6 +3,7 @@
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/ROSBUILD_genmsg_py.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/ROSBUILD_gensrv_cpp.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/ROSBUILD_gensrv_lisp.dir
+/opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/ROSBUILD_gensrv_py.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/clean-test-results.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/rosbuild_precompile.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/rosbuild_premsgsrvgen.dir
@@ -10,6 +11,7 @@
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/rospack_genmsg_all.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/rospack_genmsg_libexe.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/rospack_gensrv.dir
+/opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/rospack_gensrv_all.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/test.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/test-future.dir
 /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/test-results.dir

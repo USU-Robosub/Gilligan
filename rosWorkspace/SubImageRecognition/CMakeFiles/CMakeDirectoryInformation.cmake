@@ -52,6 +52,7 @@ SET(CMAKE_C_INCLUDE_PATH
   "/opt/ros/diamondback/ros/tools/rospack/include"
   "/opt/ros/diamondback/stacks/common/smclib/include"
   "msg_gen/cpp/include"
+  "srv_gen/cpp/include"
   )
 SET(CMAKE_CXX_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
 SET(CMAKE_Fortran_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})

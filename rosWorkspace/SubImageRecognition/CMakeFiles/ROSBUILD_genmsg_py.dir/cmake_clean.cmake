@@ -1,7 +1,10 @@
 FILE(REMOVE_RECURSE
   "msg_gen"
+  "srv_gen"
   "src/SubImageRecognition/msg"
+  "src/SubImageRecognition/srv"
   "msg_gen"
+  "srv_gen"
   "CMakeFiles/ROSBUILD_genmsg_py"
   "src/SubImageRecognition/msg/__init__.py"
   "src/SubImageRecognition/msg/_ImgRecObject.py"
