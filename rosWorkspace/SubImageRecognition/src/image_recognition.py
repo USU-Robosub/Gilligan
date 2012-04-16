@@ -29,7 +29,7 @@ class ImageRecognition:
         
         self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         self._downward_sub = rospy.Subscriber(
-                "left/image_raw", Image, self.downward_callback)
+                "right/image_raw", Image, self.downward_callback)
         
         self._rotated = None
         self._segmented = None

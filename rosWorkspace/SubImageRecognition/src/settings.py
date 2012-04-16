@@ -26,9 +26,9 @@ class Settings:
             topic = root_topic + 'forward/buoys',
             camera = Algorithm.FORWARD,
             thresholds = {
-                'red': None, # TODO: Get good thresholds for red buoy
-                'green': None, # TODO: Get good thresholds for green buoy
-                'yellow': None, # TODO: Get good thresholds for yellow buoy
+                'red': ((120, 0, 0), (135, 150, 55)),
+                'green': ((0, 150, 0), (125, 205, 55)),
+                #'yellow': None, # TODO: Get good thresholds for yellow buoy
             },
             max_point_sets = 1,
             confidence_type = Algorithm.CIRCLE
@@ -42,7 +42,8 @@ class Settings:
             topic = root_topic + 'downward/orange_rectangles',
             camera = Algorithm.DOWNWARD,
             thresholds = {
-                Algorithm.DEFAULT: (), # XXX: Trying gate threshold. Old threshold is (5, 50, 50), (15, 255, 255)
+                'new': ((0, 0, 0), (143, 220, 70)),
+                'old': ((5, 50, 50), (15, 255, 255)),
             },
             max_point_sets = 2,
             confidence_type = Algorithm.RECTANGLE
