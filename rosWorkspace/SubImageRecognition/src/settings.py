@@ -1,17 +1,23 @@
 from algorithm import Algorithm
 
 class Settings:
+    """
+    Container class for storing all image recognition settings. Both Algorithm
+    in algorithm.py and ImageRecognition in image_recognition.py refer to this
+    class for common settings
+    """
     
-    sample_size = 6
-    min_point_set_len = 30
-    root_topic = 'image_recognition/'
+    SAMPLE_SIZE = 6
+    MIN_POINTS = 30
     
-    algorithms = [
+    ROOT_TOPIC = 'image_recognition/'
+    
+    ALGORITHMS = [
         
         # Forward Gate
         Algorithm(
             enabled = True,
-            topic = root_topic + 'forward/gate',
+            name = 'forward/gate',
             camera = Algorithm.FORWARD,
             thresholds = {
                 Algorithm.DEFAULT: ((0, 0, 0), (143, 220, 70)),
@@ -23,7 +29,7 @@ class Settings:
         # Forward Buoys
         Algorithm(
             enabled = False,
-            topic = root_topic + 'forward/buoys',
+            name = 'forward/buoys',
             camera = Algorithm.FORWARD,
             thresholds = {
                 'red': ((120, 0, 0), (135, 150, 55)),
@@ -34,16 +40,27 @@ class Settings:
             confidence_type = Algorithm.CIRCLE
         ),
         
+        # Forward Obstacle Course
+        Algorithm(
+            enabled = False,
+            name = 'forward/obstacle_course'
+            camera = Algorithm.FORWARD,
+            thresholds = {
+                Algorithm.DEFAULT: ((), ()),
+            },
+            max_point_sets = 3,
+            confidence_type = Algorithm.RECTANGLE
+        ),
+        
         # TODO: Add more forward algorithms here
         
-        # Downward Orange Rectangles
+        # Downward Paths
         Algorithm(
             enabled = True,
-            topic = root_topic + 'downward/orange_rectangles',
+            name = 'downward/paths',
             camera = Algorithm.DOWNWARD,
             thresholds = {
-                'new': ((0, 0, 0), (143, 220, 70)),
-                'old': ((5, 50, 50), (15, 255, 255)),
+                Algorithm.DEFAULT: ((5, 50, 50), (15, 255, 255)),
             },
             max_point_sets = 2,
             confidence_type = Algorithm.RECTANGLE

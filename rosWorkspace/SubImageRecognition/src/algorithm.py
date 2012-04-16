@@ -1,7 +1,14 @@
 import rospy
+from settings import Settings
 from SubImageRecognition.msg import ImgRecObject
 
 class Algorithm:
+    """
+    Defines all values needed by the ImageRecognition class in
+    image_recognition.py to look for a certain amount of certain objects and
+    publish data about them. Also defines constants used for a few of the
+    values themselves and creates a publisher for the algorithm to be used later
+    """
     
     DEFAULT = 'default'
     
@@ -11,30 +18,17 @@ class Algorithm:
     RECTANGLE = 0
     CIRCLE = 1
     
-    enabled = False
-    topic = None
-    camera = FORWARD
-    thresholds = {
-        DEFAULT: ((0, 0, 0), (255, 255, 255)),
-    }
-    max_point_sets = 1
-    confidence_type = RECTANGLE
-    publisher = None
-    
-    def __init__(self, enabled=None, topic=None, camera=None, thresholds=None, max_point_sets=None, confidence_type=None):
-        if enabled is not None:
-            self.enabled = enabled
-        if topic is not None:
-            self.topic = topic
-        if camera is not None:
-            self.camera = camera
-        if thresholds is not None:
-            self.thresholds = thresholds
-        if max_point_sets is not None:
-            self.max_point_sets = max_point_sets
-        if confidence_type is not None:
-            self.confidence_type = confidence_type
+    def __init__(self, enabled, name, camera, thresholds, max_point_sets, confidence_type):
+        # Save arguments as class variables
+        self.enabled = enabled
+        self.name = name
+        self.camera = camera
+        self.thresholds = thresholds
+        self.max_point_sets = max_point_sets
+        self.confidence_type = confidence_type
         
         # Setup publisher for this algorithm
-        if self.topic:
-            self.publisher = rospy.Publisher(self.topic, ImgRecObject)
+        if self.name:
+            self.publisher = rospy.Publisher(Settings.ROOT_TOPIC + self.name, ImgRecObject)
+        else:
+            self.publisher = None
