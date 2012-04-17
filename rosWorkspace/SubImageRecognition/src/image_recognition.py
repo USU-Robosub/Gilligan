@@ -145,8 +145,12 @@ class ImageRecognition:
         segmented = self._get_segmented(size)
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
-        # Access threshold object for possible use
+        # Access threshold memory
         threshold = self._get_threshold(size)
+        
+        # Stretch the Saturation and Value channels to full width
+        self._linear_stretch(segmented, threshold, 2)
+        self._linear_stretch(segmented, threshold, 3)
         
         for algorithm in Settings.ALGORITHMS:
             
@@ -198,8 +202,12 @@ class ImageRecognition:
         segmented = self._get_segmented(size)
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
-        # Access threshold object for possible use
+        # Access threshold memory
         threshold = self._get_threshold(size)
+        
+        # Stretch the Saturation and Value channels to full width
+        self._linear_stretch(segmented, threshold, 2)
+        self._linear_stretch(segmented, threshold, 3)
         
         for algorithm in Settings.ALGORITHMS:
             
@@ -228,6 +236,20 @@ class ImageRecognition:
             pass
         except CvBridgeError, e:
             print e
+    
+    def _linear_stretch(image, temp, channel):
+        """
+        Pulls a copy of the given channel (1-based indicies) into the temp
+        image, performs a linear stretch normalization on the temp image, copies
+        it back into the given channel, and sets the Channel of Interest for
+        the image back to all channels
+        """
+        
+        cv.SetImageCOI(image, channel)
+        cv.Copy(image, temp)
+        cv.Normalize(temp, temp, 0, 255, CV_MINMAX);
+        cv.Copy(temp, image)
+        cv.SetImageCOI(0)
     
     def _publish_points(self, algorithm, point_sets, image, name):
         """
