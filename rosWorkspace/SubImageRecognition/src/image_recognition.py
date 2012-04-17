@@ -38,8 +38,8 @@ class ImageRecognition:
         
         self._bridge = CvBridge()
         
-        self._forward_callback_counter = 0
-        self._downward_callback_counter = 0
+        self._f_counter = 0
+        self._d_counter = 0
         
         self._forward_img_pub = rospy.Publisher("forward_camera/image_raw", Image)
         rospy.Subscriber("left/image_raw", Image, self._forward_callback)
@@ -53,53 +53,30 @@ class ImageRecognition:
         rospy.Service(Settings.ROOT_TOPIC + "switch_algorithm",
                 SwitchAlgorithm, self._switch_algorithm_callback)
         
-        self._rotated = None
-        self._segmented = None
-        self._threshold = None
-        self._temp_threshold = None
+        self._f_rotated = None
+        self._d_rotated = None
+        self._f_segmented = None
+        self._d_segmented = None
+        self._f_threshold = None
+        self._d_threshold = None
+        self._f_temp_threshold = None
+        self._d_temp_threshold = None
     
-    def _get_rotated(self, size):
+    def _init_image_memory(self, size):
         """
-        A getter for the rotated image memory. The memory is allocated on first
-        access after the size of the image is known
+        Allocates memory for all the image class variables once we have a size
+        to use
         """
         
-        if self._rotated is None:
-            self._rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        return self._rotated
-    
-    def _get_segmented(self, size):
-        """
-        A getter for the segmented image memory. The memory is allocated on
-        first access after the size of the image is known
-        """
-        
-        if self._segmented is None:
-            self._segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        return self._segmented
-    
-    def _get_threshold(self, size):
-        """
-        A getter for the threshold image memory. The memory is allocated on
-        first access after the size of the image is known
-        """
-        
-        if self._threshold is None:
-            self._threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-        return self._threshold
-    
-    def _get_temp_threshold(self, threshold):
-        """
-        A getter for the temporary threshold image memory. The memory is
-        allocated on first access after the size of the image is known. This
-        method also copies the given threshold into the temporary one so that
-        the temporary one can be modified without affecting the original
-        """
-        
-        if self._temp_threshold is None:
-            self._temp_threshold = cv.CreateImage(cv.GetSize(threshold), cv.IPL_DEPTH_8U, 1)
-        cv.Copy(threshold, self._temp_threshold)
-        return self._temp_threshold
+        if self._d_temp_threshold is None:
+            self._f_rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+            self._d_rotated = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+            self._f_segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+            self._d_segmented = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+            self._f_threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+            self._d_threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+            self._f_temp_threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+            self._d_temp_threshold = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
     
     def _list_algorithms_callback(self, request):
         """
@@ -138,19 +115,21 @@ class ImageRecognition:
         
         # Rotate so that 'up' is the top of the sub
         size = (image_raw.height, image_raw.width)
-        rotated = self._get_rotated(size)
+        self._init_image_memory(size)
+        rotated = self._f_rotated
         self._rotate_image_ccw(image_raw, rotated)
         
         # Segment image into HSV channels
-        segmented = self._get_segmented(size)
+        segmented = self._f_segmented
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
         # Access threshold memory
-        threshold = self._get_threshold(size)
+        threshold = self._f_threshold
+        temp_threshold = self._f_temp_threshold
         
-        # Stretch the Saturation and Value channels to full width
-        self._linear_stretch(segmented, threshold, 2)
-        self._linear_stretch(segmented, threshold, 3)
+        # Normalize image
+        self._normalize(segmented, threshold)
+        #cv.CvtColor(segmented, rotated, cv.CV_HSV2BGR)
         
         for algorithm in Settings.ALGORITHMS:
             
@@ -164,11 +143,12 @@ class ImageRecognition:
                     
                     self._reduce_noise(threshold)
                     
-                    point_sets = self._sample_points(threshold, size, self._forward_callback_counter)
+                    cv.Copy(threshold, temp_threshold)
+                    point_sets = self._sample_points(temp_threshold, size, self._f_counter)
                     
                     self._publish_points(algorithm, point_sets, rotated, name=threshold_name)
         
-        self._forward_callback_counter = (self._forward_callback_counter + 1) % Settings.SAMPLE_SIZE
+        self._f_counter = (self._f_counter + 1) % Settings.SAMPLE_SIZE
         
         # Publish image
         try:
@@ -195,19 +175,21 @@ class ImageRecognition:
         
         # Rotate so that 'up' is the front of the sub
         size = (image_raw.height, image_raw.width)
-        rotated = self._get_rotated(size)
+        self._init_image_memory(size)
+        rotated = self._d_rotated
         self._rotate_image_ccw(image_raw, rotated)
         
         # Segment image into HSV channels
-        segmented = self._get_segmented(size)
+        segmented = self._d_segmented
         cv.CvtColor(rotated, segmented, cv.CV_BGR2HSV)
         
         # Access threshold memory
-        threshold = self._get_threshold(size)
+        threshold = self._d_threshold
+        temp_threshold = self._d_temp_threshold
         
-        # Stretch the Saturation and Value channels to full width
-        self._linear_stretch(segmented, threshold, 2)
-        self._linear_stretch(segmented, threshold, 3)
+        # Normalize image
+        self._normalize(segmented, threshold)
+        #cv.CvtColor(segmented, rotated, cv.CV_HSV2BGR)
         
         for algorithm in Settings.ALGORITHMS:
             
@@ -221,11 +203,12 @@ class ImageRecognition:
                     
                     self._reduce_noise(threshold)
                     
-                    point_sets = self._sample_points(threshold, size, self._downward_callback_counter)
+                    cv.Copy(threshold, temp_threshold)
+                    point_sets = self._sample_points(temp_threshold, size, self._d_counter)
                     
                     self._publish_points(algorithm, point_sets, rotated, name=threshold_name)
         
-        self._downward_callback_counter = (self._downward_callback_counter + 1) % Settings.SAMPLE_SIZE
+        self._d_counter = (self._d_counter + 1) % Settings.SAMPLE_SIZE
         
         # Publish image
         try:
@@ -237,19 +220,22 @@ class ImageRecognition:
         except CvBridgeError, e:
             print e
     
-    def _linear_stretch(image, temp, channel):
+    def _normalize(self, image, temp):
         """
-        Pulls a copy of the given channel (1-based indicies) into the temp
-        image, performs a linear stretch normalization on the temp image, copies
-        it back into the given channel, and sets the Channel of Interest for
-        the image back to all channels
+        Runs linear stretch normalization filter on the Value
+        channel of the given image. The given temp image is used to copy
+        an individual channel in and out of to perform the actual normalization
         """
         
-        cv.SetImageCOI(image, channel)
+        #cv.SetImageCOI(image, 2) # Saturation
+        #cv.Copy(image, temp)
+        #cv.Normalize(temp, temp, 0, 255, cv.CV_MINMAX)
+        #cv.Copy(temp, image)
+        cv.SetImageCOI(image, 3) # Value
         cv.Copy(image, temp)
-        cv.Normalize(temp, temp, 0, 255, CV_MINMAX);
+        cv.Normalize(temp, temp, 0, 255, cv.CV_MINMAX)
         cv.Copy(temp, image)
-        cv.SetImageCOI(0)
+        cv.ResetImageROI(image)
     
     def _publish_points(self, algorithm, point_sets, image, name):
         """
@@ -294,27 +280,29 @@ class ImageRecognition:
                 confidence = min(len(points) / expected_points, 1)
                 
                 # Publish object data
-                algorithm.publisher.publish(ImgRecObject(
-                    stamp = roslib.rostime.Time(time.time()),
-                    name = name,
-                    center_x = int(center[0]),
-                    center_y = int(center[1]),
-                    rotation = rotation,
-                    height = int(dims[0]),
-                    width = int(dims[1]),
-                    confidence = confidence
-                ))
+                try:
+                    algorithm.publisher.publish(ImgRecObject(
+                        stamp = roslib.rostime.Time(time.time()),
+                        name = name,
+                        center_x = int(center[0]),
+                        center_y = int(center[1]),
+                        rotation = rotation,
+                        height = int(dims[0]),
+                        width = int(dims[1]),
+                        confidence = confidence
+                    ))
+                except rospy.ROSException:
+                    # Generally this exception occurs if ROS wasn't ready yet. We'll
+                    # just silently ignore it and next time should work
+                    pass
     
-    def _sample_points(self, threshold, size, offset):
+    def _sample_points(self, image, size, offset):
         """
         Looks for all contiguous regions of white points in an image by sampling
         a shifting grid of points and performing an exhaustive 'adjacent points'
         search when a white point is found. Regions with a low number of points
         are excluded from the returned list
         """
-        
-        # Get a copy of the image so we can modify it
-        image = self._get_temp_threshold(threshold)
         
         # Sample image for white points
         point_sets = []

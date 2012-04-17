@@ -23,7 +23,8 @@ class Settings:
                 Algorithm.DEFAULT: ((0, 0, 0), (143, 220, 70)),
             },
             max_point_sets = 2,
-            confidence_type = Algorithm.RECTANGLE
+            confidence_type = Algorithm.RECTANGLE,
+            root_topic = ROOT_TOPIC
         ),
         
         # Forward Buoys
@@ -37,19 +38,21 @@ class Settings:
                 #'yellow': None, # TODO: Get good thresholds for yellow buoy
             },
             max_point_sets = 1,
-            confidence_type = Algorithm.CIRCLE
+            confidence_type = Algorithm.CIRCLE,
+            root_topic = ROOT_TOPIC
         ),
         
         # Forward Obstacle Course
         Algorithm(
             enabled = False,
-            name = 'forward/obstacle_course'
+            name = 'forward/obstacle_course',
             camera = Algorithm.FORWARD,
             thresholds = {
-                Algorithm.DEFAULT: ((), ()),
+                Algorithm.DEFAULT: ((0, 0, 0), (255, 255, 255)),
             },
             max_point_sets = 3,
-            confidence_type = Algorithm.RECTANGLE
+            confidence_type = Algorithm.RECTANGLE,
+            root_topic = ROOT_TOPIC
         ),
         
         # TODO: Add more forward algorithms here
@@ -63,9 +66,11 @@ class Settings:
                 Algorithm.DEFAULT: ((5, 50, 50), (15, 255, 255)),
             },
             max_point_sets = 2,
-            confidence_type = Algorithm.RECTANGLE
+            confidence_type = Algorithm.RECTANGLE,
+            root_topic = ROOT_TOPIC
         ),
         
         # TODO: Add more downward algorithms here
         
     ]
+
