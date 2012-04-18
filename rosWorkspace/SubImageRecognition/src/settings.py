@@ -20,7 +20,7 @@ class Settings:
             name = 'forward/gate',
             camera = Algorithm.FORWARD,
             thresholds = {
-                Algorithm.DEFAULT: ((0, 0, 0), (143, 220, 70)),
+                Algorithm.DEFAULT: ((0, 0, 60), (250, 180, 135)),
             },
             max_point_sets = 2,
             confidence_type = Algorithm.RECTANGLE,
@@ -33,9 +33,9 @@ class Settings:
             name = 'forward/buoys',
             camera = Algorithm.FORWARD,
             thresholds = {
-                'red': ((120, 0, 0), (135, 150, 55)),
-                'green': ((0, 150, 0), (125, 205, 55)),
-                #'yellow': None, # TODO: Get good thresholds for yellow buoy
+                'red': ((135, 0, 30), (200, 210, 120)),
+                'green': ((110, 200, 110), (130, 240, 200)),
+                'yellow': ((95, 185, 160), (115, 240, 220))
             },
             max_point_sets = 1,
             confidence_type = Algorithm.CIRCLE,
