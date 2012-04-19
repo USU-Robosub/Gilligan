@@ -1,4 +1,4 @@
-from rospy import Publisher
+
 from SubImageRecognition.msg import ImgRecObject
 
 class Algorithm:
@@ -11,23 +11,24 @@ class Algorithm:
     
     DEFAULT = 'default'
     
-    FORWARD = 0
-    DOWNWARD = 1
+    class Camera:
+        FORWARD = 0
+        DOWNWARD = 1
     
-    RECTANGLE = 0
-    CIRCLE = 1
+    class Analysis:
+        RECTANGLE = 0
+        GATE = 1
     
-    def __init__(self, enabled, name, camera, thresholds, max_point_sets, confidence_type, root_topic):
+    class Confidence:
+        RECTANGLE = 0
+        CIRCLE = 1
+    
+    def __init__(self, enabled, name, camera, thresholds, analysis, max_point_sets, confidence_type):
         # Save arguments as class variables
         self.enabled = enabled
         self.name = name
         self.camera = camera
         self.thresholds = thresholds
+        self.analysis = analysis
         self.max_point_sets = max_point_sets
         self.confidence_type = confidence_type
-        
-        # Setup publisher for this algorithm
-        if self.name and root_topic:
-            self.publisher = Publisher(root_topic + self.name, ImgRecObject)
-        else:
-            self.publisher = None

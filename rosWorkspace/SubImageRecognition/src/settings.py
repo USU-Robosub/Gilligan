@@ -16,43 +16,43 @@ class Settings:
         
         # Forward Gate
         Algorithm(
-            enabled = True,
+            enabled = False,
             name = 'forward/gate',
-            camera = Algorithm.FORWARD,
+            camera = Algorithm.Camera.FORWARD,
             thresholds = {
                 Algorithm.DEFAULT: ((0, 0, 60), (250, 180, 135)),
             },
-            max_point_sets = 2,
-            confidence_type = Algorithm.RECTANGLE,
-            root_topic = ROOT_TOPIC
+            analysis = Algorithm.Analysis.GATE,
+            max_point_sets = 3,
+            confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
         # Forward Buoys
         Algorithm(
-            enabled = False,
+            enabled = True,
             name = 'forward/buoys',
-            camera = Algorithm.FORWARD,
+            camera = Algorithm.Camera.FORWARD,
             thresholds = {
                 'red': ((135, 0, 30), (200, 210, 120)),
                 'green': ((110, 200, 110), (130, 240, 200)),
                 'yellow': ((95, 185, 160), (115, 240, 220))
             },
+            analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
-            confidence_type = Algorithm.CIRCLE,
-            root_topic = ROOT_TOPIC
+            confidence_type = Algorithm.Confidence.CIRCLE
         ),
         
         # Forward Obstacle Course
         Algorithm(
-            enabled = False,
+            enabled = True,
             name = 'forward/obstacle_course',
-            camera = Algorithm.FORWARD,
+            camera = Algorithm.Camera.FORWARD,
             thresholds = {
                 Algorithm.DEFAULT: ((0, 0, 0), (255, 255, 255)),
             },
+            analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 3,
-            confidence_type = Algorithm.RECTANGLE,
-            root_topic = ROOT_TOPIC
+            confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
         # TODO: Add more forward algorithms here
@@ -61,13 +61,13 @@ class Settings:
         Algorithm(
             enabled = True,
             name = 'downward/paths',
-            camera = Algorithm.DOWNWARD,
+            camera = Algorithm.Camera.DOWNWARD,
             thresholds = {
                 Algorithm.DEFAULT: ((5, 50, 50), (15, 255, 255)),
             },
+            analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 2,
-            confidence_type = Algorithm.RECTANGLE,
-            root_topic = ROOT_TOPIC
+            confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
         # TODO: Add more downward algorithms here

@@ -41,6 +41,8 @@ class ImageRecognition:
         self._f_counter = 0
         self._d_counter = 0
         
+        self._publishers = {}
+        
         self._forward_img_pub = rospy.Publisher("forward_camera/image_raw", Image)
         rospy.Subscriber("left/image_raw", Image, self._forward_callback)
         
@@ -61,6 +63,16 @@ class ImageRecognition:
         self._d_threshold = None
         self._f_temp_threshold = None
         self._d_temp_threshold = None
+    
+    def _get_publisher(self, algorithm):
+        """
+        Builds a new publisher for an algorithm and saves it for later
+        """
+        
+        name = algorithm.name
+        if name not in self._publishers:
+            self._publishers[name] = rospy.Publisher(Settings.ROOT_TOPIC + name, ImgRecObject)
+        return self._publishers[name]
     
     def _init_image_memory(self, size):
         """
@@ -146,7 +158,7 @@ class ImageRecognition:
                     cv.Copy(threshold, temp_threshold)
                     point_sets = self._sample_points(temp_threshold, size, self._f_counter)
                     
-                    self._publish_points(algorithm, point_sets, rotated, name=threshold_name)
+                    self._publish_points(algorithm, point_sets, rotated, size, name=threshold_name)
         
         self._f_counter = (self._f_counter + 1) % Settings.SAMPLE_SIZE
         
@@ -206,7 +218,7 @@ class ImageRecognition:
                     cv.Copy(threshold, temp_threshold)
                     point_sets = self._sample_points(temp_threshold, size, self._d_counter)
                     
-                    self._publish_points(algorithm, point_sets, rotated, name=threshold_name)
+                    self._publish_points(algorithm, point_sets, rotated, size, name=threshold_name)
         
         self._d_counter = (self._d_counter + 1) % Settings.SAMPLE_SIZE
         
@@ -237,7 +249,46 @@ class ImageRecognition:
         cv.Copy(temp, image)
         cv.ResetImageROI(image)
     
-    def _publish_points(self, algorithm, point_sets, image, name):
+    def _analyze_points(self, algorithm, points, image):
+        """
+        TODO
+        """
+        
+        if algorithm.analysis == Algorithm.Analysis.RECTANGLE:
+            
+            (center, dims, rotation) = cv.MinAreaRect2(points)
+            rotation *= math.pi / 180 # Convert rotation from degrees to radians
+            
+            # Correct dims/rotation so that the first dim is always larger
+            if dims[0] < dims[1]:
+                dims = (dims[1], dims[0])
+                rotation += math.pi / 2
+            
+            # Normalize rotation for drawing
+            if math.sin(rotation) > 0:
+                rotation += math.pi
+            rotation %= math.pi * 2
+            
+            # Mark rectangle on image
+            v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
+            cv.Circle(image, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
+            cv.Line(image, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
+            
+            # Normalize rotation for publishing
+            if rotation == 0:
+                rotation = math.pi * 2
+            rotation -= 3 * math.pi / 2
+            
+            return center, dims, rotation
+            
+        elif algorithm.analysis == Algorithm.Analysis.GATE:
+            
+            # TODO
+            
+            return (0, 0), (0, 0), 0
+            
+    
+    def _publish_points(self, algorithm, point_sets, image, size, name):
         """
         Used by both image callbacks to publish details about the sets of
         points found. Also add annotations to the given image
@@ -249,28 +300,8 @@ class ImageRecognition:
         # Find minimum area rotated rectangle around each set of points
         for points in point_sets:
             if points:
-                (center, dims, rotation) = cv.MinAreaRect2(points)
-                rotation *= math.pi / 180 # Convert rotation from degrees to radians
                 
-                # Correct dims/rotation so that the first dim is always larger
-                if dims[0] < dims[1]:
-                    dims = (dims[1], dims[0])
-                    rotation += math.pi / 2
-                
-                # Normalize rotation for drawing
-                if math.sin(rotation) > 0:
-                    rotation += math.pi
-                rotation %= math.pi * 2
-                
-                # Mark rectangle on image
-                v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
-                cv.Circle(image, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
-                cv.Line(image, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
-                
-                # Normalize rotation for publishing
-                if rotation == 0:
-                    rotation = math.pi * 2
-                rotation -= 3 * math.pi / 2
+                center, dims, rotation = self._analyze_points(algorithm, points, image)
                 
                 # Calculate confidence based on algorithm
                 if algorithm.confidence_type is Algorithm.RECTANGLE:
@@ -280,21 +311,16 @@ class ImageRecognition:
                 confidence = min(len(points) / expected_points, 1)
                 
                 # Publish object data
-                try:
-                    algorithm.publisher.publish(ImgRecObject(
-                        stamp = roslib.rostime.Time(time.time()),
-                        name = name,
-                        center_x = int(center[0]),
-                        center_y = int(center[1]),
-                        rotation = rotation,
-                        height = int(dims[0]),
-                        width = int(dims[1]),
-                        confidence = confidence
-                    ))
-                except rospy.ROSException:
-                    # Generally this exception occurs if ROS wasn't ready yet. We'll
-                    # just silently ignore it and next time should work
-                    pass
+                self._get_publisher(algorithm).publish(ImgRecObject(
+                    stamp = roslib.rostime.Time(time.time()),
+                    name = name,
+                    center_x = int(center[0])- size[0] / 2,
+                    center_y = size[1] / 2 - int(center[1]),
+                    rotation = rotation,
+                    height = int(dims[0]),
+                    width = int(dims[1]),
+                    confidence = confidence
+                ))
     
     def _sample_points(self, image, size, offset):
         """

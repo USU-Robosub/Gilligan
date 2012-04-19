@@ -48,11 +48,11 @@ struct ImgRecObject_ : public ros::Message
   typedef std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other >  _name_type;
   std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other >  name;
 
-  typedef uint16_t _center_x_type;
-  uint16_t center_x;
+  typedef int16_t _center_x_type;
+  int16_t center_x;
 
-  typedef uint16_t _center_y_type;
-  uint16_t center_y;
+  typedef int16_t _center_y_type;
+  int16_t center_y;
 
   typedef float _rotation_type;
   float rotation;
@@ -75,7 +75,7 @@ public:
   ROS_DEPRECATED const std::string __getDataType() const { return __s_getDataType_(); }
 
 private:
-  static const char* __s_getMD5Sum_() { return "e457d95566509e9119cff64bd5619f85"; }
+  static const char* __s_getMD5Sum_() { return "a8243451f739dcfc8a2be0d3a2d4dea6"; }
 public:
   ROS_DEPRECATED static const std::string __s_getMD5Sum() { return __s_getMD5Sum_(); }
 
@@ -84,8 +84,8 @@ public:
 private:
   static const char* __s_getMessageDefinition_() { return "time stamp\n\
 string name\n\
-uint16 center_x\n\
-uint16 center_y\n\
+int16 center_x\n\
+int16 center_y\n\
 float32 rotation\n\
 uint16 height\n\
 uint16 width\n\
@@ -164,12 +164,12 @@ template<class ContainerAllocator>
 struct MD5Sum< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> > {
   static const char* value() 
   {
-    return "e457d95566509e9119cff64bd5619f85";
+    return "a8243451f739dcfc8a2be0d3a2d4dea6";
   }
 
   static const char* value(const  ::SubImageRecognition::ImgRecObject_<ContainerAllocator> &) { return value(); } 
-  static const uint64_t static_value1 = 0xe457d95566509e91ULL;
-  static const uint64_t static_value2 = 0x19cff64bd5619f85ULL;
+  static const uint64_t static_value1 = 0xa8243451f739dcfcULL;
+  static const uint64_t static_value2 = 0x8a2be0d3a2d4dea6ULL;
 };
 
 template<class ContainerAllocator>
@@ -188,8 +188,8 @@ struct Definition< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> > {
   {
     return "time stamp\n\
 string name\n\
-uint16 center_x\n\
-uint16 center_y\n\
+int16 center_x\n\
+int16 center_y\n\
 float32 rotation\n\
 uint16 height\n\
 uint16 width\n\
@@ -243,9 +243,9 @@ struct Printer< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> >
     s << indent << "name: ";
     Printer<std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other > >::stream(s, indent + "  ", v.name);
     s << indent << "center_x: ";
-    Printer<uint16_t>::stream(s, indent + "  ", v.center_x);
+    Printer<int16_t>::stream(s, indent + "  ", v.center_x);
     s << indent << "center_y: ";
-    Printer<uint16_t>::stream(s, indent + "  ", v.center_y);
+    Printer<int16_t>::stream(s, indent + "  ", v.center_y);
     s << indent << "rotation: ";
     Printer<float>::stream(s, indent + "  ", v.rotation);
     s << indent << "height: ";

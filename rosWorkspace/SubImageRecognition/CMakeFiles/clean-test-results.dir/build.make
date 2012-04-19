@@ -40,7 +40,7 @@ CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImageRecognition
 # Utility rule file for clean-test-results.
 
 CMakeFiles/clean-test-results:
-	if ! rm -rf /home/subcrew/.ros/test_results/SubImageRecognition; then echo WARNING:\ failed\ to\ remove\ test-results\ directory ; fi
+	if ! rm -rf /home/robosub/.ros/test_results/SubImageRecognition; then echo WARNING:\ failed\ to\ remove\ test-results\ directory ; fi
 
 clean-test-results: CMakeFiles/clean-test-results
 clean-test-results: CMakeFiles/clean-test-results.dir/build.make
