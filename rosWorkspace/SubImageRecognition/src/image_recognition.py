@@ -279,14 +279,61 @@ class ImageRecognition:
                 rotation = math.pi * 2
             rotation -= 3 * math.pi / 2
             
-            return center, dims, rotation
+            return [(center, dims, rotation)]
             
         elif algorithm.analysis == Algorithm.Analysis.GATE:
             
-            # TODO
+            # Group all points into rows and columns
+            rows = {}
+            cols = {}
+            for x, y in points:
+                if x in cols:
+                    cols[x].append(y)
+                else:
+                    cols[x] = [y]
+                if y in rows:
+                    rows[y].append(x)
+                else:
+                    rows[y] = [x]
             
-            return (0, 0), (0, 0), 0
+            # Search for long rows
+            # XXX: I'm not sure how well comparing against the average will
+            #      work. We may need to use another metric
+            avg_len = sum([len(row) for row in rows.values()]) / len(rows)
+            long_rows = [y for y in rows.keys() if len(rows[y]) > avg_len]
             
+            # Search for long columns
+            # XXX: I'm not sure how well comparing against the average will
+            #      work. We may need to use another metric
+            avg_len = sum([len(col) for col in cols.values()]) / len(cols)
+            long_cols = [x for x in cols.keys() if len(cols[x]) > avg_len]
+            
+            # Remove long column values from long rows
+            for y in long_rows:
+                rows[y] = [x for x in rows[y] if x not in long_cols]
+            
+            # Truncate row values from long columns based on max long row
+            max_long_row = max(long_rows)
+            for x in long_cols:
+                cols[x] = [y for y in cols[x] if y <= max_long_row]
+            
+            rectangles = []
+            
+            # Create rectangle for horizontal section
+            left = 1000
+            right = 0
+            for y in long_rows:
+                left = min(left, min(rows[y]))
+                right = max(right, max(rows[y]))
+            min_long_row = min(long_rows)
+            center = ((left + right) / 2, (max_long_row + min_long_row) / 2)
+            dims = (right - left, max_long_row - min_long_row)
+            rectangles.append((center, dims, 0))
+            
+            # Create rectangles for vertical sections
+            # TODO: This is more tricky because we need to group the long_cols up first
+            
+            return rectangles
     
     def _publish_points(self, algorithm, point_sets, image, size, name):
         """
@@ -301,26 +348,26 @@ class ImageRecognition:
         for points in point_sets:
             if points:
                 
-                center, dims, rotation = self._analyze_points(algorithm, points, image)
-                
-                # Calculate confidence based on algorithm
-                if algorithm.confidence_type is Algorithm.RECTANGLE:
-                    expected_points = (dims[0] * dims[1]) / (Settings.SAMPLE_SIZE ** 2)
-                elif algorithm.confidence_type is Algorithm.CIRCLE:
-                    expected_points = (math.pi * dims[0] * dims[1]) / (4 * Settings.SAMPLE_SIZE ** 2)
-                confidence = min(len(points) / expected_points, 1)
-                
-                # Publish object data
-                self._get_publisher(algorithm).publish(ImgRecObject(
-                    stamp = roslib.rostime.Time(time.time()),
-                    name = name,
-                    center_x = int(center[0])- size[0] / 2,
-                    center_y = size[1] / 2 - int(center[1]),
-                    rotation = rotation,
-                    height = int(dims[0]),
-                    width = int(dims[1]),
-                    confidence = confidence
-                ))
+                for center, dims, rotation in self._analyze_points(algorithm, points, image):
+                    
+                    # Calculate confidence based on algorithm
+                    if algorithm.confidence_type is Algorithm.RECTANGLE:
+                        expected_points = (dims[0] * dims[1]) / (Settings.SAMPLE_SIZE ** 2)
+                    elif algorithm.confidence_type is Algorithm.CIRCLE:
+                        expected_points = (math.pi * dims[0] * dims[1]) / (4 * Settings.SAMPLE_SIZE ** 2)
+                    confidence = min(len(points) / expected_points, 1)
+                    
+                    # Publish object data
+                    self._get_publisher(algorithm).publish(ImgRecObject(
+                        stamp = roslib.rostime.Time(time.time()),
+                        name = name,
+                        center_x = int(center[0])- size[0] / 2,
+                        center_y = size[1] / 2 - int(center[1]),
+                        rotation = rotation,
+                        height = int(dims[0]),
+                        width = int(dims[1]),
+                        confidence = confidence
+                    ))
     
     def _sample_points(self, image, size, offset):
         """
