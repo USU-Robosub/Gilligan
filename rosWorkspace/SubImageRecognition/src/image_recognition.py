@@ -299,14 +299,24 @@ class ImageRecognition:
             # Search for long rows
             # XXX: I'm not sure how well comparing against the average will
             #      work. We may need to use another metric
-            avg_len = sum([len(row) for row in rows.values()]) / len(rows)
-            long_rows = [y for y in rows.keys() if len(rows[y]) > avg_len]
+            lengths = [len(row) for row in rows.values()]
+            avg_len = sum(lengths) / len(rows)
+            max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
+            if avg_len < max_len:
+                long_rows = [y for y in rows.keys() if len(rows[y]) > max_len]
+            else:
+                long_rows = []
             
             # Search for long columns
             # XXX: I'm not sure how well comparing against the average will
             #      work. We may need to use another metric
-            avg_len = sum([len(col) for col in cols.values()]) / len(cols)
-            long_cols = [x for x in cols.keys() if len(cols[x]) > avg_len]
+            lengths = [len(col) for col in cols.values()]
+            avg_len = sum(lengths) / len(cols)
+            max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
+            if avg_len < max_len:
+                long_cols = [x for x in cols.keys() if len(cols[x]) > max_len]
+            else:
+                long_cols = []
             
             # Remove long column values from long rows
             for y in long_rows:

@@ -10,6 +10,8 @@ class Settings:
     SAMPLE_SIZE = 6
     MIN_POINTS = 30
     
+    MAX_LENGTH_THRESHOLD = 0.8
+    
     ROOT_TOPIC = 'image_recognition/'
     
     ALGORITHMS = [
