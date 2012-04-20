@@ -28,9 +28,9 @@ void output_subData()
   
   for (int i = 0; i < 3; i++)
   {
-    myVals[3+i] += accel[0];
-    myVals[6+i] += magnetom[0];
-    myVals[9+i] += gyro[0];
+    myVals[3+i] += accel[i];
+    myVals[6+i] += magnetom[i];
+    myVals[9+i] += gyro[i];
   }
   
   if (!first)
