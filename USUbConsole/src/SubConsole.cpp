@@ -40,7 +40,9 @@ SubConsole::SubConsole(QWidget* pParent)
      m_lastYAxisValue(0),
      m_lastThrottleValue(0),
      m_lastTwistValue(0),
-     m_turnForwardPercentage(0.8),
+     m_turnForwardPercentage(1.0),
+     m_leftThrustPercentage(1.0),
+     m_rightThrustPercentage(1.0),
      m_pForwardCameraData(NULL),
      m_pDownwardCameraData(NULL),
      m_downPipEnabled(false),
@@ -59,6 +61,8 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
    connect(m_pUi->turnThrustFwdSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustFwdTurnMax(int)));
+   connect(m_pUi->leftThrustSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustLeftThrustMax(int)));
+   connect(m_pUi->rightThrustSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustRightThrustMax(int)));
 
    m_pCallbackTimer->start();
 
@@ -183,13 +187,13 @@ void SubConsole::readJoystickInput(void)
       //A neg number means the stick is pushed forward, if positive we actually want reverse
       if(currentYAxis > 0)
       {
-         leftDriveValue = thrusterSpeed;
-         rightDriveValue = thrusterSpeed;
+         leftDriveValue = thrusterSpeed * m_leftThrustPercentage;
+         rightDriveValue = thrusterSpeed * m_rightThrustPercentage;
       }
       else if(currentYAxis < 0)
       {
-          leftDriveValue = thrusterSpeed  * -1;
-          rightDriveValue = thrusterSpeed  * -1;
+          leftDriveValue = thrusterSpeed  * -1 * m_leftThrustPercentage;
+          rightDriveValue = thrusterSpeed  * -1 * m_rightThrustPercentage;
       }
 
       motorMask |= (MOTOR_LEFT_DRIVE | MOTOR_RIGHT_DRIVE);
@@ -505,4 +509,22 @@ void SubConsole::adjustFwdTurnMax(int sliderValue)
     percentString += "% FwdTurn Limit";
     m_turnForwardPercentage = sliderValue / 100.0;
     m_pUi->turnFwdPercentageLabel->setText(percentString);
+}
+
+void SubConsole::adjustLeftThrustMax(int sliderValue)
+{
+    QString percentString = QString::number(sliderValue);
+
+    percentString += "% Left Thrust";
+    m_leftThrustPercentage = sliderValue / 100.0;
+    m_pUi->leftThrustPercentageLabel->setText(percentString);
+}
+
+void SubConsole::adjustRightThrustMax(int sliderValue)
+{
+    QString percentString = QString::number(sliderValue);
+
+    percentString += "% Right Thrust";
+    m_rightThrustPercentage = sliderValue / 100.0;
+    m_pUi->rightThrustPercentageLabel->setText(percentString);
 }
