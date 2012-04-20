@@ -145,7 +145,7 @@ class ImageRecognition:
         
         for algorithm in Settings.ALGORITHMS:
             
-            if algorithm.enabled and algorithm.camera is Algorithm.FORWARD:
+            if algorithm.enabled and algorithm.camera is Algorithm.Camera.FORWARD:
                 
                 for threshold_name in algorithm.thresholds:
                     
@@ -205,7 +205,7 @@ class ImageRecognition:
         
         for algorithm in Settings.ALGORITHMS:
             
-            if algorithm.enabled and algorithm.camera is Algorithm.DOWNWARD:
+            if algorithm.enabled and algorithm.camera is Algorithm.Camera.DOWNWARD:
                 
                 for threshold_name in algorithm.thresholds:
                     
@@ -351,9 +351,9 @@ class ImageRecognition:
                 for center, dims, rotation in self._analyze_points(algorithm, points, image):
                     
                     # Calculate confidence based on algorithm
-                    if algorithm.confidence_type is Algorithm.RECTANGLE:
+                    if algorithm.confidence_type is Algorithm.Confidence.RECTANGLE:
                         expected_points = (dims[0] * dims[1]) / (Settings.SAMPLE_SIZE ** 2)
-                    elif algorithm.confidence_type is Algorithm.CIRCLE:
+                    elif algorithm.confidence_type is Algorithm.Confidence.CIRCLE:
                         expected_points = (math.pi * dims[0] * dims[1]) / (4 * Settings.SAMPLE_SIZE ** 2)
                     confidence = min(len(points) / expected_points, 1)
                     
