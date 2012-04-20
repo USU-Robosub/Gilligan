@@ -54,11 +54,11 @@ sleep 2
 /opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=forward_camera/image_raw compressed out:=forward_camera/image_compressed &
 /opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=downward_camera/image_raw compressed out:=downward_camera/image_compressed &
 
-# Save compressed cameras in a bag
-rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed &
+# Save compressed cameras and resulting recognition info in a bag
+rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &
 
-# TODO: Save sensor data in a bag
-#rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag ???
+# Save sensor data in a bag
+rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Raw Mobo_Temp Motor_Control Motor_State Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest &
 
 sleep 2
 

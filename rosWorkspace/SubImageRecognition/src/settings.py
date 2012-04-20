@@ -1,53 +1,76 @@
 from algorithm import Algorithm
 
 class Settings:
+    """
+    Container class for storing all image recognition settings. Both Algorithm
+    in algorithm.py and ImageRecognition in image_recognition.py refer to this
+    class for common settings
+    """
     
-    sample_size = 6
-    min_point_set_len = 30
-    root_topic = 'image_recognition/'
+    SAMPLE_SIZE = 6
+    MIN_POINTS = 30
     
-    algorithms = [
+    ROOT_TOPIC = 'image_recognition/'
+    
+    ALGORITHMS = [
         
         # Forward Gate
         Algorithm(
-            enabled = True,
-            topic = root_topic + 'forward/gate',
-            camera = Algorithm.FORWARD,
+            enabled = False,
+            name = 'forward/gate',
+            camera = Algorithm.Camera.FORWARD,
             thresholds = {
-                Algorithm.DEFAULT: ((0, 0, 0), (143, 220, 70)),
+                Algorithm.DEFAULT: ((0, 0, 60), (250, 180, 135)),
             },
-            max_point_sets = 2,
-            confidence_type = Algorithm.RECTANGLE
+            analysis = Algorithm.Analysis.GATE,
+            max_point_sets = 3,
+            confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
         # Forward Buoys
         Algorithm(
-            enabled = False,
-            topic = root_topic + 'forward/buoys',
-            camera = Algorithm.FORWARD,
+            enabled = True,
+            name = 'forward/buoys',
+            camera = Algorithm.Camera.FORWARD,
             thresholds = {
-                'red': None, # TODO: Get good thresholds for red buoy
-                'green': None, # TODO: Get good thresholds for green buoy
-                'yellow': None, # TODO: Get good thresholds for yellow buoy
+                'red': ((135, 0, 30), (200, 210, 120)),
+                'green': ((110, 200, 110), (130, 240, 200)),
+                'yellow': ((95, 185, 160), (115, 240, 220))
             },
+            analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
-            confidence_type = Algorithm.CIRCLE
+            confidence_type = Algorithm.Confidence.CIRCLE
+        ),
+        
+        # Forward Obstacle Course
+        Algorithm(
+            enabled = True,
+            name = 'forward/obstacle_course',
+            camera = Algorithm.Camera.FORWARD,
+            thresholds = {
+                Algorithm.DEFAULT: ((0, 0, 0), (255, 255, 255)),
+            },
+            analysis = Algorithm.Analysis.RECTANGLE,
+            max_point_sets = 3,
+            confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
         # TODO: Add more forward algorithms here
         
-        # Downward Orange Rectangles
+        # Downward Paths
         Algorithm(
             enabled = True,
-            topic = root_topic + 'downward/orange_rectangles',
-            camera = Algorithm.DOWNWARD,
+            name = 'downward/paths',
+            camera = Algorithm.Camera.DOWNWARD,
             thresholds = {
-                Algorithm.DEFAULT: (), # XXX: Trying gate threshold. Old threshold is (5, 50, 50), (15, 255, 255)
+                Algorithm.DEFAULT: ((5, 50, 50), (15, 255, 255)),
             },
+            analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 2,
-            confidence_type = Algorithm.RECTANGLE
+            confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
         # TODO: Add more downward algorithms here
         
     ]
+
