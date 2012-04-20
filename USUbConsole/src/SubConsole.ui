@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1006</width>
-    <height>741</height>
+    <width>998</width>
+    <height>786</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,8 +22,8 @@
      <rect>
       <x>530</x>
       <y>450</y>
-      <width>261</width>
-      <height>151</height>
+      <width>351</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="title">
@@ -34,8 +34,8 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>231</width>
-       <height>124</height>
+       <width>301</width>
+       <height>171</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -105,29 +105,83 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <layout class="QHBoxLayout" name="horizontalLayout_13">
         <item>
-         <widget class="QSlider" name="turnThrustFwdSlider">
-          <property name="maximum">
-           <number>100</number>
-          </property>
-          <property name="singleStep">
-           <number>10</number>
-          </property>
-          <property name="value">
-           <number>100</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QSlider" name="turnThrustFwdSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="singleStep">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="leftThrustSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="singleStep">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="rightThrustSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="singleStep">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
-         <widget class="QLabel" name="turnFwdPercentageLabel">
-          <property name="text">
-           <string>100% FwdTurn Limit</string>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="turnFwdPercentageLabel">
+            <property name="text">
+             <string>100% FwdTurn Limit</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="leftThrustPercentageLabel">
+            <property name="text">
+             <string>100% Left Thrust</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="rightThrustPercentageLabel">
+            <property name="text">
+             <string>100% Right Thrust</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -632,8 +686,8 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>630</y>
-      <width>411</width>
+      <y>680</y>
+      <width>451</width>
       <height>101</height>
      </rect>
     </property>
@@ -656,7 +710,7 @@
     <property name="geometry">
      <rect>
       <x>520</x>
-      <y>600</y>
+      <y>650</y>
       <width>71</width>
       <height>29</height>
      </rect>
