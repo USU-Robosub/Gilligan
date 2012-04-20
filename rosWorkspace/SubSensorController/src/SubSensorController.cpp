@@ -18,12 +18,15 @@
 #define STATE_WORKING       1
 #define VERBOSE 0
 
+
+
 int setupTTY(int fd);
 std::string getTTYLine(int fd);
 bool timeLeft(struct timeval* start, struct timeval* timeout);
 bool goodLine(std::string val, int varCount);
 
 int controllerState = STATE_WAITING_ON_FD;
+char* name;
 
 void error(char * msg)
 {
@@ -39,8 +42,10 @@ int main(int argc, char **argv)
   if (argc > 1)
   {
     file = argv[1];
-    printf("Opening %s\n", file.c_str());
+    printf("%s info: Opening %s\n", argv[0], file.c_str());
   }
+
+  name = argv[0];
 
   float temp[3] = {0.0};
   float pressure = 0.0;
@@ -79,7 +84,7 @@ int main(int argc, char **argv)
 
       if (fd == -1)
       {
-        printf("System failed to open %s: %s(%d)\n", file.c_str(), strerror(errno), errno);
+        printf("%s Error: System failed to open %s: %s(%d)\n", argv[0], file.c_str(), strerror(errno), errno);
         sleep(1);
       }
       else
@@ -172,7 +177,7 @@ int main(int argc, char **argv)
         }
         else
         {
-          printf("Throwing away %d:\"%s\"\n", scanfVal, line.c_str());
+          printf("%s info: Throwing away %d:\"%s\"\n", argv[0], scanfVal, line.c_str());
           fflush(stdout);
         }
       }
@@ -240,14 +245,14 @@ std::string getTTYLine(int fd)
       }
       else
       {
-        printf("Error: fd failed!\n");
+        printf("%s Error: fd failed!\n", name);
         controllerState = STATE_WAITING_ON_FD;
         close(fd);
       }
     }
     else
     {
-      printf("timeout %s\n", ret.c_str());
+      printf("%s timeout %s\n", name, ret.c_str());
       ret = "";
       break;
     }
@@ -311,7 +316,7 @@ int setupTTY(int fd)
 
   if(tcsetattr(fd, TCSANOW, &port_settings) < 0)    // apply the settings to the port
   {
-    printf("Failed to set serial settings\n");
+    printf("%s Error: Failed to set serial settings\n", name);
     ret = -1;
   }
 
