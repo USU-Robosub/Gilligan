@@ -9,7 +9,7 @@ import time
 import cv
 from settings import Settings
 from algorithm import Algorithm
-from heapq import nlargest
+from heapq import nlargest, heappush, heappop
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from SubImageRecognition.msg import ImgRecObject
@@ -297,8 +297,6 @@ class ImageRecognition:
                     rows[y] = [x]
             
             # Search for long rows
-            # XXX: I'm not sure how well comparing against the average will
-            #      work. We may need to use another metric
             lengths = [len(row) for row in rows.values()]
             avg_len = sum(lengths) / len(rows)
             max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
@@ -306,10 +304,9 @@ class ImageRecognition:
                 long_rows = [y for y in rows.keys() if len(rows[y]) > max_len]
             else:
                 long_rows = []
+            long_rows.sort()
             
             # Search for long columns
-            # XXX: I'm not sure how well comparing against the average will
-            #      work. We may need to use another metric
             lengths = [len(col) for col in cols.values()]
             avg_len = sum(lengths) / len(cols)
             max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
@@ -317,6 +314,7 @@ class ImageRecognition:
                 long_cols = [x for x in cols.keys() if len(cols[x]) > max_len]
             else:
                 long_cols = []
+            long_cols.sort()
             
             # Remove long column values from long rows
             for y in long_rows:
@@ -342,6 +340,41 @@ class ImageRecognition:
             
             # Create rectangles for vertical sections
             # TODO: This is more tricky because we need to group the long_cols up first
+            col_groups = []
+            prev_x = None
+            for x in long_cols:
+                if prev_x is not None and x - prev_x == Settings.SAMPLE_SIZE: 
+                    # Continuing a group
+                    pass
+                else:
+                    # Starting a new group
+                    if prev_x is not None:
+                        col_groups.append(prev_x)
+                    col_groups.append(x)
+                prev_x = x
+            if prev_x is not None:
+                col_groups.append(prev_x)
+            
+            # Validate column groups
+            if len(col_groups) % 2:
+                # Oops it's odd... Truncate last item
+                col_groups = col_groups[:-1]
+            if len(col_groups) > 4:
+                # Oops too many groups... Use heap to keep two largest groups
+                heap = []
+                for i in range(0, len(col_groups), 2):
+                    heappush(heap, (col_groups[i+1] - col_groups[i], i))
+                    if len(heap) > 2:
+                        heappop(heap)
+                new_groups = []
+                for i in range(len(heap)):
+                    group = heappop(heap)
+                    new_groups.append(col_groups[group[1]])
+                    new_groups.append(col_groups[group[1] + 1])
+                col_groups = new_groups
+            
+            # Add rectangles from col_groups
+            #TODO
             
             return rectangles
     
