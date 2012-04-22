@@ -22,10 +22,11 @@ class Settings:
             name = 'forward/gate',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
-                Algorithm.DEFAULT: ((0, 0, 60), (250, 180, 135)),
+                #Algorithm.DEFAULT: ((0, 0, 60), (250, 180, 135)), Old values, when we were looking for 2 orange and 1 black rect.
+                Algorithm.DEFAULT: ((0, 0, 0), (250, 180, 60)),
             },
             analysis = Algorithm.Analysis.GATE,
-            max_point_sets = 3,
+            max_point_sets = 1,
             confidence_type = Algorithm.Confidence.RECTANGLE
         ),
         
@@ -35,9 +36,9 @@ class Settings:
             name = 'forward/buoys',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
-                'red': ((135, 0, 30), (200, 210, 120)),
-                'green': ((110, 200, 110), (130, 240, 200)),
-                'yellow': ((95, 185, 160), (115, 240, 220))
+                'red': ((135, 0, 30), (200, 210, 120))
+                #'green': ((110, 200, 110), (130, 240, 200)),
+                #'yellow': ((95, 185, 160), (115, 240, 220))
             },
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
@@ -46,7 +47,7 @@ class Settings:
         
         # Forward Obstacle Course
         Algorithm(
-            enabled = True,
+            enabled = False,
             name = 'forward/obstacle_course',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {

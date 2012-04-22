@@ -141,7 +141,7 @@ class ImageRecognition:
         
         # Normalize image
         self._normalize(segmented, threshold)
-        #cv.CvtColor(segmented, rotated, cv.CV_HSV2BGR)
+        cv.CvtColor(segmented, rotated, cv.CV_HSV2BGR)
         
         for algorithm in Settings.ALGORITHMS:
             
@@ -158,13 +158,13 @@ class ImageRecognition:
                     cv.Copy(threshold, temp_threshold)
                     point_sets = self._sample_points(temp_threshold, size, self._f_counter)
                     
-                    self._publish_points(algorithm, point_sets, rotated, size, name=threshold_name)
+                    self._publish_points(algorithm, point_sets, threshold, size, name=threshold_name)
         
         self._f_counter = (self._f_counter + 1) % Settings.SAMPLE_SIZE
         
         # Publish image
         try:
-            self._forward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
+            self._forward_img_pub.publish(self._bridge.cv_to_imgmsg(threshold, "mono8"))
         except rospy.ROSException:
             # Generally this exception occurs if ROS wasn't ready yet. We'll
             # just silently ignore it and next time should work
@@ -201,7 +201,7 @@ class ImageRecognition:
         
         # Normalize image
         self._normalize(segmented, threshold)
-        #cv.CvtColor(segmented, rotated, cv.CV_HSV2BGR)
+        cv.CvtColor(segmented, rotated, cv.CV_HSV2BGR)
         
         for algorithm in Settings.ALGORITHMS:
             
@@ -254,6 +254,8 @@ class ImageRecognition:
         TODO
         """
         
+        rectangles = []
+        
         if algorithm.analysis == Algorithm.Analysis.RECTANGLE:
             
             (center, dims, rotation) = cv.MinAreaRect2(points)
@@ -269,28 +271,23 @@ class ImageRecognition:
                 rotation += math.pi
             rotation %= math.pi * 2
             
-            # Mark rectangle on image
-            v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
-            cv.Circle(image, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
-            cv.Line(image, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
-            
             # Normalize rotation for publishing
             if rotation == 0:
                 rotation = math.pi * 2
             rotation -= 3 * math.pi / 2
             
-            return [(center, dims, rotation)]
+            rectangles.append((center, dims, rotation))
             
         elif algorithm.analysis == Algorithm.Analysis.GATE:
             
             # Group all points into rows and columns
             rows = {}
-            cols = {}
+#            cols = {}
             for x, y in points:
-                if x in cols:
-                    cols[x].append(y)
-                else:
-                    cols[x] = [y]
+#                if x in cols:
+#                    cols[x].append(y)
+#                else:
+#                    cols[x] = [y]
                 if y in rows:
                     rows[y].append(x)
                 else:
@@ -298,85 +295,102 @@ class ImageRecognition:
             
             # Search for long rows
             lengths = [len(row) for row in rows.values()]
-            avg_len = sum(lengths) / len(rows)
+            #avg_len = sum(lengths) / len(rows)
             max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
-            if avg_len < max_len:
-                long_rows = [y for y in rows.keys() if len(rows[y]) > max_len]
-            else:
-                long_rows = []
+            #if avg_len < max_len:
+            long_rows = [y for y in rows.keys() if len(rows[y]) > max_len]
+            #else:
+            #    long_rows = []
             long_rows.sort()
+            if long_rows:
+                max_long_row = max(long_rows)
+            else:
+                max_long_row = None
             
             # Search for long columns
-            lengths = [len(col) for col in cols.values()]
-            avg_len = sum(lengths) / len(cols)
-            max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
-            if avg_len < max_len:
-                long_cols = [x for x in cols.keys() if len(cols[x]) > max_len]
-            else:
-                long_cols = []
-            long_cols.sort()
-            
+#            lengths = [len(col) for col in cols.values()]
+#            avg_len = sum(lengths) / len(cols)
+#            max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
+#            if avg_len < max_len:
+#                long_cols = [x for x in cols.keys() if len(cols[x]) > max_len]
+#            else:
+#                long_cols = []
+#            long_cols.sort()
+#            
             # Remove long column values from long rows
-            for y in long_rows:
-                rows[y] = [x for x in rows[y] if x not in long_cols]
+#            for y in long_rows:
+#                rows[y] = [x for x in rows[y] if x not in long_cols]
             
             # Truncate row values from long columns based on max long row
-            max_long_row = max(long_rows)
-            for x in long_cols:
-                cols[x] = [y for y in cols[x] if y <= max_long_row]
-            
-            rectangles = []
+#            if max_long_row is not None:
+#                for x in long_cols:
+#                cols[x] = [y for y in cols[x] if y <= max_long_row]
             
             # Create rectangle for horizontal section
-            left = 1000
-            right = 0
-            for y in long_rows:
-                left = min(left, min(rows[y]))
-                right = max(right, max(rows[y]))
-            min_long_row = min(long_rows)
-            center = ((left + right) / 2, (max_long_row + min_long_row) / 2)
-            dims = (right - left, max_long_row - min_long_row)
-            rectangles.append((center, dims, 0))
+            if max_long_row is not None:
+                left = 1000
+                right = 0
+                for y in long_rows:
+                    left = min(left, min(rows[y]))
+                    right = max(right, max(rows[y]))
+                min_long_row = min(long_rows)
+                center = ((left + right) / 2, (max_long_row + min_long_row) / 2)
+                dims = (right - left, max_long_row - min_long_row)
+                rectangles.append((center, dims, 0))
             
             # Create rectangles for vertical sections
             # TODO: This is more tricky because we need to group the long_cols up first
-            col_groups = []
-            prev_x = None
-            for x in long_cols:
-                if prev_x is not None and x - prev_x == Settings.SAMPLE_SIZE: 
-                    # Continuing a group
-                    pass
-                else:
-                    # Starting a new group
-                    if prev_x is not None:
-                        col_groups.append(prev_x)
-                    col_groups.append(x)
-                prev_x = x
-            if prev_x is not None:
-                col_groups.append(prev_x)
-            
-            # Validate column groups
-            if len(col_groups) % 2:
-                # Oops it's odd... Truncate last item
-                col_groups = col_groups[:-1]
-            if len(col_groups) > 4:
-                # Oops too many groups... Use heap to keep two largest groups
-                heap = []
-                for i in range(0, len(col_groups), 2):
-                    heappush(heap, (col_groups[i+1] - col_groups[i], i))
-                    if len(heap) > 2:
-                        heappop(heap)
-                new_groups = []
-                for i in range(len(heap)):
-                    group = heappop(heap)
-                    new_groups.append(col_groups[group[1]])
-                    new_groups.append(col_groups[group[1] + 1])
-                col_groups = new_groups
-            
-            # Add rectangles from col_groups
-            #TODO
-            
-            return rectangles
+#            col_groups = []
+#            prev_x = None
+#            for x in long_cols:
+#                if prev_x is not None and x - prev_x == Settings.SAMPLE_SIZE: 
+#                    # Continuing a group
+#                    pass
+#                else:
+#                    # Starting a new group
+#                    if prev_x is not None:
+#                        col_groups.append(prev_x)
+#                    col_groups.append(x)
+#                prev_x = x
+#            if prev_x is not None:
+#                col_groups.append(prev_x)
+#            
+#            # Validate column groups
+#            if len(col_groups) % 2:
+#                # Oops it's odd... Truncate last item
+#                col_groups = col_groups[:-1]
+#            if len(col_groups) > 4:
+#                # Oops too many groups... Use heap to keep two largest groups
+#                heap = []
+#                for i in range(0, len(col_groups), 2):
+#                    heappush(heap, (col_groups[i+1] - col_groups[i], i))
+#                    if len(heap) > 2:
+#                        heappop(heap)
+#                new_groups = []
+#                for i in range(len(heap)):
+#                    group = heappop(heap)
+#                    new_groups.append(col_groups[group[1]])
+#                    new_groups.append(col_groups[group[1] + 1])
+#                col_groups = new_groups
+#            
+#            # Add rectangles from col_groups
+#            for i in range(0, len(col_groups), 2):
+#                top = 1000
+#                bottom = 0
+#                for x in range(col_groups[i], col_groups[i+1] + 1, Setting.SAMPLE_SIZE):
+#                    top = min(top, min(cols[x]))
+#                    bottom = max(bottom, max(cols[x]))
+#                center = ((col_groups[i] + col_groups[i+1]) / 2, (top + bottom) / 2)
+#                dims = (col_groups[i+1] - col_groups[i], bottom - top)
+#                rectangles.append((center, dims, 0))
+        
+        for center, dims, rotation in rectangles:
+            # Mark rectangle on image
+            v0 = (dims[0]/2*math.cos(rotation), dims[0]/2*math.sin(rotation))
+            cv.Circle(image, (int(center[0]), int(center[1])), 1 , (0, 0, 255), 5)
+            cv.Line(image, (int(center[0]), int(center[1])), (int(center[0] + v0[0]), int(center[1] + v0[1])), (0, 0, 255))
+        
+        return rectangles
     
     def _publish_points(self, algorithm, point_sets, image, size, name):
         """
@@ -393,12 +407,19 @@ class ImageRecognition:
                 
                 for center, dims, rotation in self._analyze_points(algorithm, points, image):
                     
+                    print "center: " + repr(center)
+                    print "dims: " + repr(dims)
+                    
                     # Calculate confidence based on algorithm
                     if algorithm.confidence_type is Algorithm.Confidence.RECTANGLE:
                         expected_points = (dims[0] * dims[1]) / (Settings.SAMPLE_SIZE ** 2)
                     elif algorithm.confidence_type is Algorithm.Confidence.CIRCLE:
                         expected_points = (math.pi * dims[0] * dims[1]) / (4 * Settings.SAMPLE_SIZE ** 2)
-                    confidence = min(len(points) / expected_points, 1)
+                    if expected_points:
+                        confidence = min(len(points) / expected_points, 1)
+                    else:
+                        # TODO: Document -1 for confidence as a DivByZero error
+                        confidence = -1
                     
                     # Publish object data
                     self._get_publisher(algorithm).publish(ImgRecObject(
