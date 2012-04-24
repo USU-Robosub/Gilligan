@@ -1,8 +1,8 @@
 FILE(REMOVE_RECURSE
-  "src/SubImageRecognition/msg"
-  "src/SubImageRecognition/srv"
   "msg_gen"
   "srv_gen"
+  "src/SubImageRecognition/msg"
+  "src/SubImageRecognition/srv"
   "msg_gen"
   "srv_gen"
   "CMakeFiles/ROSBUILD_gensrv_lisp"
