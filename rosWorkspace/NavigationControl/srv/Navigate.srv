@@ -1,0 +1,6 @@
+int8 camera_direction
+int16 desired_x
+int16 desired_y
+float32 desired_rotation
+---
+int8 result
