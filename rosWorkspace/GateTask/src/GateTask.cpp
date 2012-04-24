@@ -28,16 +28,12 @@ bool toggleCallback(GateTask::Toggle::Request &req, GateTask::Toggle::Response &
 	return true;
 }
 
-//
 void imgRecCallback(const SubImageRecognition::ImgRecObject &msg)
 {
 	if (isEnabled) {
-		// pass
+		// TODO: Get/validate info from image recognition
+		
+		// TODO: Optionally send request to NavigationControl
 	}
 }
 
-//TODO: handle subscribed info from ImageRec
-
-//TODO: send requests to Navigation Service
-
-//TODO: put together general template for other task files
