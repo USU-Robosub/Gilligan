@@ -5,6 +5,14 @@
 
 //digital pins
 #define motorKilledPin        12
+#define dropperLeftPin        2
+#define dropperRightPin       3
+#define torpedoLeftPin        9
+#define torpedoRightPin       10
+#define numberOfDroppers      2
+#define numberOfTorpedos      2
+
+#define PACKET_SIZE           5
 
 //analog pins
 #define depthPin              3
@@ -33,8 +41,83 @@ float computerCurrent = 0.0;
 float computerVoltage = 0.0;
 float timer = 0.0;
 
+byte packetBuf[PACKET_SIZE];
+
 unsigned long floodCalib1 = 0;
 unsigned long floodCalib2 = 0;
+
+
+void setup()
+{
+  calibrateFloodSensor();
+  pinMode(motorKilledPin, INPUT);
+  digitalWrite(motorKilledPin, HIGH);
+  pinMode(2, OUTPUT);
+  pinMode(2, HIGH);
+  
+  timer = millis();
+  Serial.begin(115200);
+}
+
+void loop()
+{
+  //read from serial
+  if (Serial.available())
+  {
+    while (Serial.available() && Serial.peek() != 'S')
+      Serial.read();
+      
+    if (Serial.available() >= PACKET_SIZE)
+    {
+      for (int i = 0; i < PACKET_SIZE; i++)
+        packetBuf[i] = Serial.read();
+      
+      if (packetBuf[0] == 'S' && packetBuf[PACKET_SIZE-1] == 'E')
+      {
+        if (packetBuf[1] == 'T')
+        {
+          launchTorpedo(packetBuf[2] - '0');
+        }
+        else if (packetBuf[1] == 'D')
+        {
+          setDropperState(packetBuf[2] - '0', packetBuf[3] - '0');
+        }
+      }
+    }
+  }
+  
+  Serial.print("S");
+  Serial.print(getTemperature(controller1TempPin));
+  Serial.print(",");
+  Serial.print(getTemperature(controller2TempPin));
+  Serial.print(",");
+  Serial.print(getTemperature(caseTemp));
+  Serial.print(",");
+  Serial.print(checkMotorKilled());
+  Serial.print(",");
+  Serial.print(checkVoltage());
+  Serial.print(",");
+  Serial.print(checkCurrent());
+  Serial.print(",");
+  Serial.print(checkDepthPsi());
+  Serial.print(",");
+  Serial.print(checkFlooded());
+  Serial.print(",");
+  Serial.print(digitalRead(dropperLeftPin));
+  Serial.print(",");
+  Serial.print(digitalRead(dropperRightPin));
+  Serial.println("E");
+  
+  /*
+  if (millis() - timer > 2000)
+  {
+    
+    timer = millis();
+  }
+  */
+  
+  delay(10);
+}
 
 byte checkMotorKilled()
 {
@@ -135,45 +218,18 @@ void calibrateFloodSensor()
   floodCalib2 = t2;
 }
 
-void setup()
+void setDropperState(byte dropper, byte state)
 {
-  calibrateFloodSensor();
-  pinMode(motorKilledPin, INPUT);
-  digitalWrite(motorKilledPin, HIGH);
-  pinMode(2, OUTPUT);
-  pinMode(2, HIGH);
-  
-  timer = millis();
-  Serial.begin(115200);
+  if (dropper < numberOfDroppers)
+    digitalWrite(dropperLeftPin + dropper, state);
 }
 
-void loop()
+void launchTorpedo(byte torpedo)
 {
-  Serial.print("S");
-  Serial.print(getTemperature(controller1TempPin));
-  Serial.print(",");
-  Serial.print(getTemperature(controller2TempPin));
-  Serial.print(",");
-  Serial.print(getTemperature(caseTemp));
-  Serial.print(",");
-  Serial.print(checkMotorKilled());
-  Serial.print(",");
-  Serial.print(checkVoltage());
-  Serial.print(",");
-  Serial.print(checkCurrent());
-  Serial.print(",");
-  Serial.print(checkDepthPsi());
-  Serial.print(",");
-  Serial.print(checkFlooded());
-  Serial.println("E");
-  
-  /*
-  if (millis() - timer > 2000)
+  if (torpedo < numberOfTorpedos)
   {
-    
-    timer = millis();
+    digitalWrite(torpedoLeftPin + torpedo, HIGH);
+    delay(10);
+    digitalWrite(torpedoLeftPin + torpedo, LOW);
   }
-  */
-  
-  delay(10);
 }
