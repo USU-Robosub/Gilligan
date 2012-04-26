@@ -96,6 +96,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named ImageRecognition
+
+# Build rule for target.
+ImageRecognition: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 ImageRecognition
+.PHONY : ImageRecognition
+
+# fast build rule for target.
+ImageRecognition/fast:
+	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/build
+.PHONY : ImageRecognition/fast
+
+#=============================================================================
 # Target rules for targets named ROSBUILD_genmsg_cpp
 
 # Build rule for target.
@@ -342,12 +355,28 @@ tests/fast:
 	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/build
 .PHONY : tests/fast
 
+# target to build an object file
+src/ImageRecognition.o:
+	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/src/ImageRecognition.o
+.PHONY : src/ImageRecognition.o
+
+# target to preprocess a source file
+src/ImageRecognition.i:
+	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/src/ImageRecognition.i
+.PHONY : src/ImageRecognition.i
+
+# target to generate assembly for a file
+src/ImageRecognition.s:
+	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/src/ImageRecognition.s
+.PHONY : src/ImageRecognition.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... ImageRecognition"
 	@echo "... ROSBUILD_genmsg_cpp"
 	@echo "... ROSBUILD_genmsg_lisp"
 	@echo "... ROSBUILD_genmsg_py"
@@ -369,6 +398,9 @@ help:
 	@echo "... test-results"
 	@echo "... test-results-run"
 	@echo "... tests"
+	@echo "... src/ImageRecognition.o"
+	@echo "... src/ImageRecognition.i"
+	@echo "... src/ImageRecognition.s"
 .PHONY : help
 
 

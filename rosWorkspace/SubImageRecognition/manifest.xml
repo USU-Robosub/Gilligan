@@ -8,9 +8,11 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/SubImageRecognition</url>
+  <depend package="roscpp"/>
   <depend package="rospy"/>
   <depend package="cv_bridge"/>
   <depend package="opencv2"/>
+  <depend package="image_transport"/>
   <depend package="std_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="SubCameraDriver"/>
