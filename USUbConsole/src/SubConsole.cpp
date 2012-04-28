@@ -41,8 +41,8 @@ SubConsole::SubConsole(QWidget* pParent)
      m_lastThrottleValue(0),
      m_lastTwistValue(0),
      m_turnForwardPercentage(1.0),
-     m_leftThrustPercentage(1.0),
      m_rightThrustPercentage(1.0),
+     m_leftThrustPercentage(1.0),
      m_pForwardCameraData(NULL),
      m_pDownwardCameraData(NULL),
      m_downPipEnabled(false),
@@ -185,12 +185,12 @@ void SubConsole::readJoystickInput(void)
       int thrusterSpeed = 255 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
 
       //A neg number means the stick is pushed forward, if positive we actually want reverse
-      if(currentYAxis > 0)
+      if(currentYAxis < 0)
       {
          leftDriveValue = thrusterSpeed * m_leftThrustPercentage;
          rightDriveValue = thrusterSpeed * m_rightThrustPercentage;
       }
-      else if(currentYAxis < 0)
+      else if(currentYAxis > 0)
       {
           leftDriveValue = thrusterSpeed  * -1 * m_leftThrustPercentage;
           rightDriveValue = thrusterSpeed  * -1 * m_rightThrustPercentage;
@@ -206,13 +206,13 @@ void SubConsole::readJoystickInput(void)
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
       int thrusterSpeed = 255 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis < 0)  //Turn right, set both thrusters to reverse
+      if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
       {
           frontTurnValue = thrusterSpeed * m_turnForwardPercentage;
           rearTurnValue = thrusterSpeed * m_turnForwardPercentage;
 
       }
-      else if(currentTwistAxis > 0)    //Turn left, set both thrusters to forward
+      else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
       {
           frontTurnValue = thrusterSpeed * -1;
           rearTurnValue = thrusterSpeed * -1;
@@ -244,12 +244,12 @@ void SubConsole::readJoystickInput(void)
           //Set the vertical thrusters to the same value to control depth
           int thrusterSpeed = 255 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
 
-          if(currentThrottleAxis > 0)
+          if(currentThrottleAxis < 0)
           {
              frontDepthValue = thrusterSpeed;
              rearDepthValue = thrusterSpeed;
           }
-          else if(currentThrottleAxis < 0)
+          else if(currentThrottleAxis > 0)
           {
               frontDepthValue = thrusterSpeed * -1;
               rearDepthValue = thrusterSpeed * -1;
