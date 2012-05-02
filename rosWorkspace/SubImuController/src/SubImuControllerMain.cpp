@@ -16,7 +16,7 @@
 #include <string>
 
 #include "ros/ros.h"
-#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Int16MultiArray.h"
 
 #define STATE_WAITING_ON_FD 0
 #define STATE_WORKING       1
@@ -65,8 +65,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "SubImuController");
   ros::NodeHandle nh;
 
-  ros::Publisher headingPub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Attitude", 1000);
-  ros::Publisher rawPub = nh.advertise<std_msgs::Float32MultiArray>("IMU_Raw", 1000);
+  ros::Publisher rawPub = nh.advertise<std_msgs::Int16MultiArray>("IMU_Raw", 1000);
   ros::Rate loop_rate(1);
 
   while (ros::ok())
@@ -115,7 +114,7 @@ int main(int argc, char **argv)
           */
 
           //publish raw
-          std_msgs::Float32MultiArray rawMsg;
+          std_msgs::Int16MultiArray rawMsg;
           for (int i = 0; i < VARIABLE_COUNT; i++)
           {
             rawMsg.data.push_back(tdata[i]);
