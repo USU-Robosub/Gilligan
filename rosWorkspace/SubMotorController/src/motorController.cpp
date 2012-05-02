@@ -58,6 +58,7 @@ int filter(int speed) {
 		speed = 255;
 	if(speed <= -256)
 		speed = -255;
+	speed = -speed;
 	return speed;
 }
 
