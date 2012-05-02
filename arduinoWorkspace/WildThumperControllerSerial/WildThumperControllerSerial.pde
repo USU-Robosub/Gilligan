@@ -1,7 +1,7 @@
 #include <string.h>
 
 #define MOTOR_KILL_PIN       1
-#define MOTOR_KILL_THRESHOLD 500
+#define MOTOR_KILL_THRESHOLD 600
 #define LmotorA              3  // Left  motor H bridge, input A
 #define LmotorB              11  // Left  motor H bridge, input B
 #define RmotorA              5  // Right motor H bridge, input A

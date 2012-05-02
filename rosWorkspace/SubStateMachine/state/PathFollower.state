@@ -1,0 +1,6 @@
+<Inherits>
+NormalOperation
+<Tasks>
+FindPath
+AlignPath
+Repeat

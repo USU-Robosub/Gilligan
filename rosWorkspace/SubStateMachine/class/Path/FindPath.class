@@ -1,0 +1,6 @@
+<Inherits>
+MaintainHeading
+ScanPath
+DriveForward
+<Triggers>
+/Rectangles /ImageProcMessage any message triggers transistion Complete
