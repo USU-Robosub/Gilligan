@@ -158,13 +158,13 @@ class ImageRecognition:
                     cv.Copy(threshold, temp_threshold)
                     point_sets = self._sample_points(temp_threshold, size, self._f_counter)
                     
-                    self._publish_points(algorithm, point_sets, threshold, size, name=threshold_name)
+                    self._publish_points(algorithm, point_sets, rotated, size, name=threshold_name)
         
         self._f_counter = (self._f_counter + 1) % Settings.SAMPLE_SIZE
         
         # Publish image
         try:
-            self._forward_img_pub.publish(self._bridge.cv_to_imgmsg(threshold, "mono8"))
+            self._forward_img_pub.publish(self._bridge.cv_to_imgmsg(rotated, "bgr8"))
         except rospy.ROSException:
             # Generally this exception occurs if ROS wasn't ready yet. We'll
             # just silently ignore it and next time should work

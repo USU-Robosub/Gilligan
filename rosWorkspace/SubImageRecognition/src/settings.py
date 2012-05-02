@@ -18,7 +18,7 @@ class Settings:
         
         # Forward Gate
         Algorithm(
-            enabled = False,
+            enabled = True,
             name = 'forward/gate',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
@@ -36,9 +36,9 @@ class Settings:
             name = 'forward/buoys',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
-                'red': ((135, 0, 30), (200, 210, 120))
+                'red': ((135, 0, 30), (200, 210, 120)),
                 #'green': ((110, 200, 110), (130, 240, 200)),
-                #'yellow': ((95, 185, 160), (115, 240, 220))
+                #'yellow': ((95, 185, 160), (115, 240, 220)),
             },
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
@@ -47,7 +47,7 @@ class Settings:
         
         # Forward Obstacle Course
         Algorithm(
-            enabled = False,
+            enabled = True,
             name = 'forward/obstacle_course',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
