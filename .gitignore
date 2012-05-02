@@ -1,1 +1,4 @@
 *.pyc
+bin
+CMakeFiles
+CMakeCache.txt

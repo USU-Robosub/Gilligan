@@ -149,10 +149,17 @@ void initAlgorithms() {
 	));
 }
 
-void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
+
+void normalizeValue(cv::Mat &image, cv::Mat &temp) {
 	const static int valueOut[] = {2, 0};
 	const static int valueIn[] = {0, 2};
+	temp.create(image.rows, image.cols, CV_8UC1);
+	cv::mixChannels(&image, 1, &temp, 1, valueOut, 1);
+	cv::normalize(temp, temp, 0, 255, CV_MINMAX);
+	cv::mixChannels(&temp, 1, &image, 1, valueIn, 1);
+}
 
+void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 	// Copy image from ROS format to OpenCV format
 	cv_bridge::CvImageConstPtr cvImg = cv_bridge::toCvShare(rosImg);
 
@@ -163,11 +170,8 @@ void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 	// Segment into HSV
 	cv::cvtColor(forwardRotated.image, forwardSegmented.image, CV_BGR2HSV);
 
-	// Normalize brightness (the c versions for split and merge are easier/faster to call than the the c++ versions)
-	forwardThreshold.image.create(forwardSegmented.image.rows, forwardSegmented.image.cols, CV_8UC1);
-	cv::mixChannels(&(forwardSegmented.image), 1, &(forwardThreshold.image), 1, valueOut, 1);
-	cv::normalize(forwardThreshold.image, forwardThreshold.image, 0, 255, CV_MINMAX);
-	cv::mixChannels(&(forwardThreshold.image), 1, &(forwardSegmented.image), 1, valueIn, 1);
+	// Normalize brightness and copy back to BGR
+	normalizeValue(forwardSegmented.image, forwardThreshold.image);
 	cv::cvtColor(forwardSegmented.image, forwardRotated.image, CV_HSV2BGR);
 
 	// Run applicable algorithms
@@ -178,9 +182,6 @@ void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 }
 
 void downwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
-	const static int valueOut[] = {2, 0};
-	const static int valueIn[] = {0, 2};
-
 	// Copy image from ROS format to OpenCV format
 	cv_bridge::CvImageConstPtr cvImg = cv_bridge::toCvShare(rosImg);
 
@@ -191,11 +192,8 @@ void downwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 	// Segment into HSV
 	cv::cvtColor(downwardRotated.image, downwardSegmented.image, CV_BGR2HSV);
 
-	// Normalize brightness
-	downwardThreshold.image.create(downwardSegmented.image.rows, downwardSegmented.image.cols, CV_8UC1);
-	cv::mixChannels(&(downwardSegmented.image), 1, &(downwardThreshold.image), 1, valueOut, 1);
-	cv::normalize(downwardThreshold.image, downwardThreshold.image, 0, 255, CV_MINMAX);
-	cv::mixChannels(&(downwardThreshold.image), 1, &(downwardSegmented.image), 1, valueIn, 1);
+	// Normalize brightness and copy back to BGR
+	normalizeValue(downwardSegmented.image, downwardThreshold.image);
 	cv::cvtColor(downwardSegmented.image, downwardRotated.image, CV_HSV2BGR);
 
 	// Run applicable algorithms
