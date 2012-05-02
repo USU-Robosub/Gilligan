@@ -1,0 +1,6 @@
+<Slot>
+Depth
+<Setup>
+message /Target_Depth Float 4.0
+<Triggers>
+/Sub_Depth Float ~= 4.0 triggers Complete.

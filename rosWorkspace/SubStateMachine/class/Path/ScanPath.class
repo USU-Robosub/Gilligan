@@ -1,0 +1,4 @@
+<Setup>
+message /VisionSystems string "trackPath on"
+<TearDown>
+message /VisionSystems string "trackPath off"

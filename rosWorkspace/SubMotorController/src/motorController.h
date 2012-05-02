@@ -48,6 +48,7 @@ class MotorControllerHandler {
 		int MaxStep;
 		bool awaitingResponce;
 		ros::Publisher errorOut;
+		ros::Publisher currentMotorSetting;
 		Message currentMessage;
 		string name;
 		timeval lastSendTime;
