@@ -29,7 +29,8 @@
 #define GYRO  6
 #define MAGN  9
 
-#define VARIABLE_COUNT 12
+#define BAUD_RATE B57600
+#define VARIABLE_COUNT 9
 
 int setupTTY(int fd);
 std::string getTTYLine(int fd);
@@ -100,9 +101,10 @@ int main(int argc, char **argv)
       {
         int scanfVal;
 
-        if ((scanfVal = sscanf(line.c_str(), "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", &tdata[0], &tdata[1], &tdata[2], &tdata[3], &tdata[4],
-            &tdata[5], &tdata[6], &tdata[7], &tdata[8], &tdata[9], &tdata[10], &tdata[11])) == VARIABLE_COUNT)
+        if ((scanfVal = sscanf(line.c_str(), "%f,%f,%f,%f,%f,%f,%f,%f,%f", &tdata[0], &tdata[1], &tdata[2], &tdata[3], &tdata[4],
+            &tdata[5], &tdata[6], &tdata[7], &tdata[8]))  == VARIABLE_COUNT) //&tdata[9], &tdata[10], &tdata[11])) == VARIABLE_COUNT)
         {
+          /*
           //publish attitude
           std_msgs::Float32MultiArray attitudeMsg;
           for (int i = YAW; i < ACCEL; i++)
@@ -110,10 +112,11 @@ int main(int argc, char **argv)
             attitudeMsg.data.push_back(tdata[i]);
           }
           headingPub.publish(attitudeMsg);
+          */
 
           //publish raw
           std_msgs::Float32MultiArray rawMsg;
-          for (int i = ACCEL; i < VARIABLE_COUNT; i++)
+          for (int i = 0; i < VARIABLE_COUNT; i++)
           {
             rawMsg.data.push_back(tdata[i]);
           }
@@ -243,8 +246,8 @@ int setupTTY(int fd)
   fcntl(fd, F_SETFL, 0);
   struct termios port_settings;      // structure to store the port settings in
 
-  cfsetispeed(&port_settings, B115200);    // set baud rates
-  cfsetospeed(&port_settings, B115200);
+  cfsetispeed(&port_settings, BAUD_RATE);    // set baud rates
+  cfsetospeed(&port_settings, BAUD_RATE);
 
   port_settings.c_cflag &= ~PARENB;    // set no parity, stop bits, data bits
   port_settings.c_cflag &= ~CSTOPB;
