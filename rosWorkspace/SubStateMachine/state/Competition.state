@@ -1,0 +1,13 @@
+<Tasks>
+PassThroughGate
+FindPath
+AlignPath
+RamGreenBouy
+RamYellowBouy
+CorrectCourse
+FindPath
+AlignPath
+LocateObsticle
+PassOverObsticle
+FindPath
+AlignPath

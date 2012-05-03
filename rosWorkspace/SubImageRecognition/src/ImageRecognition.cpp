@@ -3,6 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
+#include <stdio.h>
 #include <string.h>
 #include <vector>
 
@@ -54,6 +55,11 @@ public:
 			int analysis,
 			int maxPointSets,
 			int confidenceType) {
+		// Correct hue values - the 0.5 is to allow us to round up
+		minThreshold[0] = (int) ((minThreshold[0] * 179.0 / 255.0) + 0.5);
+		maxThreshold[0] = (int) ((maxThreshold[0] * 179.0 / 255.0) + 0.5);
+
+		// Save class properties
 		this->enabled = enabled;
 		this->name = name;
 		this->camera = camera;
@@ -176,11 +182,12 @@ void reduceNoise(cv::Mat &image) {
 
 void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 	// Copy image from ROS format to OpenCV format
-	cv_bridge::CvImageConstPtr cvImg = cv_bridge::toCvShare(rosImg);
+	cv_bridge::CvImageConstPtr cvImg = cv_bridge::toCvShare(rosImg, "bgr8");
 
 	// Rotate image upright
 	cv::transpose(cvImg->image, forwardRotated.image);
 	cv::flip(forwardRotated.image, forwardRotated.image, 0); // 0=ccw, 1=cw
+	forwardRotated.encoding = cvImg->encoding;
 
 	// Segment into HSV
 	cv::cvtColor(forwardRotated.image, forwardSegmented, CV_BGR2HSV);
@@ -236,9 +243,6 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nodeHandle;
 	image_transport::ImageTransport imageTransport(nodeHandle);
 
-	imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-	imageTransport.subscribe("right/image_raw", 1, downwardCallback);
-
 	forwardPub = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPub = imageTransport.advertise("downward_camera/image_raw", 1);
 
@@ -251,6 +255,11 @@ int main(int argc, char **argv) {
 	switchAlgorithmTopic += "switch_algorithm";
 	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
 			switchAlgorithmTopic, switchAlgorithmCallback);
+
+	image_transport::Subscriber forwardSub =
+			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
+	image_transport::Subscriber downwardSub =
+			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 
 	initAlgorithms();
 	ros::spin();
