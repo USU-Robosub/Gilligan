@@ -20,6 +20,7 @@ const int MIN_POINTS = 30;
 const float MAX_LENGTH_THRESHOLD = 0.8;
 
 const char TOPIC_ROOT[] = "image_recognition/";
+const char IMGRECOBJECT_NAME[] = "deprecated";
 
 const int CAMERA_FORWARD = 0;
 const int CAMERA_DOWNWARD = 1;
@@ -43,7 +44,7 @@ public:
 	int maxPointSets;
 	int confidenceType;
 	ros::Publisher publisher;
-	
+
 	Algorithm(
 			bool enabled,
 			string name,
@@ -61,7 +62,7 @@ public:
 		this->analysis = analysis;
 		this->maxPointSets = maxPointSets;
 		this->confidenceType = confidenceType;
-		
+
 		// Prepare the publisher for use later on
 		ros::NodeHandle nodeHandle;
 		string topic(TOPIC_ROOT);
@@ -81,8 +82,8 @@ image_transport::Publisher forwardPub;
 image_transport::Publisher downwardPub;
 
 cv_bridge::CvImage forwardRotated, downwardRotated;
-cv_bridge::CvImage forwardSegmented, downwardSegmented;
-cv_bridge::CvImage forwardThreshold, downwardThreshold;
+cv::Mat forwardSegmented, downwardSegmented;
+cv::Mat forwardThreshold, downwardThreshold;
 
 // FUNCTIONS
 
@@ -149,7 +150,6 @@ void initAlgorithms() {
 	));
 }
 
-
 void normalizeValue(cv::Mat &image, cv::Mat &temp) {
 	const static int valueOut[] = {2, 0};
 	const static int valueIn[] = {0, 2};
@@ -158,6 +158,21 @@ void normalizeValue(cv::Mat &image, cv::Mat &temp) {
 	cv::normalize(temp, temp, 0, 255, CV_MINMAX);
 	cv::mixChannels(&temp, 1, &image, 1, valueIn, 1);
 }
+
+void reduceNoise(cv::Mat &image) {
+	const static cv::Size size = cv::Size(3, 3);
+	const static cv::Point point = cv::Point(1, 1);
+	const static cv::Mat elementEllipse = cv::getStructuringElement(
+			cv::MORPH_ELLIPSE, size, point);
+	const static cv::Mat elementRect = cv::getStructuringElement(
+			cv::MORPH_RECT, size, point);
+	cv::erode(image, image, elementEllipse, point, 2);
+	cv::dilate(image, image, elementEllipse, point, 4);
+	cv::erode(image, image, elementRect, point, 2);
+	cv::dilate(image, image, elementRect, point, 4);
+}
+
+// TODO: Create generic callback that both forward/downward callbacks call
 
 void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 	// Copy image from ROS format to OpenCV format
@@ -168,39 +183,30 @@ void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
 	cv::flip(forwardRotated.image, forwardRotated.image, 0); // 0=ccw, 1=cw
 
 	// Segment into HSV
-	cv::cvtColor(forwardRotated.image, forwardSegmented.image, CV_BGR2HSV);
+	cv::cvtColor(forwardRotated.image, forwardSegmented, CV_BGR2HSV);
 
 	// Normalize brightness and copy back to BGR
-	normalizeValue(forwardSegmented.image, forwardThreshold.image);
-	cv::cvtColor(forwardSegmented.image, forwardRotated.image, CV_HSV2BGR);
+	normalizeValue(forwardSegmented, forwardThreshold);
+	cv::cvtColor(forwardSegmented, forwardRotated.image, CV_HSV2BGR);
 
 	// Run applicable algorithms
-	// TODO
+	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		Algorithm *algorithm = algorithms.at(i);
+		if (algorithm->enabled && algorithm->camera == CAMERA_FORWARD) {
+			cv::inRange(forwardSegmented, algorithm->minThreshold,
+					algorithm->maxThreshold, forwardThreshold);
+			reduceNoise(forwardThreshold);
+			// TODO: Perform blob detection on copy
+			// TODO: Publish blobs based on algorithm settings
+		}
+	}
 
 	// Publish annotated image
 	forwardPub.publish(forwardRotated.toImageMsg());
 }
 
 void downwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
-	// Copy image from ROS format to OpenCV format
-	cv_bridge::CvImageConstPtr cvImg = cv_bridge::toCvShare(rosImg);
-
-	// Rotate image upright
-	cv::transpose(cvImg->image, downwardRotated.image);
-	cv::flip(downwardRotated.image, downwardRotated.image, 0); // 0=ccw, 1=cw
-
-	// Segment into HSV
-	cv::cvtColor(downwardRotated.image, downwardSegmented.image, CV_BGR2HSV);
-
-	// Normalize brightness and copy back to BGR
-	normalizeValue(downwardSegmented.image, downwardThreshold.image);
-	cv::cvtColor(downwardSegmented.image, downwardRotated.image, CV_HSV2BGR);
-
-	// Run applicable algorithms
-	// TODO
-
-	// Publish annotated image
-	downwardPub.publish(downwardRotated.toImageMsg());
+	// TODO: Call generic callback when it's finished
 }
 
 bool listAlgorithmsCallback(
@@ -231,20 +237,20 @@ int main(int argc, char **argv) {
 	image_transport::ImageTransport imageTransport(nodeHandle);
 
 	imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-//	imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+	imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 
 	forwardPub = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPub = imageTransport.advertise("downward_camera/image_raw", 1);
 
 	string listAlgorithmsTopic(TOPIC_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
-	ros::ServiceServer listAlgorithmsService =
-			nodeHandle.advertiseService(listAlgorithmsTopic, listAlgorithmsCallback);
+	ros::ServiceServer listAlgorithmsService = nodeHandle.advertiseService(
+			listAlgorithmsTopic, listAlgorithmsCallback);
 
 	string switchAlgorithmTopic(TOPIC_ROOT);
 	switchAlgorithmTopic += "switch_algorithm";
-	ros::ServiceServer switchAlgorithmService =
-			nodeHandle.advertiseService(switchAlgorithmTopic, switchAlgorithmCallback);
+	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
+			switchAlgorithmTopic, switchAlgorithmCallback);
 
 	initAlgorithms();
 	ros::spin();
