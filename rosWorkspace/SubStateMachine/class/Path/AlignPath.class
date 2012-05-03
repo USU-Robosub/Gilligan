@@ -1,0 +1,8 @@
+<Inherits>
+ScanPath
+<Setup>
+message /Control_Systems string "alignPath on"
+<TearDown>
+message /Control_Systems string "alignPath off"
+<Trigger>
+/Path_Aligned bool = 1 triggers Complete

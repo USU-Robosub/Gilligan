@@ -46,6 +46,7 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 		print(string(temp));
 		bufIndex = 0;
 	}
+	motorStatus = n->advertise<SubMotorController::MotorDataMessage>("/Motor_Data", 10);
 }
 
 void MotorControllerHandler::sendMessage(Message m) {
@@ -58,7 +59,7 @@ int filter(int speed) {
 		speed = 255;
 	if(speed <= -256)
 		speed = -255;
-	return speed;
+	return -speed;
 }
 
 void MotorControllerHandler::setMotorSpeed(int right, int left) {
@@ -135,6 +136,7 @@ void MotorControllerHandler::processResponce() {
 		bufIndex--;
 		return;
 	}
+
 	bufIndex = 0;
 	Message responce;
 	responce.type = buffer[1];
