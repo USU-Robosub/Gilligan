@@ -32,7 +32,7 @@ const int ANALYSIS_GATE = 1;
 const int CONFIDENCE_RECTANGLE = 0;
 const int CONFIDENCE_CIRCLE = 1;
 
-// CLASS DEFINITIONS
+// DEFINITIONS
 
 class Algorithm {
 public:
@@ -82,11 +82,8 @@ public:
 
 vector<Algorithm *> algorithms;
 
-int forwardCounter = 0;
-int downwardCounter = 0;
-image_transport::Publisher forwardPub;
-image_transport::Publisher downwardPub;
-
+int forwardOffset = 0, downwardOffset = 0;
+image_transport::Publisher forwardPublisher, downwardPublisher;
 cv_bridge::CvImage forwardRotated, downwardRotated;
 cv::Mat forwardSegmented, downwardSegmented;
 cv::Mat forwardThreshold, downwardThreshold;
@@ -178,42 +175,110 @@ void reduceNoise(cv::Mat &image) {
 	cv::dilate(image, image, elementRect, point, 4);
 }
 
-// TODO: Create generic callback that both forward/downward callbacks call
+vector<int> findBlob(cv::Mat &image, int i, int j) {
+	uint8_t *pixelPtr = (uint8_t *) image.data;
+	unsigned int index = 0;
+	vector<int> blob = vector<int>();
+	blob.push_back(i);
+	blob.push_back(j);
+	pixelPtr[i * image.cols + j] = 0;
+	while (index < blob.size()) {
+		i = blob[index];
+		j = blob[index + 1];
+		if (i + SAMPLE_SIZE < image.rows &&
+				pixelPtr[(i + SAMPLE_SIZE) * image.cols + j] == 255) {
+			blob.push_back(i + SAMPLE_SIZE);
+			blob.push_back(j);
+			pixelPtr[(i + SAMPLE_SIZE) * image.cols + j] = 127;
+		}
+		if (i - SAMPLE_SIZE >= 0 &&
+				pixelPtr[(i - SAMPLE_SIZE) * image.cols + j] == 255) {
+			blob.push_back(i - SAMPLE_SIZE);
+			blob.push_back(j);
+			pixelPtr[(i - SAMPLE_SIZE) * image.cols + j] = 127;
+		}
+		if (j + SAMPLE_SIZE < image.cols &&
+				pixelPtr[i * image.cols + (j + SAMPLE_SIZE)] == 255) {
+			blob.push_back(i);
+			blob.push_back(j + SAMPLE_SIZE);
+			pixelPtr[i * image.cols + (j + SAMPLE_SIZE)] = 127;
+		}
+		if (j - SAMPLE_SIZE >= 0 &&
+				pixelPtr[i * image.cols + (j - SAMPLE_SIZE)] == 255) {
+			blob.push_back(i);
+			blob.push_back(j - SAMPLE_SIZE);
+			pixelPtr[i * image.cols + (j - SAMPLE_SIZE)] = 127;
+		}
+		index += 2;
+	}
+	return blob;
+}
 
-void forwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
+vector<vector<int> > findBlobs(cv::Mat &image, const int offset) {
+	uint8_t *pixelPtr = (uint8_t *) image.data;
+	vector<vector<int> > blobs = vector<vector<int> >();
+	for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
+		for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
+			if (pixelPtr[i * image.cols + j] == 255) {
+				vector<int> blob = findBlob(image, i, j);
+				if (blob.size() >= MIN_POINTS * 2) {
+					blobs.push_back(blob);
+				}
+			}
+		}
+	}
+	return blobs;
+}
+
+void genericCallback(
+		const int camera,
+		const sensor_msgs::ImageConstPtr &rosImage,
+		cv_bridge::CvImage &rotated,
+		cv::Mat &segmented,
+		cv::Mat &threshold,
+		const int offset,
+		const image_transport::Publisher &publisher) {
 	// Copy image from ROS format to OpenCV format
-	cv_bridge::CvImageConstPtr cvImg = cv_bridge::toCvShare(rosImg, "bgr8");
+	cv_bridge::CvImageConstPtr cvImage = cv_bridge::toCvShare(rosImage, "bgr8");
 
 	// Rotate image upright
-	cv::transpose(cvImg->image, forwardRotated.image);
-	cv::flip(forwardRotated.image, forwardRotated.image, 0); // 0=ccw, 1=cw
-	forwardRotated.encoding = cvImg->encoding;
+	cv::transpose(cvImage->image, rotated.image);
+	cv::flip(rotated.image, rotated.image, 0); // 0=ccw, 1=cw
+	rotated.encoding = cvImage->encoding;
 
 	// Segment into HSV
-	cv::cvtColor(forwardRotated.image, forwardSegmented, CV_BGR2HSV);
+	cv::cvtColor(rotated.image, segmented, CV_BGR2HSV);
 
 	// Normalize brightness and copy back to BGR
-	normalizeValue(forwardSegmented, forwardThreshold);
-	cv::cvtColor(forwardSegmented, forwardRotated.image, CV_HSV2BGR);
+	normalizeValue(segmented, threshold);
+	cv::cvtColor(segmented, rotated.image, CV_HSV2BGR);
 
 	// Run applicable algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
 		Algorithm *algorithm = algorithms.at(i);
-		if (algorithm->enabled && algorithm->camera == CAMERA_FORWARD) {
-			cv::inRange(forwardSegmented, algorithm->minThreshold,
-					algorithm->maxThreshold, forwardThreshold);
-			reduceNoise(forwardThreshold);
-			// TODO: Perform blob detection on copy
+		if (algorithm->enabled && algorithm->camera == camera) {
+			cv::inRange(segmented, algorithm->minThreshold,
+					algorithm->maxThreshold, threshold);
+			reduceNoise(threshold);
+			vector<vector<int> > blobs = findBlobs(segmented, offset);
 			// TODO: Publish blobs based on algorithm settings
 		}
 	}
 
 	// Publish annotated image
-	forwardPub.publish(forwardRotated.toImageMsg());
+	publisher.publish(rotated.toImageMsg());
 }
 
-void downwardCallback(const sensor_msgs::ImageConstPtr &rosImg) {
-	// TODO: Call generic callback when it's finished
+void forwardCallback(const sensor_msgs::ImageConstPtr &rosImage) {
+	genericCallback(CAMERA_FORWARD, rosImage, forwardRotated, forwardSegmented,
+			forwardThreshold, forwardOffset, forwardPublisher);
+	forwardOffset = (forwardOffset + 1) % SAMPLE_SIZE;
+}
+
+void downwardCallback(const sensor_msgs::ImageConstPtr &rosImage) {
+	genericCallback(CAMERA_DOWNWARD, rosImage, downwardRotated, downwardSegmented,
+			downwardThreshold, downwardOffset, downwardPublisher);
+	downwardOffset = (downwardOffset + 1) % SAMPLE_SIZE;
 }
 
 bool listAlgorithmsCallback(
@@ -243,8 +308,8 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nodeHandle;
 	image_transport::ImageTransport imageTransport(nodeHandle);
 
-	forwardPub = imageTransport.advertise("forward_camera/image_raw", 1);
-	downwardPub = imageTransport.advertise("downward_camera/image_raw", 1);
+	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
+	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
 	string listAlgorithmsTopic(TOPIC_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
@@ -256,9 +321,9 @@ int main(int argc, char **argv) {
 	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
 			switchAlgorithmTopic, switchAlgorithmCallback);
 
-	image_transport::Subscriber forwardSub =
+	image_transport::Subscriber forwardSubscriber =
 			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-	image_transport::Subscriber downwardSub =
+	image_transport::Subscriber downwardSubscriber =
 			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 
 	initAlgorithms();
