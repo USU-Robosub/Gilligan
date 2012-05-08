@@ -446,15 +446,7 @@ class ImageRecognition:
         for i in range(offset, size[1], Settings.SAMPLE_SIZE): # height
             for j in range(offset, size[0], Settings.SAMPLE_SIZE): # width
                 if cv.Get2D(image, i, j)[0] == 255.0:
-                    # Is this point in a point set already
-                    found = False
-                    for point_set in point_sets:
-                        if (j, i) in point_set:
-                            found = True
-                            break
-                    if not found:
-                        # No so create new set from adjacent points and add to list
-                        point_sets.append(self._find_adjacent_points(image, size, j, i))
+                    point_sets.append(self._find_adjacent_points(image, size, j, i))
         
         # Throw away bad point sets
         for index in range(len(point_sets)):
