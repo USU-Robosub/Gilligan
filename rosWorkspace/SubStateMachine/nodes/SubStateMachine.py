@@ -3,6 +3,7 @@ import roslib
 roslib.load_manifest('SubStateMachine')
 import rospy
 import os
+from time import time
 import inspect
 import glob
 from std_msgs.msg import String
@@ -13,7 +14,21 @@ from string import join
 currentClasses = set()
 PublisherCache = {}
 ListenerCache = {}
+gTimers = []
 epsilon = .1
+
+class Timer:
+	def __init__(self, Class, ms, effect):
+		self.Class = Class
+		self.endTime = time() + float(ms)/1000.0
+		self.effect = effect
+
+
+def checkTimer(timer):
+	if timer.endTime < time():
+		timer.effect.Execute(0);
+		return False;
+	return True;
 
 class Effect:
 	def __init__(self, etype, args):
@@ -99,10 +114,12 @@ def ChangeState(newState):
 def Add(Class):
 	Setup(Class)
 	AddTriggers(Class)
+	AddTimers(Class)
 
 def Remove(Class):
 	TearDown(Class)
 	RemoveTriggers(Class)
+	RemoveTimers(Class)
 
 def Setup(Class):
 	File = openClassFile(Class)
@@ -192,6 +209,60 @@ def getAllClassesHelper(Class, used):
 	return used
 
 
+#Timer Format:
+#	After <ms> milliseconds do <action> <arg1> ...
+
+def addTimer(Class, timer):
+	global gTimer;
+	if timer.strip() == '':
+		return
+	fields = timer.split()
+	if(len(fields) < 6):
+		print "error parsing timer too few arguments"
+		print Class + "->" + timer
+		return
+	if fields[0].lower() != 'after' or fields[3] != 'do':
+		print "error parsing timer"
+		print Class + "->" + timer
+		return
+	if fields[2] == 'milliseconds' or fields[2] == 'ms':
+	 	milliseconds = float(fields[1]);
+	if fields[2] == 'seconds' or fields[2] == 's':
+		milliseconds = float(fields[1]) * 1000;
+	elif fields[2] == 'minutes' or fields[2] == 'm':
+		milliseconds = float(fields[1]) * 60000;
+	elif fields[2] == 'hours' or fields[2] == 'h':
+		milliseconds = float(fields[1]) * 3600000;
+	elif fields[2] == 'days' or fields[2] == 'd':
+		milliseconds = float(fields[1]) * 86400000;
+	else:
+		print "error parsing timer, unknown time units"
+		print Class + "->" + timer
+		return
+		
+	EffectType = fields[4]
+	EffectArgs = fields[5:]
+	timer = Timer(Class, milliseconds, Effect(EffectType, EffectArgs))
+	gTimers.append(timer)
+
+def AddTimers(Class):
+	File = openClassFile(Class)
+	sections = File.split('<')
+	for section in sections:
+		temp = section.split('>')
+		if(len(temp) == 2):
+			Type = temp[0]
+			Data = temp[1]
+			if Type == "Timers":
+				for timer in Data.split('\n'):
+					if timer.strip() == '':
+						continue
+					addTimer(Class, timer)
+
+def RemoveTimers(Class):
+	global gTimers;
+	gTimers = filter(lambda x: x.Class != Class, gTimers);
+				
 #Trigger Format:
 #   <Channel> <Message_Type> <op> <value> triggers <action> <arg1> ...
 # Supported Message_Types:
@@ -233,6 +304,7 @@ def AddTrigger(Class, trigger):
 	Listener = getListener(Topic, Type)
 	Listener.ActiveTriggers.append(trigger)
 
+
 def AddTriggers(Class):
 	File = openClassFile(Class)
 	sections = File.split('<')
@@ -255,11 +327,18 @@ def RemoveTriggers(Class):
 		ListenerCache[topic].ActiveTriggers = filter( lambda trigger: trigger.mClassName != Class, ListenerCache[topic].ActiveTriggers)
 		removed_Triggers = count_Triggers - len(ListenerCache[topic].ActiveTriggers)
 
+def checkTimers():
+	global gTimers;
+	gTimers = filter(checkTimer, gTimers);
+
 def main():
 	rospy.init_node('StateMachine')
 	ChangeState("StateChanger")
+	rate = rospy.Rate(20);
 	try:
-		rospy.spin()
+		while not rospy.is_shutdown():
+			checkTimers();
+			rate.sleep();
 	except KeyboardInterrupt:
 		pass
 
