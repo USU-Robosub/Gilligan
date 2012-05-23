@@ -5,11 +5,10 @@ import struct
 import roslib.rostime
 
 class ImgRecObject(roslib.message.Message):
-  _md5sum = "a8243451f739dcfc8a2be0d3a2d4dea6"
+  _md5sum = "778ccdc87c1cda10d1edb7b34f1a4c01"
   _type = "SubImageRecognition/ImgRecObject"
   _has_header = False #flag to mark the presence of a Header object
   _full_text = """time stamp
-string name
 int16 center_x
 int16 center_y
 float32 rotation
@@ -18,8 +17,8 @@ uint16 width
 float32 confidence
 
 """
-  __slots__ = ['stamp','name','center_x','center_y','rotation','height','width','confidence']
-  _slot_types = ['time','string','int16','int16','float32','uint16','uint16','float32']
+  __slots__ = ['stamp','center_x','center_y','rotation','height','width','confidence']
+  _slot_types = ['time','int16','int16','float32','uint16','uint16','float32']
 
   def __init__(self, *args, **kwds):
     """
@@ -29,7 +28,7 @@ float32 confidence
     changes.  You cannot mix in-order arguments and keyword arguments.
     
     The available fields are:
-       stamp,name,center_x,center_y,rotation,height,width,confidence
+       stamp,center_x,center_y,rotation,height,width,confidence
     
     @param args: complete set of field values, in .msg order
     @param kwds: use keyword arguments corresponding to message field names
@@ -40,8 +39,6 @@ float32 confidence
       #message fields cannot be None, assign default values for those that are
       if self.stamp is None:
         self.stamp = roslib.rostime.Time()
-      if self.name is None:
-        self.name = ''
       if self.center_x is None:
         self.center_x = 0
       if self.center_y is None:
@@ -56,7 +53,6 @@ float32 confidence
         self.confidence = 0.
     else:
       self.stamp = roslib.rostime.Time()
-      self.name = ''
       self.center_x = 0
       self.center_y = 0
       self.rotation = 0.
@@ -78,12 +74,7 @@ float32 confidence
     """
     try:
       _x = self
-      buff.write(_struct_2I.pack(_x.stamp.secs, _x.stamp.nsecs))
-      _x = self.name
-      length = len(_x)
-      buff.write(struct.pack('<I%ss'%length, length, _x))
-      _x = self
-      buff.write(_struct_2hf2Hf.pack(_x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence))
+      buff.write(_struct_2I2hf2Hf.pack(_x.stamp.secs, _x.stamp.nsecs, _x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence))
     except struct.error, se: self._check_types(se)
     except TypeError, te: self._check_types(te)
 
@@ -99,18 +90,8 @@ float32 confidence
       end = 0
       _x = self
       start = end
-      end += 8
-      (_x.stamp.secs, _x.stamp.nsecs,) = _struct_2I.unpack(str[start:end])
-      start = end
-      end += 4
-      (length,) = _struct_I.unpack(str[start:end])
-      start = end
-      end += length
-      self.name = str[start:end]
-      _x = self
-      start = end
-      end += 16
-      (_x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence,) = _struct_2hf2Hf.unpack(str[start:end])
+      end += 24
+      (_x.stamp.secs, _x.stamp.nsecs, _x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence,) = _struct_2I2hf2Hf.unpack(str[start:end])
       self.stamp.canon()
       return self
     except struct.error, e:
@@ -127,12 +108,7 @@ float32 confidence
     """
     try:
       _x = self
-      buff.write(_struct_2I.pack(_x.stamp.secs, _x.stamp.nsecs))
-      _x = self.name
-      length = len(_x)
-      buff.write(struct.pack('<I%ss'%length, length, _x))
-      _x = self
-      buff.write(_struct_2hf2Hf.pack(_x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence))
+      buff.write(_struct_2I2hf2Hf.pack(_x.stamp.secs, _x.stamp.nsecs, _x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence))
     except struct.error, se: self._check_types(se)
     except TypeError, te: self._check_types(te)
 
@@ -150,23 +126,12 @@ float32 confidence
       end = 0
       _x = self
       start = end
-      end += 8
-      (_x.stamp.secs, _x.stamp.nsecs,) = _struct_2I.unpack(str[start:end])
-      start = end
-      end += 4
-      (length,) = _struct_I.unpack(str[start:end])
-      start = end
-      end += length
-      self.name = str[start:end]
-      _x = self
-      start = end
-      end += 16
-      (_x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence,) = _struct_2hf2Hf.unpack(str[start:end])
+      end += 24
+      (_x.stamp.secs, _x.stamp.nsecs, _x.center_x, _x.center_y, _x.rotation, _x.height, _x.width, _x.confidence,) = _struct_2I2hf2Hf.unpack(str[start:end])
       self.stamp.canon()
       return self
     except struct.error, e:
       raise roslib.message.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = roslib.message.struct_I
-_struct_2I = struct.Struct("<2I")
-_struct_2hf2Hf = struct.Struct("<2hf2Hf")
+_struct_2I2hf2Hf = struct.Struct("<2I2hf2Hf")

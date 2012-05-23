@@ -20,7 +20,6 @@ struct ImgRecObject_ : public ros::Message
 
   ImgRecObject_()
   : stamp()
-  , name()
   , center_x(0)
   , center_y(0)
   , rotation(0.0)
@@ -32,7 +31,6 @@ struct ImgRecObject_ : public ros::Message
 
   ImgRecObject_(const ContainerAllocator& _alloc)
   : stamp()
-  , name(_alloc)
   , center_x(0)
   , center_y(0)
   , rotation(0.0)
@@ -44,9 +42,6 @@ struct ImgRecObject_ : public ros::Message
 
   typedef ros::Time _stamp_type;
   ros::Time stamp;
-
-  typedef std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other >  _name_type;
-  std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other >  name;
 
   typedef int16_t _center_x_type;
   int16_t center_x;
@@ -75,7 +70,7 @@ public:
   ROS_DEPRECATED const std::string __getDataType() const { return __s_getDataType_(); }
 
 private:
-  static const char* __s_getMD5Sum_() { return "a8243451f739dcfc8a2be0d3a2d4dea6"; }
+  static const char* __s_getMD5Sum_() { return "778ccdc87c1cda10d1edb7b34f1a4c01"; }
 public:
   ROS_DEPRECATED static const std::string __s_getMD5Sum() { return __s_getMD5Sum_(); }
 
@@ -83,7 +78,6 @@ public:
 
 private:
   static const char* __s_getMessageDefinition_() { return "time stamp\n\
-string name\n\
 int16 center_x\n\
 int16 center_y\n\
 float32 rotation\n\
@@ -101,7 +95,6 @@ public:
   {
     ros::serialization::OStream stream(write_ptr, 1000000000);
     ros::serialization::serialize(stream, stamp);
-    ros::serialization::serialize(stream, name);
     ros::serialization::serialize(stream, center_x);
     ros::serialization::serialize(stream, center_y);
     ros::serialization::serialize(stream, rotation);
@@ -115,7 +108,6 @@ public:
   {
     ros::serialization::IStream stream(read_ptr, 1000000000);
     ros::serialization::deserialize(stream, stamp);
-    ros::serialization::deserialize(stream, name);
     ros::serialization::deserialize(stream, center_x);
     ros::serialization::deserialize(stream, center_y);
     ros::serialization::deserialize(stream, rotation);
@@ -129,7 +121,6 @@ public:
   {
     uint32_t size = 0;
     size += ros::serialization::serializationLength(stamp);
-    size += ros::serialization::serializationLength(name);
     size += ros::serialization::serializationLength(center_x);
     size += ros::serialization::serializationLength(center_y);
     size += ros::serialization::serializationLength(rotation);
@@ -164,12 +155,12 @@ template<class ContainerAllocator>
 struct MD5Sum< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> > {
   static const char* value() 
   {
-    return "a8243451f739dcfc8a2be0d3a2d4dea6";
+    return "778ccdc87c1cda10d1edb7b34f1a4c01";
   }
 
   static const char* value(const  ::SubImageRecognition::ImgRecObject_<ContainerAllocator> &) { return value(); } 
-  static const uint64_t static_value1 = 0xa8243451f739dcfcULL;
-  static const uint64_t static_value2 = 0x8a2be0d3a2d4dea6ULL;
+  static const uint64_t static_value1 = 0x778ccdc87c1cda10ULL;
+  static const uint64_t static_value2 = 0xd1edb7b34f1a4c01ULL;
 };
 
 template<class ContainerAllocator>
@@ -187,7 +178,6 @@ struct Definition< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> > {
   static const char* value() 
   {
     return "time stamp\n\
-string name\n\
 int16 center_x\n\
 int16 center_y\n\
 float32 rotation\n\
@@ -201,6 +191,7 @@ float32 confidence\n\
   static const char* value(const  ::SubImageRecognition::ImgRecObject_<ContainerAllocator> &) { return value(); } 
 };
 
+template<class ContainerAllocator> struct IsFixedSize< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> > : public TrueType {};
 } // namespace message_traits
 } // namespace ros
 
@@ -214,7 +205,6 @@ template<class ContainerAllocator> struct Serializer< ::SubImageRecognition::Img
   template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
   {
     stream.next(m.stamp);
-    stream.next(m.name);
     stream.next(m.center_x);
     stream.next(m.center_y);
     stream.next(m.rotation);
@@ -240,8 +230,6 @@ struct Printer< ::SubImageRecognition::ImgRecObject_<ContainerAllocator> >
   {
     s << indent << "stamp: ";
     Printer<ros::Time>::stream(s, indent + "  ", v.stamp);
-    s << indent << "name: ";
-    Printer<std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other > >::stream(s, indent + "  ", v.name);
     s << indent << "center_x: ";
     Printer<int16_t>::stream(s, indent + "  ", v.center_x);
     s << indent << "center_y: ";

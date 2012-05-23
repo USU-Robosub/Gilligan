@@ -12,11 +12,6 @@
     :initarg :stamp
     :type cl:real
     :initform 0)
-   (name
-    :reader name
-    :initarg :name
-    :type cl:string
-    :initform "")
    (center_x
     :reader center_x
     :initarg :center_x
@@ -62,11 +57,6 @@
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader SubImageRecognition-msg:stamp-val is deprecated.  Use SubImageRecognition-msg:stamp instead.")
   (stamp m))
 
-(cl:ensure-generic-function 'name-val :lambda-list '(m))
-(cl:defmethod name-val ((m <ImgRecObject>))
-  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader SubImageRecognition-msg:name-val is deprecated.  Use SubImageRecognition-msg:name instead.")
-  (name m))
-
 (cl:ensure-generic-function 'center_x-val :lambda-list '(m))
 (cl:defmethod center_x-val ((m <ImgRecObject>))
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader SubImageRecognition-msg:center_x-val is deprecated.  Use SubImageRecognition-msg:center_x instead.")
@@ -108,12 +98,6 @@
     (cl:write-byte (cl:ldb (cl:byte 8 8) __nsec) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 16) __nsec) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 24) __nsec) ostream))
-  (cl:let ((__ros_str_len (cl:length (cl:slot-value msg 'name))))
-    (cl:write-byte (cl:ldb (cl:byte 8 0) __ros_str_len) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 8) __ros_str_len) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 16) __ros_str_len) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 24) __ros_str_len) ostream))
-  (cl:map cl:nil #'(cl:lambda (c) (cl:write-byte (cl:char-code c) ostream)) (cl:slot-value msg 'name))
   (cl:let* ((signed (cl:slot-value msg 'center_x)) (unsigned (cl:if (cl:< signed 0) (cl:+ signed 65536) signed)))
     (cl:write-byte (cl:ldb (cl:byte 8 0) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 8) unsigned) ostream)
@@ -149,14 +133,6 @@
       (cl:setf (cl:ldb (cl:byte 8 16) __nsec) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 24) __nsec) (cl:read-byte istream))
       (cl:setf (cl:slot-value msg 'stamp) (cl:+ (cl:coerce __sec 'cl:double-float) (cl:/ __nsec 1e9))))
-    (cl:let ((__ros_str_len 0))
-      (cl:setf (cl:ldb (cl:byte 8 0) __ros_str_len) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 8) __ros_str_len) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 16) __ros_str_len) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 24) __ros_str_len) (cl:read-byte istream))
-      (cl:setf (cl:slot-value msg 'name) (cl:make-string __ros_str_len))
-      (cl:dotimes (__ros_str_idx __ros_str_len msg)
-        (cl:setf (cl:char (cl:slot-value msg 'name) __ros_str_idx) (cl:code-char (cl:read-byte istream)))))
     (cl:let ((unsigned 0))
       (cl:setf (cl:ldb (cl:byte 8 0) unsigned) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 8) unsigned) (cl:read-byte istream))
@@ -191,20 +167,19 @@
   "SubImageRecognition/ImgRecObject")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<ImgRecObject>)))
   "Returns md5sum for a message object of type '<ImgRecObject>"
-  "a8243451f739dcfc8a2be0d3a2d4dea6")
+  "778ccdc87c1cda10d1edb7b34f1a4c01")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'ImgRecObject)))
   "Returns md5sum for a message object of type 'ImgRecObject"
-  "a8243451f739dcfc8a2be0d3a2d4dea6")
+  "778ccdc87c1cda10d1edb7b34f1a4c01")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<ImgRecObject>)))
   "Returns full string definition for message of type '<ImgRecObject>"
-  (cl:format cl:nil "time stamp~%string name~%int16 center_x~%int16 center_y~%float32 rotation~%uint16 height~%uint16 width~%float32 confidence~%~%~%"))
+  (cl:format cl:nil "time stamp~%int16 center_x~%int16 center_y~%float32 rotation~%uint16 height~%uint16 width~%float32 confidence~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'ImgRecObject)))
   "Returns full string definition for message of type 'ImgRecObject"
-  (cl:format cl:nil "time stamp~%string name~%int16 center_x~%int16 center_y~%float32 rotation~%uint16 height~%uint16 width~%float32 confidence~%~%~%"))
+  (cl:format cl:nil "time stamp~%int16 center_x~%int16 center_y~%float32 rotation~%uint16 height~%uint16 width~%float32 confidence~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <ImgRecObject>))
   (cl:+ 0
      8
-     4 (cl:length (cl:slot-value msg 'name))
      2
      2
      4
@@ -216,7 +191,6 @@
   "Converts a ROS message object to a list"
   (cl:list 'ImgRecObject
     (cl:cons ':stamp (stamp msg))
-    (cl:cons ':name (name msg))
     (cl:cons ':center_x (center_x msg))
     (cl:cons ':center_y (center_y msg))
     (cl:cons ':rotation (rotation msg))
