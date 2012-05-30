@@ -102,6 +102,9 @@ public:
 	unsigned int height;
 	unsigned int size;
 
+	BlobAnalysis() {}
+
+	// Constructor for use with ANALYSIS_RECTANGLE
 	BlobAnalysis(Points& blob, RotatedRect rectangle) {
 		center_x = (int) rectangle.center.x;
 		center_y = (int) rectangle.center.y;
@@ -121,23 +124,21 @@ public:
 			rotation += M_PI / 2.0;
 		}
 
-		// Normalize rotation for drawing
+		// Normalize rotation
+		// TODO: I've disabled rotation normalization for now so that I can
+		//       re-evaluate the best way to go about doing this
+/*
 		if (sin(rotation) > 0) {
 			rotation += M_PI;
 		}
-		while (rotation >= M_PI * 2.0) {
+		while (rotation > M_PI * 2.0) {
 			rotation -= M_PI * 2.0;
 		}
-
-		// XXX: We used to do the image annotation here but now it's elsewhere
-		//      so this can be simplified and the rotation needs to be fixed
-		//      before being drawn later on
-
-		// Normalize rotation for publishing
 		if (rotation == 0) {
-			rotation = M_PI * 2;
+			rotation = M_PI * 2.0;
 		}
 		rotation -= M_PI * 1.5;
+*/
 	}
 };
 
@@ -199,7 +200,7 @@ void initAlgorithms() {
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
-		Scalar(0, 255, 255), // Yellow 
+		Scalar(0, 255, 255), // Yellow
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
@@ -385,23 +386,35 @@ void genericCallback(
 	normalizeValue(segmented, threshold);
 	cvtColor(segmented, rotated.image, CV_HSV2BGR);
 
-	// Run applicable algorithms
+	// Iterate through all algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
 		Algorithm algorithm = algorithms.at(i);
+		// Run applicable algorithms
 		if (algorithm.enabled && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
 					algorithm.maxThreshold, threshold);
 			reduceNoise(threshold);
 			vector<Points> blobs = findBlobs(
 					segmented, offset, algorithm.maxBlobs);
+			// Iterate through all blobs
 			for (unsigned int j = 0; j < blobs.size(); j++) {
 				Points blob = blobs.at(j);
 				vector<BlobAnalysis> analysisList =
 						analyzeBlob(algorithm, blob, rotated.image);
+				// Iterate through all blob analysis objects
 				for (unsigned int k = 0; k < analysisList.size(); k++) {
-					float confidence =
-							computeConfidence(algorithm, analysisList[k]);
-					// TODO: Publish analysis based on algorithm settings
+					BlobAnalysis analysis = analysisList[k];
+					// Publish information
+					SubImageRecognition::ImgRecObject msg;
+					msg.center_x = analysis.center_x;
+					msg.center_y = analysis.center_y;
+					msg.rotation = analysis.rotation;
+					msg.width = analysis.width;
+					msg.height = analysis.height;
+					msg.confidence = computeConfidence(algorithm, analysis);
+					algorithm.publisher.publish(msg);
+					// Annotate image
+					// TODO
 				}
 			}
 		}
