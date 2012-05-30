@@ -46,7 +46,7 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 		print(string(temp));
 		bufIndex = 0;
 	}
-	motorStatus = n->advertise<SubMotorController::MotorDataMessage>("/Motor_Data", 10);
+	//motorStatus = n->advertise<SubMotorController::MotorDataMessage>("/Motor_Data", 10);
 }
 
 void MotorControllerHandler::sendMessage(Message m) {

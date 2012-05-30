@@ -7,9 +7,9 @@
 #define ALL_MOTORS_MASK       0x3F
 
 void setMotors(unsigned int mask, 
-		int DriveR, int DriveL, 
-		int DiveR,  int DiveL, 
-		int TurnR,  int TurnL);
+		int DriveL, int DriveR, 
+		int DiveF,  int DiveR, 
+		int TurnF,  int TurnR);
 
 //Example usage: 
 //To set both drive motors to full power:

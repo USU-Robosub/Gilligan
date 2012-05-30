@@ -1,8 +1,6 @@
 (cl:in-package SubImageRecognition-msg)
 (cl:export '(STAMP-VAL
           STAMP
-          NAME-VAL
-          NAME
           CENTER_X-VAL
           CENTER_X
           CENTER_Y-VAL
