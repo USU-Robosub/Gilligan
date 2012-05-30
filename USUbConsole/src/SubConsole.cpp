@@ -166,11 +166,11 @@ void SubConsole::readJoystickInput(void)
        if(currentXAxis > 0)  //Strafe right
        {
           frontTurnValue = turnSpeed * -1;
-          rearTurnValue = turnSpeed * m_turnForwardPercentage;;
+          rearTurnValue = turnSpeed * 0.93;
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          frontTurnValue = turnSpeed * m_turnForwardPercentage;
+          frontTurnValue = turnSpeed * 0.85;
           rearTurnValue = turnSpeed * -1;
        }
 
@@ -208,8 +208,8 @@ void SubConsole::readJoystickInput(void)
 
       if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
       {
-          frontTurnValue = thrusterSpeed * m_turnForwardPercentage;
-          rearTurnValue = thrusterSpeed * m_turnForwardPercentage;
+          frontTurnValue = thrusterSpeed * 0.85;
+          rearTurnValue = thrusterSpeed * 0.93;
 
       }
       else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
@@ -300,13 +300,13 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
  *
  * @param msg The received message
  **/
-void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+void SubConsole::imuDataCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
    m_pUi->yawLineEdit->setText(QString::number(msg->data[0]));
    m_pCompass->setValue(msg->data[0]);
 
    m_pUi->pitchLineEdit->setText(QString::number(msg->data[1]));
-   m_pPitchIndicator->setGradient(msg->data[1]/45.0);
+   m_pPitchIndicator->setGradient(msg->data[1]/90.0);
 
    m_pUi->rollLineEdit->setText(QString::number(msg->data[2]));
    m_pRollIndicator->setAngle(msg->data[2]);

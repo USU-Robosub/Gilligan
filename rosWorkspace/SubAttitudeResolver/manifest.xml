@@ -1,0 +1,16 @@
+<package>
+  <description brief="SubAttitudeResolver">
+
+     SubAttitudeResolver
+
+  </description>
+  <author>Bryan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubAttitudeResolver</url>
+  <depend package="std_msgs"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
