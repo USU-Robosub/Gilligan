@@ -45,7 +45,7 @@ article {
     margin: 1.5em auto;
     max-width: 800px;
 }
-section {
+section, #more {
     clear: both;
     margin: 1em;
 }
@@ -70,4 +70,15 @@ iframe, .media, .featured {
 }
 .featured {
     width: 800px;
+}
+#more {
+    background: #333;
+    border-radius: 1ex;
+    color: #fff;
+    cursor: pointer;
+    padding: 1ex;
+    text-align: center;
+}
+#more:hover {
+    text-decoration: underline;
 }

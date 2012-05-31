@@ -1,4 +1,5 @@
 *.pyc
+*.jpg
 bin
 CMakeFiles
 CMakeCache.txt

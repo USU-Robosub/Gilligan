@@ -1,0 +1,2 @@
+string Module
+bool State

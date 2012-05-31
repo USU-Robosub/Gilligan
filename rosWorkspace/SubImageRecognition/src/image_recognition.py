@@ -69,9 +69,14 @@ class ImageRecognition:
         Builds a new publisher for an algorithm and saves it for later
         """
         
-        name = algorithm.name
+        name = Settings.ROOT_TOPIC
+        if algorithm.camera == Algorithm.Camera.FORWARD:
+            name += "forward/"
+        elif algorithm.camera == Algorithm.Camera.DOWNWARD:
+            name += "downward/"
+        name += algorithm.name
         if name not in self._publishers:
-            self._publishers[name] = rospy.Publisher(Settings.ROOT_TOPIC + name, ImgRecObject)
+            self._publishers[name] = rospy.Publisher(name, ImgRecObject)
         return self._publishers[name]
     
     def _init_image_memory(self, size):
@@ -423,8 +428,6 @@ class ImageRecognition:
                     
                     # Publish object data
                     self._get_publisher(algorithm).publish(ImgRecObject(
-                        stamp = roslib.rostime.Time(time.time()),
-                        name = name,
                         center_x = int(center[0])- size[0] / 2,
                         center_y = size[1] / 2 - int(center[1]),
                         rotation = rotation,
@@ -446,15 +449,7 @@ class ImageRecognition:
         for i in range(offset, size[1], Settings.SAMPLE_SIZE): # height
             for j in range(offset, size[0], Settings.SAMPLE_SIZE): # width
                 if cv.Get2D(image, i, j)[0] == 255.0:
-                    # Is this point in a point set already
-                    found = False
-                    for point_set in point_sets:
-                        if (j, i) in point_set:
-                            found = True
-                            break
-                    if not found:
-                        # No so create new set from adjacent points and add to list
-                        point_sets.append(self._find_adjacent_points(image, size, j, i))
+                    point_sets.append(self._find_adjacent_points(image, size, j, i))
         
         # Throw away bad point sets
         for index in range(len(point_sets)):

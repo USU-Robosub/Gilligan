@@ -1,0 +1,7 @@
+/home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver/CMakeLists.txt
+/home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver/manifest.xml
+src/SubAttitudeResolverMain.cpp
+src/SubAttitudeResolver.hpp
+src/SubAttitudeResolver.cpp
+src/serialib.h
+src/serialib.cpp

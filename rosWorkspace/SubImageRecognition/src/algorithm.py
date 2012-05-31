@@ -9,8 +9,6 @@ class Algorithm:
     values themselves and creates a publisher for the algorithm to be used later
     """
     
-    DEFAULT = 'default'
-    
     class Camera:
         FORWARD = 0
         DOWNWARD = 1
@@ -23,7 +21,11 @@ class Algorithm:
         RECTANGLE = 0
         CIRCLE = 1
     
-    def __init__(self, enabled, name, camera, thresholds, analysis, max_point_sets, confidence_type):
+    class Annotation:
+        ROTATION = 0
+        RADIUS = 1
+    
+    def __init__(self, enabled, name, camera, thresholds, analysis, max_point_sets, confidence_type, annotation_color, annotation_type):
         # Scale hue values down
         for threshold in thresholds.values():
             threshold[0][0] = int((threshold[0][0] * 179.0 / 255.0) + 0.5)
@@ -37,3 +39,5 @@ class Algorithm:
         self.analysis = analysis
         self.max_point_sets = max_point_sets
         self.confidence_type = confidence_type
+        self.annotation_color = annotation_color
+        self.annotation_type = annotation_type

@@ -25,15 +25,18 @@ class Settings:
                 #Algorithm.DEFAULT: ([0, 0, 60], [250, 180, 135]), Old values, when we were looking for 2 orange and 1 black rect.
                 Algorithm.DEFAULT: ([0, 0, 0], [250, 180, 60]),
             },
+
             analysis = Algorithm.Analysis.GATE,
             max_point_sets = 1,
-            confidence_type = Algorithm.Confidence.RECTANGLE
+            confidence_type = Algorithm.Confidence.RECTANGLE,
+            annotation_color = (0, 128, 255), # Orange
+            annotation_type = Algorithm.Annotation.ROTATION
         ),
         
         # Forward Buoys
         Algorithm(
             enabled = True,
-            name = 'forward/buoys',
+            name = 'buoys/red',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
                 'red': ([135, 0, 30], [200, 210, 120]),
@@ -42,20 +45,46 @@ class Settings:
             },
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
-            confidence_type = Algorithm.Confidence.CIRCLE
+            confidence_type = Algorithm.Confidence.CIRCLE,
+            annotation_color = (0, 0, 255), # Red
+            annotation_type = Algorithm.Annotation.RADIUS
+        ),
+        Algorithm(
+            enabled = False,
+            name = 'buoys/green',
+            camera = Algorithm.Camera.FORWARD,
+            thresholds = ((110, 200, 110), (130, 240, 200)),
+            analysis = Algorithm.Analysis.RECTANGLE,
+            max_point_sets = 1,
+            confidence_type = Algorithm.Confidence.CIRCLE,
+            annotation_color = (0, 255, 0), # Green
+            annotation_type = Algorithm.Annotation.RADIUS
+        ),
+        Algorithm(
+            enabled = True,
+            name = 'buoys/yellow',
+            camera = Algorithm.Camera.FORWARD,
+            thresholds = ((95, 185, 160), (115, 240, 220)),
+            analysis = Algorithm.Analysis.RECTANGLE,
+            max_point_sets = 1,
+            confidence_type = Algorithm.Confidence.CIRCLE,
+            annotation_color = (0, 255, 255), # Yellow
+            annotation_type = Algorithm.Annotation.RADIUS
         ),
         
         # Forward Obstacle Course
         Algorithm(
             enabled = True,
-            name = 'forward/obstacle_course',
+            name = 'obstacle_course',
             camera = Algorithm.Camera.FORWARD,
             thresholds = {
                 Algorithm.DEFAULT: ([0, 0, 0], [255, 255, 255]),
             },
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 3,
-            confidence_type = Algorithm.Confidence.RECTANGLE
+            confidence_type = Algorithm.Confidence.RECTANGLE,
+            annotation_color = (255, 0, 0), # Blue
+            annotation_type = Algorithm.Annotation.ROTATION
         ),
         
         # TODO: Add more forward algorithms here
@@ -63,14 +92,16 @@ class Settings:
         # Downward Paths
         Algorithm(
             enabled = True,
-            name = 'downward/paths',
+            name = 'paths',
             camera = Algorithm.Camera.DOWNWARD,
             thresholds = {
                 Algorithm.DEFAULT: ([5, 50, 50], [15, 255, 255]),
             },
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 2,
-            confidence_type = Algorithm.Confidence.RECTANGLE
+            confidence_type = Algorithm.Confidence.RECTANGLE,
+            annotation_color = (0, 128, 255), # Orange
+            annotation_type = Algorithm.Annotation.ROTATION
         ),
         
         # TODO: Add more downward algorithms here

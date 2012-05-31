@@ -1,5 +1,4 @@
 time stamp
-string name
 int16 center_x
 int16 center_y
 float32 rotation

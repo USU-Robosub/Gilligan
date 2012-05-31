@@ -12,6 +12,7 @@
 #include "std_msgs/UInt8.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/CompressedImage.h"
@@ -28,7 +29,7 @@ public:
    SubConsole(QWidget* pParent = 0);
    ~SubConsole();
 
-   void imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
+   void imuDataCallback(const std_msgs::Float64MultiArray::ConstPtr& msg);
    void motorControllerTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void moboTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
