@@ -20,7 +20,7 @@
 class SubAttitudeResolver
 {
    public:
-      SubAttitudeResolver();
+      SubAttitudeResolver(std::string devName);
       ~SubAttitudeResolver();
 
       void run();
@@ -46,6 +46,7 @@ class SubAttitudeResolver
       double m_biasZ;     //!< Calculated bias for gyro z
 
       serialib m_serialPort;  //!< Serial port used for communication
+      std::string m_devName;  //!< IMU device location to open
 
 
       static const double pi = 3.14159265358979;

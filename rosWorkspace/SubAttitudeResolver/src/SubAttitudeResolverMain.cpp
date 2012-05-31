@@ -15,9 +15,16 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "AttitudeResolver");
 
-    SubAttitudeResolver attitudeResolver;
-
-    attitudeResolver.run();
+    if(argc > 1)
+    {
+        SubAttitudeResolver attitudeResolver(argv[1]);
+        attitudeResolver.run();
+    }
+    else
+    {
+        SubAttitudeResolver attitudeResolver("/dev/ttyUSB0");
+        attitudeResolver.run();
+    }
 
     return 0;
 }
