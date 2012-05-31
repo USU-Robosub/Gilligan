@@ -44,10 +44,10 @@ class ImageRecognition:
         self._publishers = {}
         
         self._forward_img_pub = rospy.Publisher("forward_camera/image_raw", Image)
-        rospy.Subscriber("left/image_raw", Image, self._forward_callback)
+        rospy.Subscriber("image_raw", Image, self._forward_callback)
         
-        self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
-        rospy.Subscriber("right/image_raw", Image, self._downward_callback)
+        #self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
+        #rospy.Subscriber("right/image_raw", Image, self._downward_callback)
         
         rospy.Service(Settings.ROOT_TOPIC + "list_algorithms",
                 ListAlgorithms, self._list_algorithms_callback)
@@ -407,8 +407,8 @@ class ImageRecognition:
                 
                 for center, dims, rotation in self._analyze_points(algorithm, points, image):
                     
-                    print "center: " + repr(center)
-                    print "dims: " + repr(dims)
+                    #print "center: " + repr(center)
+                    #print "dims: " + repr(dims)
                     
                     # Calculate confidence based on algorithm
                     if algorithm.confidence_type is Algorithm.Confidence.RECTANGLE:

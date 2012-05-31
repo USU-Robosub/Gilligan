@@ -9,7 +9,7 @@ sleep 2
 ## Stage 2
 
 # Cameras driver
-roslaunch SubCameraDriver cameras.launch &
+roslaunch SubCameraDriver camera.launch &
 
 # Start the sensor board
 rosrun SubSensorController SubSensorController /dev/controller_sensor &
@@ -35,7 +35,7 @@ sleep 2
 
 # Republish cameras as compressed for recording
 /opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=left/image_raw compressed out:=left/image_compressed &
-/opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=right/image_raw compressed out:=right/image_compressed &
+#/opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=right/image_raw compressed out:=right/image_compressed &
 
 # Image recognition
 /opt/robosub/rosWorkspace/SubImageRecognition/src/image_recognition.py &
@@ -52,7 +52,7 @@ sleep 2
 
 # Republish image recognition as compressed for viewing remotely
 /opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=forward_camera/image_raw compressed out:=forward_camera/image_compressed &
-/opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=downward_camera/image_raw compressed out:=downward_camera/image_compressed &
+#/opt/ros/diamondback/stacks/image_common/image_transport/bin/republish raw in:=downward_camera/image_raw compressed out:=downward_camera/image_compressed &
 
 # Save compressed cameras and resulting recognition info in a bag
 rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &

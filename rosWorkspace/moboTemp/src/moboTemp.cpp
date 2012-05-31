@@ -31,6 +31,7 @@ int main (int argc, char** argv)
 			if (line != "")
 			{
 				float value = strtof(line.c_str(), NULL);
+				value = (9.0/5.0) * value + 32.0;
 				msg.data.push_back(value);
 			}
 		}

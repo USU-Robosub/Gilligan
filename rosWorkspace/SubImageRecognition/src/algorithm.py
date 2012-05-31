@@ -24,6 +24,11 @@ class Algorithm:
         CIRCLE = 1
     
     def __init__(self, enabled, name, camera, thresholds, analysis, max_point_sets, confidence_type):
+        # Scale hue values down
+        for threshold in thresholds.values():
+            threshold[0][0] = int((threshold[0][0] * 179.0 / 255.0) + 0.5)
+            threshold[1][0] = int((threshold[1][0] * 179.0 / 255.0) + 0.5)
+        
         # Save arguments as class variables
         self.enabled = enabled
         self.name = name
