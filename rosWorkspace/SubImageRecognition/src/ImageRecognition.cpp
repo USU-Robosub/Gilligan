@@ -22,16 +22,14 @@ using namespace std;
 const int SAMPLE_SIZE = 6;
 const int MIN_POINTS = 30;
 
-// XXX: Used by ANALYSIS_GATE
-//const float MAX_LENGTH_THRESHOLD = 0.8;
-
 const char TOPIC_ROOT[] = "image_recognition/";
+const char TOPIC_FORWARD[] = "";
+const char TOPIC_DOWNWARD[] = "";
 
 const int CAMERA_FORWARD = 0;
 const int CAMERA_DOWNWARD = 1;
 
 const int ANALYSIS_RECTANGLE = 0;
-const int ANALYSIS_GATE = 1;
 
 const int CONFIDENCE_RECTANGLE = 0;
 const int CONFIDENCE_CIRCLE = 1;
@@ -87,6 +85,14 @@ public:
 		// Prepare the publisher for use later on
 		ros::NodeHandle nodeHandle;
 		string topic(TOPIC_ROOT);
+		switch (camera) {
+		case CAMERA_FORWARD:
+			topic += TOPIC_FORWARD;
+			break;
+		case CAMERA_DOWNWARD:
+			topic += TOPIC_DOWNWARD;
+			break;
+		}
 		topic += this->name;
 		this->publisher =
 				nodeHandle.advertise<SubImageRecognition::ImgRecObject>(topic, 1);
@@ -161,8 +167,8 @@ void initAlgorithms() {
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
 		Scalar(250, 180, 60),
-		ANALYSIS_RECTANGLE, // XXX: Was ANALYSIS_GATE
-		1,
+		ANALYSIS_RECTANGLE,
+		2,
 		CONFIDENCE_RECTANGLE,
 		Scalar(0, 128, 255), // Orange
 		ANNOTATION_ROTATION
@@ -207,8 +213,8 @@ void initAlgorithms() {
 		false,
 		"obstacle_course",
 		CAMERA_FORWARD,
-		Scalar(0, 0, 0),
-		Scalar(255, 255, 255),
+		Scalar(0, 0, 0),       // TODO: Get real thresholds
+		Scalar(255, 255, 255), //       for these
 		ANALYSIS_RECTANGLE,
 		3,
 		CONFIDENCE_RECTANGLE,
@@ -328,9 +334,6 @@ vector<BlobAnalysis> analyzeBlob(Algorithm& algorithm,
 	switch (algorithm.analysisType) {
 	case ANALYSIS_RECTANGLE:
 		analysisList.push_back(BlobAnalysis(blob, minAreaRect(Mat(blob))));
-		break;
-	case ANALYSIS_GATE:
-		// TODO?
 		break;
 	}
 	return analysisList;

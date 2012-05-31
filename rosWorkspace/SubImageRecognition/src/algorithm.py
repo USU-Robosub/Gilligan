@@ -1,4 +1,3 @@
-
 from SubImageRecognition.msg import ImgRecObject
 
 class Algorithm:
@@ -15,7 +14,6 @@ class Algorithm:
     
     class Analysis:
         RECTANGLE = 0
-        GATE = 1
     
     class Confidence:
         RECTANGLE = 0

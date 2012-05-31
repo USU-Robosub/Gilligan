@@ -16,8 +16,7 @@ from SubImageRecognition.msg import ImgRecObject
 from SubImageRecognition.srv import ListAlgorithms, ListAlgorithmsResponse
 from SubImageRecognition.srv import SwitchAlgorithm, SwitchAlgorithmResponse
 from cv_bridge import CvBridge, CvBridgeError
-
-
+ 
 class ImageRecognition:
     """
     A container class for doing all the heavy lifting needed for image
@@ -49,10 +48,10 @@ class ImageRecognition:
         #self._downward_img_pub = rospy.Publisher("downward_camera/image_raw", Image)
         #rospy.Subscriber("right/image_raw", Image, self._downward_callback)
         
-        rospy.Service(Settings.ROOT_TOPIC + "list_algorithms",
+        rospy.Service(Settings.TOPIC_ROOT + "list_algorithms",
                 ListAlgorithms, self._list_algorithms_callback)
         
-        rospy.Service(Settings.ROOT_TOPIC + "switch_algorithm",
+        rospy.Service(Settings.TOPIC_ROOT + "switch_algorithm",
                 SwitchAlgorithm, self._switch_algorithm_callback)
         
         self._f_rotated = None
@@ -69,11 +68,11 @@ class ImageRecognition:
         Builds a new publisher for an algorithm and saves it for later
         """
         
-        name = Settings.ROOT_TOPIC
+        name = Settings.TOPIC_ROOT
         if algorithm.camera == Algorithm.Camera.FORWARD:
-            name += "forward/"
+            name += Settings.TOPIC_FORWARD
         elif algorithm.camera == Algorithm.Camera.DOWNWARD:
-            name += "downward/"
+            name += Settings.TOPIC_DOWNWARD
         name += algorithm.name
         if name not in self._publishers:
             self._publishers[name] = rospy.Publisher(name, ImgRecObject)
@@ -282,112 +281,6 @@ class ImageRecognition:
             rotation -= 3 * math.pi / 2
             
             rectangles.append((center, dims, rotation))
-            
-        elif algorithm.analysis == Algorithm.Analysis.GATE:
-            
-            # Group all points into rows and columns
-            rows = {}
-#            cols = {}
-            for x, y in points:
-#                if x in cols:
-#                    cols[x].append(y)
-#                else:
-#                    cols[x] = [y]
-                if y in rows:
-                    rows[y].append(x)
-                else:
-                    rows[y] = [x]
-            
-            # Search for long rows
-            lengths = [len(row) for row in rows.values()]
-            #avg_len = sum(lengths) / len(rows)
-            max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
-            #if avg_len < max_len:
-            long_rows = [y for y in rows.keys() if len(rows[y]) > max_len]
-            #else:
-            #    long_rows = []
-            long_rows.sort()
-            if long_rows:
-                max_long_row = max(long_rows)
-            else:
-                max_long_row = None
-            
-            # Search for long columns
-#            lengths = [len(col) for col in cols.values()]
-#            avg_len = sum(lengths) / len(cols)
-#            max_len = max(lengths) * Settings.MAX_LENGTH_THRESHOLD
-#            if avg_len < max_len:
-#                long_cols = [x for x in cols.keys() if len(cols[x]) > max_len]
-#            else:
-#                long_cols = []
-#            long_cols.sort()
-#            
-            # Remove long column values from long rows
-#            for y in long_rows:
-#                rows[y] = [x for x in rows[y] if x not in long_cols]
-            
-            # Truncate row values from long columns based on max long row
-#            if max_long_row is not None:
-#                for x in long_cols:
-#                cols[x] = [y for y in cols[x] if y <= max_long_row]
-            
-            # Create rectangle for horizontal section
-            if max_long_row is not None:
-                left = 1000
-                right = 0
-                for y in long_rows:
-                    left = min(left, min(rows[y]))
-                    right = max(right, max(rows[y]))
-                min_long_row = min(long_rows)
-                center = ((left + right) / 2, (max_long_row + min_long_row) / 2)
-                dims = (right - left, max_long_row - min_long_row)
-                rectangles.append((center, dims, 0))
-            
-            # Create rectangles for vertical sections
-            # TODO: This is more tricky because we need to group the long_cols up first
-#            col_groups = []
-#            prev_x = None
-#            for x in long_cols:
-#                if prev_x is not None and x - prev_x == Settings.SAMPLE_SIZE: 
-#                    # Continuing a group
-#                    pass
-#                else:
-#                    # Starting a new group
-#                    if prev_x is not None:
-#                        col_groups.append(prev_x)
-#                    col_groups.append(x)
-#                prev_x = x
-#            if prev_x is not None:
-#                col_groups.append(prev_x)
-#            
-#            # Validate column groups
-#            if len(col_groups) % 2:
-#                # Oops it's odd... Truncate last item
-#                col_groups = col_groups[:-1]
-#            if len(col_groups) > 4:
-#                # Oops too many groups... Use heap to keep two largest groups
-#                heap = []
-#                for i in range(0, len(col_groups), 2):
-#                    heappush(heap, (col_groups[i+1] - col_groups[i], i))
-#                    if len(heap) > 2:
-#                        heappop(heap)
-#                new_groups = []
-#                for i in range(len(heap)):
-#                    group = heappop(heap)
-#                    new_groups.append(col_groups[group[1]])
-#                    new_groups.append(col_groups[group[1] + 1])
-#                col_groups = new_groups
-#            
-#            # Add rectangles from col_groups
-#            for i in range(0, len(col_groups), 2):
-#                top = 1000
-#                bottom = 0
-#                for x in range(col_groups[i], col_groups[i+1] + 1, Setting.SAMPLE_SIZE):
-#                    top = min(top, min(cols[x]))
-#                    bottom = max(bottom, max(cols[x]))
-#                center = ((col_groups[i] + col_groups[i+1]) / 2, (top + bottom) / 2)
-#                dims = (col_groups[i+1] - col_groups[i], bottom - top)
-#                rectangles.append((center, dims, 0))
         
         for center, dims, rotation in rectangles:
             # Mark rectangle on image
