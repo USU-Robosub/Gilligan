@@ -18,7 +18,7 @@
 /**
  * @brief Constructor
  */
-SubAttitudeResolver::SubAttitudeResolver()
+SubAttitudeResolver::SubAttitudeResolver(std::string devName)
   : m_nodeHandle(),
     m_attitudePublisher(),
     m_yaw(0.0),
@@ -27,7 +27,8 @@ SubAttitudeResolver::SubAttitudeResolver()
     m_biasX(0.0),
     m_biasY(0.0),
     m_biasZ(0.0),
-    m_serialPort()
+    m_serialPort(),
+    m_devName(devName)
 {
     //Initialize values
     m_q[0] = 0;
@@ -58,7 +59,7 @@ SubAttitudeResolver::~SubAttitudeResolver()
  */
 void SubAttitudeResolver::run()
 {
-    m_serialPort.Open("/dev/ttyUSB0", 57600);
+    m_serialPort.Open(m_devName.c_str(), 57600);
 
     ros::Rate loop_rate(100);
     int count = 0;
