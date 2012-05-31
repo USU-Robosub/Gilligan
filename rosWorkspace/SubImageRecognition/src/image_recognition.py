@@ -69,9 +69,14 @@ class ImageRecognition:
         Builds a new publisher for an algorithm and saves it for later
         """
         
-        name = algorithm.name
+        name = Settings.ROOT_TOPIC
+        if algorithm.camera == Algorithm.Camera.FORWARD:
+            name += "forward/"
+        elif algorithm.camera == Algorithm.Camera.DOWNWARD:
+            name += "downward/"
+        name += algorithm.name
         if name not in self._publishers:
-            self._publishers[name] = rospy.Publisher(Settings.ROOT_TOPIC + name, ImgRecObject)
+            self._publishers[name] = rospy.Publisher(name, ImgRecObject)
         return self._publishers[name]
     
     def _init_image_memory(self, size):
@@ -407,8 +412,8 @@ class ImageRecognition:
                 
                 for center, dims, rotation in self._analyze_points(algorithm, points, image):
                     
-                    print "center: " + repr(center)
-                    print "dims: " + repr(dims)
+                    #print "center: " + repr(center)
+                    #print "dims: " + repr(dims)
                     
                     # Calculate confidence based on algorithm
                     if algorithm.confidence_type is Algorithm.Confidence.RECTANGLE:
@@ -423,8 +428,6 @@ class ImageRecognition:
                     
                     # Publish object data
                     self._get_publisher(algorithm).publish(ImgRecObject(
-                        stamp = roslib.rostime.Time(time.time()),
-                        name = name,
                         center_x = int(center[0])- size[0] / 2,
                         center_y = size[1] / 2 - int(center[1]),
                         rotation = rotation,
