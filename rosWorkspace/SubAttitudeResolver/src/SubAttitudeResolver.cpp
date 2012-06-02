@@ -59,25 +59,65 @@ SubAttitudeResolver::~SubAttitudeResolver()
  */
 void SubAttitudeResolver::run()
 {
+    printf("SubAttitudeResolver: Openning %s\n", m_devName.c_str());
     m_serialPort.Open(m_devName.c_str(), 57600);
 
     ros::Rate loop_rate(100);
     int count = 0;
 
-    calculateBias();
+    short rawGyroX = 0;
+    short rawGyroY = 0;
+    short rawGyroZ = 0;
+    short accelReadings[3];
+    short magReadings[3];
+    double R = 0.001;
+
+    calculateGyroBias();
+    calculateExpectedAccel();
+    calculateExpectedMag();
 
     while(ros::ok())
     {
-        short rawX = 0;
-        short rawY = 0;
-        short rawZ = 0;
+        // Sample gyro at 100 Hz
+        sampleGyro(&rawGyroX, &rawGyroY, &rawGyroZ);
+        updateOmega(rawGyroX, rawGyroY, rawGyroZ);
 
-        // Sample gyro
-        sampleGyro(&rawX, &rawY, &rawZ);
-        updateOmega(rawX, rawY, rawZ);
+        // Sample accel at 20 Hz
+        if((count % 5) == 0)
+        {
+            double accelReadingsDoubles[3];
+
+            // Sample accelerometer
+            sampleAccel(&accelReadings[0], &accelReadings[1], &accelReadings[2]);
+
+            // Convert to doubles
+            accelReadingsDoubles[0] = accelReadings[0];
+            accelReadingsDoubles[1] = accelReadings[1];
+            accelReadingsDoubles[2] = accelReadings[2];
+
+            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &R); // Accelerometer readings
+        }
+
+        // Sample mag at 5 Hz
+        if((count % 20) == 0)
+        {
+            double magReadingsDoubles[3];
+
+            // Sample magnetometer
+            sampleMag(&magReadings[0], &magReadings[1], &magReadings[2]);
+
+            // Convert to doubles
+            magReadingsDoubles[0] = magReadings[0];
+            magReadingsDoubles[1] = magReadings[1];
+            magReadingsDoubles[2] = magReadings[2];
+
+            // Run update with magnetometer readings
+            kalmanUpdate(m_expectedMag, magReadingsDoubles, &R);
+        }
 
         kalmanPropagate();
 
+        // Publish attitude to system at 20 Hz
         if((count % 5) == 0)
         {
             //printf("Yaw: %lf, Pitch: %lf, Roll: %lf\n", (m_yaw * 180)/pi, (m_pitch * 180)/pi, (m_roll * 180)/pi);
@@ -108,7 +148,7 @@ void SubAttitudeResolver::publishAttitude(double yaw, double pitch, double roll)
 /**
  * @brief Calculates the gyro bias on startup, IMU should be still during this calculation
  */
-void SubAttitudeResolver::calculateBias(void)
+void SubAttitudeResolver::calculateGyroBias(void)
 {
     short rawX = 0;
     short rawY = 0;
@@ -132,8 +172,73 @@ void SubAttitudeResolver::calculateBias(void)
     m_biasY = sumY / 64.0;
     m_biasZ = sumZ / 64.0;
 
-    printf("SubAttitudeResolver: Calculated Bias x: %lf, y: %lf, z: %lf\n", m_biasX, m_biasY, m_biasZ);
+    printf("SubAttitudeResolver: Calculated Gyro Bias x: %lf, y: %lf, z: %lf\n", m_biasX, m_biasY, m_biasZ);
+    fflush(NULL);
+}
 
+/**
+ * @brief Calculates the expected acceleration readings on startup, IMU should be still during this calculation
+ */
+void SubAttitudeResolver::calculateExpectedAccel(void)
+{
+    short rawX = 0;
+    short rawY = 0;
+    short rawZ = 0;
+    double sumX = 0.0;
+    double sumY = 0.0;
+    double sumZ = 0.0;
+
+    for(int i = 0; i < 64; i++)
+    {
+        sampleAccel(&rawX, &rawY, &rawZ);
+
+        //printf("Sampled x: %i, y: %i, z: %i\n", rawX, rawY, rawZ);
+
+        sumX += rawX;
+        sumY += rawY;
+        sumZ += rawZ;
+
+        usleep(1000);
+    }
+
+    m_expectedAccel[0] = sumX / 64.0;
+    m_expectedAccel[1] = sumY / 64.0;
+    m_expectedAccel[2] = sumZ / 64.0;
+
+    printf("SubAttitudeResolver: Calculated Expected Accel x: %lf, y: %lf, z: %lf\n", m_expectedAccel[0], m_expectedAccel[1], m_expectedAccel[2]);
+    fflush(NULL);
+}
+
+/**
+ * @brief Calculates the expected magnetometer readings on startup, IMU should be still during this calculation
+ */
+void SubAttitudeResolver::calculateExpectedMag(void)
+{
+    short rawX = 0;
+    short rawY = 0;
+    short rawZ = 0;
+    double sumX = 0.0;
+    double sumY = 0.0;
+    double sumZ = 0.0;
+
+    for(int i = 0; i < 5; i++)
+    {
+        sampleMag(&rawX, &rawY, &rawZ);
+
+        //printf("Sampled x: %i, y: %i, z: %i\n", rawX, rawY, rawZ);
+
+        sumX += rawX;
+        sumY += rawY;
+        sumZ += rawZ;
+
+        usleep(100000); // Mag should be sampled faster than 0.1 seconds
+    }
+
+    m_expectedMag[0] = sumX / 5.0;
+    m_expectedMag[1] = sumY / 5.0;
+    m_expectedMag[2] = sumZ / 5.0;
+
+    printf("SubAttitudeResolver: Calculated Expected Mag x: %lf, y: %lf, z: %lf\n", m_expectedMag[0], m_expectedMag[1], m_expectedMag[2]);
 }
 
 /**
@@ -239,6 +344,146 @@ void SubAttitudeResolver::kalmanPropagate()
     m_P[5] = P_new[5];
 }
 
+void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R)
+{
+    double Ry[3]; // Rotate Inertial Vector to Body
+    double detPr; // Determinat of Measurement Covariance
+    double invPr[6]; // Inverse of Measurement Covariance
+    double K[9]; // Kalman Gain
+    double dq[3]; // Quaternion Update
+    double q_mag; // Magnitude of Quaternion
+    double PHT[9]; // P*H*H' Stored to Save Computations
+    double q_new[4]; // Updated Quaternion
+    double P_new[5]; // Updated Covariance
+    double y_mag; // Magnitude of Measurement Vector
+
+    // Combine Terms to Save Computations
+    double q0q0;
+    double q1q1;
+    double q2q2;
+    double q3q3;
+    double q0q1;
+    double q0q2;
+    double q0q3;
+    double q1q2;
+    double q1q3;
+    double q2q3;
+
+    // Normalize Vectors
+    y_mag = sqrt(y_i[0]*y_i[0] + y_i[1]*y_i[1] + y_i[2]*y_i[2]);
+    y_i[0] = y_i[0]/y_mag;
+    y_i[1] = y_i[1]/y_mag;
+    y_i[2] = y_i[2]/y_mag;
+
+    y_mag = sqrt(y_b[0]*y_b[0] + y_b[1]*y_b[1] + y_b[2]*y_b[2]);
+    y_b[0] = y_b[0]/y_mag;
+    y_b[1] = y_b[1]/y_mag;
+    y_b[2] = y_b[2]/y_mag;
+
+    // Combine Terms to Save Computations
+    q0q0 = m_q[0]*m_q[0];
+    q1q1 = m_q[1]*m_q[1];
+    q2q2 = m_q[2]*m_q[2];
+    q3q3 = m_q[3]*m_q[3];
+    q0q1 = 2.0*m_q[0]*m_q[1];
+    q0q2 = 2.0*m_q[0]*m_q[2];
+    q0q3 = 2.0*m_q[0]*m_q[3];
+    q1q2 = 2.0*m_q[1]*m_q[2];
+    q1q3 = 2.0*m_q[1]*m_q[3];
+    q2q3 = 2.0*m_q[2]*m_q[3];
+
+    // Rotation Predicted Measurement Vector to Body
+    Ry[0] = y_i[0]*(q0q0 - q1q1 - q2q2 + q3q3) + y_i[1]*(q0q1 + q2q3) + y_i[2]*(q0q2 - q1q3);
+    Ry[1] = y_i[0]*(q0q1 - q2q3) - y_i[1]*(q0q0 - q1q1 + q2q2 - q3q3) + y_i[2]*(q0q3 + q1q2);
+    Ry[2] = y_i[0]*(q0q2 + q1q3) - y_i[2]*(q0q0 + q1q1 - q2q2 - q3q3) - y_i[1]*(q0q3 - q1q2);
+
+    // Calculate P*H'
+    PHT[0] = m_P[2]*Ry[1] - m_P[1]*Ry[2];
+    PHT[1] = m_P[0]*Ry[2] - m_P[2]*Ry[0];
+    PHT[2] = m_P[1]*Ry[0] - m_P[0]*Ry[1];
+    PHT[3] = m_P[4]*Ry[1] - m_P[3]*Ry[2];
+    PHT[4] = m_P[1]*Ry[2] - m_P[4]*Ry[0];
+    PHT[5] = m_P[3]*Ry[0] - m_P[1]*Ry[1];
+    PHT[6] = m_P[5]*Ry[1] - m_P[4]*Ry[2];
+    PHT[7] = m_P[2]*Ry[2] - m_P[5]*Ry[0];
+    PHT[8] = m_P[4]*Ry[0] - m_P[2]*Ry[1];
+
+    // Calculate Measurement Covariance
+    m_Pr[0] = *R - PHT[3]*Ry[2] + PHT[6]*Ry[1];
+    m_Pr[1] = PHT[7]*Ry[1] - PHT[4]*Ry[2];
+    m_Pr[2] = PHT[8]*Ry[1] - PHT[5]*Ry[2];
+    m_Pr[3] = *R + PHT[1]*Ry[2] - PHT[7]*Ry[0];
+    m_Pr[4] = PHT[2]*Ry[2] - PHT[8]*Ry[0];
+    m_Pr[5] = *R - PHT[2]*Ry[1] + PHT[5]*Ry[0];
+
+    // Calculate Determinant of Measurement Covariance
+    detPr = - m_Pr[5]*m_Pr[1]*m_Pr[1] + 2*m_Pr[1]*m_Pr[2]*m_Pr[4] - m_Pr[3]*m_Pr[2]*m_Pr[2] - m_Pr[0]*m_Pr[4]*m_Pr[4] + m_Pr[0]*m_Pr[3]*m_Pr[5];
+
+    // Calculate Inverse of Measurement Covariance
+    invPr[0] = (m_Pr[3]*m_Pr[5] - m_Pr[4]*m_Pr[4])/detPr;
+    invPr[1] = (m_Pr[2]*m_Pr[4] - m_Pr[1]*m_Pr[5])/detPr;
+    invPr[2] = (m_Pr[1]*m_Pr[4] - m_Pr[2]*m_Pr[3])/detPr;
+    invPr[3] = (m_Pr[0]*m_Pr[5] - m_Pr[2]*m_Pr[2])/detPr;
+    invPr[4] = (m_Pr[1]*m_Pr[2] - m_Pr[0]*m_Pr[4])/detPr;
+    invPr[5] = (m_Pr[0]*m_Pr[3] - m_Pr[1]*m_Pr[1])/detPr;
+
+    // Calculate Kalman Gain
+    K[0] = PHT[0]*invPr[0] + PHT[1]*invPr[1] + PHT[2]*invPr[2];
+    K[1] = PHT[0]*invPr[1] + PHT[1]*invPr[3] + PHT[2]*invPr[4];
+    K[2] = PHT[0]*invPr[2] + PHT[1]*invPr[4] + PHT[2]*invPr[5];
+    K[3] = PHT[3]*invPr[0] + PHT[4]*invPr[1] + PHT[5]*invPr[2];
+    K[4] = PHT[3]*invPr[1] + PHT[4]*invPr[3] + PHT[5]*invPr[4];
+    K[5] = PHT[3]*invPr[2] + PHT[4]*invPr[4] + PHT[5]*invPr[5];
+    K[6] = PHT[6]*invPr[0] + PHT[7]*invPr[1] + PHT[8]*invPr[2];
+    K[7] = PHT[6]*invPr[1] + PHT[7]*invPr[3] + PHT[8]*invPr[4];
+    K[8] = PHT[6]*invPr[2] + PHT[7]*invPr[4] + PHT[8]*invPr[5];
+
+    // Update Covariance
+    P_new[0] = m_P[0]*(K[2]*Ry[1] - K[1]*Ry[2] + 1.0) + m_P[1]*(K[0]*Ry[2] - K[2]*Ry[0]) - m_P[2]*(K[0]*Ry[1] - K[1]*Ry[0]);
+    P_new[1] = m_P[1]*(K[2]*Ry[1] - K[1]*Ry[2] + 1.0) - m_P[4]*(K[0]*Ry[1] - K[1]*Ry[0]) + m_P[3]*(K[0]*Ry[2] - K[2]*Ry[0]);
+    P_new[2] = m_P[2]*(K[2]*Ry[1] - K[1]*Ry[2] + 1.0) - m_P[5]*(K[0]*Ry[1] - K[1]*Ry[0]) + m_P[4]*(K[0]*Ry[2] - K[2]*Ry[0]);
+    P_new[3] = m_P[3]*(K[3]*Ry[2] - K[5]*Ry[0] + 1.0) - m_P[4]*(K[3]*Ry[1] - K[4]*Ry[0]) - m_P[1]*(K[4]*Ry[2] - K[5]*Ry[1]);
+    P_new[4] = m_P[4]*(K[3]*Ry[2] - K[5]*Ry[0] + 1.0) - m_P[5]*(K[3]*Ry[1] - K[4]*Ry[0]) - m_P[2]*(K[4]*Ry[2] - K[5]*Ry[1]);
+    P_new[5] = m_P[5]*(K[7]*Ry[0] - K[6]*Ry[1] + 1.0) - m_P[2]*(K[7]*Ry[2] - K[8]*Ry[1]) + m_P[4]*(K[6]*Ry[2] - K[8]*Ry[0]);
+
+    // Calculate Residual
+    m_residual[0] = y_b[0] - Ry[0];
+    m_residual[1] = y_b[1] - Ry[1];
+    m_residual[2] = y_b[2] - Ry[2];
+
+    // Calculate Quaternion Update
+    dq[0] = (K[0]*m_residual[0] + K[1]*m_residual[1] + K[2]*m_residual[2])*0.5;
+    dq[1] = (K[3]*m_residual[0] + K[4]*m_residual[1] + K[5]*m_residual[2])*0.5;
+    dq[2] = (K[6]*m_residual[0] + K[7]*m_residual[1] + K[8]*m_residual[2])*0.5;
+
+    // Update Quaternion
+    q_new[0] = m_q[0] + dq[2]*m_q[1] - dq[1]*m_q[2] + dq[0]*m_q[3];
+    q_new[1] = m_q[1] - dq[2]*m_q[0] + dq[0]*m_q[2] + dq[1]*m_q[3];
+    q_new[2] = m_q[2] + dq[1]*m_q[0] - dq[0]*m_q[1] + dq[2]*m_q[3];
+    q_new[3] = m_q[3] - dq[0]*m_q[0] - dq[1]*m_q[1] - dq[2]*m_q[2];
+
+    // Calculate Magnitude of Quaternion
+    q_mag = sqrt( q_new[0]*q_new[0] + q_new[1]*q_new[1] + q_new[2]*q_new[2] + q_new[3]*q_new[3] );
+
+    // Normalize Quaternion
+    q_new[0] = q_new[0]/q_mag;
+    q_new[1] = q_new[1]/q_mag;
+    q_new[2] = q_new[2]/q_mag;
+    q_new[3] = q_new[3]/q_mag;
+
+    m_P[0] = P_new[0];
+    m_P[1] = P_new[1];
+    m_P[2] = P_new[2];
+    m_P[3] = P_new[3];
+    m_P[4] = P_new[4];
+    m_P[5] = P_new[5];
+
+    m_q[0] = q_new[0];
+    m_q[1] = q_new[1];
+    m_q[2] = q_new[2];
+    m_q[3] = q_new[3];
+}
+
 /**
  * @brief Samples the gyro, storing readings in the output parameters
  *
@@ -248,19 +493,115 @@ void SubAttitudeResolver::kalmanPropagate()
  */
 void SubAttitudeResolver::sampleGyro(short* pRawX, short* pRawY, short* pRawZ)
 {
-    const unsigned char firstSync = 0xF1;
-    const unsigned char secondSync = 0xF5;
-    const unsigned char thirdSync = 0xF9;
     bool synched = false;
-    unsigned char syncByte;
     char readBuf[6];
     int bytesRead = 0;
     char getGyroCommand = 'G';
 
+    synched = syncSerial(getGyroCommand);
+
+    if(synched)
+    {
+        while((bytesRead < 6) && (ros::ok()))
+        {
+            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
+            {
+                bytesRead++;
+            }
+        }
+
+        if(bytesRead == 6)
+        {
+            memcpy(pRawX, &readBuf[0], 2);
+            memcpy(pRawY, &readBuf[2], 2);
+            memcpy(pRawZ, &readBuf[4], 2);
+        }
+    }
+}
+
+/**
+ * @brief Samples the accelerometer, storing readings in the output parameters
+ *
+ * @param pRawX Pointer to location to store raw x reading
+ * @param pRawY Pointer to location to store raw y reading
+ * @param pRawZ Pointer to location to store raw z reading
+ */
+void SubAttitudeResolver::sampleAccel(short* pRawX, short* pRawY, short* pRawZ)
+{
+    bool synched = false;
+    char readBuf[6];
+    int bytesRead = 0;
+    char getAccelCommand = 'A';
+
+    synched = syncSerial(getAccelCommand);
+
+    if(synched)
+    {
+        while((bytesRead < 6) && (ros::ok()))
+        {
+            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
+            {
+                bytesRead++;
+            }
+        }
+
+        if(bytesRead == 6)
+        {
+            memcpy(pRawX, &readBuf[0], 2);
+            memcpy(pRawY, &readBuf[2], 2);
+            memcpy(pRawZ, &readBuf[4], 2);
+        }
+    }
+}
+
+/**
+ * @brief Samples the magnetometer, storing readings in the output parameters
+ *
+ * @param pRawX Pointer to location to store raw x reading
+ * @param pRawY Pointer to location to store raw y reading
+ * @param pRawZ Pointer to location to store raw z reading
+ */
+void SubAttitudeResolver::sampleMag(short* pRawX, short* pRawY, short* pRawZ)
+{
+    bool synched = false;
+    char readBuf[6];
+    int bytesRead = 0;
+    char getMagCommand = 'M';
+
+    synched = syncSerial(getMagCommand);
+
+    if(synched)
+    {
+        while((bytesRead < 6) && (ros::ok()))
+        {
+            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
+            {
+                bytesRead++;
+            }
+        }
+
+        if(bytesRead == 6)
+        {
+            memcpy(pRawX, &readBuf[0], 2);
+            memcpy(pRawY, &readBuf[2], 2);
+            memcpy(pRawZ, &readBuf[4], 2);
+        }
+    }
+}
+
+bool SubAttitudeResolver::syncSerial(char command)
+{
+    const unsigned char firstSync = 0xF1;
+    const unsigned char secondSync = 0xF5;
+    const unsigned char thirdSync = 0xF9;
+    unsigned char syncByte;
+    bool synched = false;
+    int bytesRead = 0;
+
     // Read in sync chars
     while(!synched && ros::ok())
     {
-        m_serialPort.WriteChar(getGyroCommand);
+        m_serialPort.WriteChar(command);
 
         bytesRead = m_serialPort.Read(&syncByte, 1, 100);
 
@@ -280,25 +621,7 @@ void SubAttitudeResolver::sampleGyro(short* pRawX, short* pRawY, short* pRawZ)
         }
     }
 
-    bytesRead = 0;
-
-    if(synched)
-    {
-        while((bytesRead < 6) && (ros::ok()))
-        {
-            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
-            {
-                bytesRead++;
-            }
-        }
-
-        if(bytesRead == 6)
-        {
-            memcpy(pRawX, &readBuf[0], 2);
-            memcpy(pRawY, &readBuf[2], 2);
-            memcpy(pRawZ, &readBuf[4], 2);
-        }
-    }
+    return synched;
 }
 
 /**
