@@ -12,18 +12,20 @@ class Settings:
     
     MAX_LENGTH_THRESHOLD = 0.8
     
-    ROOT_TOPIC = 'image_recognition/'
+    TOPIC_ROOT = 'image_recognition/'
+    TOPIC_FORWARD = ''
+    TOPIC_DOWNWARD = ''
     
     ALGORITHMS = [
         
         # Forward Gate
         Algorithm(
-            enabled = True,
-            name = 'gate',
+            enabled = False,
+            name = 'forward/gate',
             camera = Algorithm.Camera.FORWARD,
-            thresholds = ((0, 0, 0), (250, 180, 60)), # ((0, 0, 60), (250, 180, 135)), # Old values, when we were looking for 2 orange and 1 black rectangle
-            analysis = Algorithm.Analysis.GATE,
-            max_point_sets = 1,
+            thresholds = ([0, 0, 0], [250, 180, 60]), # ([0, 0, 60], [250, 180, 135]), # Old values, when we were looking for 2 orange and 1 black rectangle
+            analysis = Algorithm.Analysis.RECTANGLE,
+            max_point_sets = 12
             confidence_type = Algorithm.Confidence.RECTANGLE,
             annotation_color = (0, 128, 255), # Orange
             annotation_type = Algorithm.Annotation.ROTATION
@@ -34,7 +36,7 @@ class Settings:
             enabled = True,
             name = 'buoys/red',
             camera = Algorithm.Camera.FORWARD,
-            thresholds = ((135, 0, 30), (200, 210, 120)),
+            thresholds = ([135, 0, 30], [200, 210, 120]),
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
             confidence_type = Algorithm.Confidence.CIRCLE,
@@ -45,7 +47,7 @@ class Settings:
             enabled = False,
             name = 'buoys/green',
             camera = Algorithm.Camera.FORWARD,
-            thresholds = ((110, 200, 110), (130, 240, 200)),
+            thresholds = ([110, 200, 110], [130, 240, 200]),
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
             confidence_type = Algorithm.Confidence.CIRCLE,
@@ -56,7 +58,7 @@ class Settings:
             enabled = True,
             name = 'buoys/yellow',
             camera = Algorithm.Camera.FORWARD,
-            thresholds = ((95, 185, 160), (115, 240, 220)),
+            thresholds = ([95, 185, 160], [115, 240, 220]),
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 1,
             confidence_type = Algorithm.Confidence.CIRCLE,
@@ -69,7 +71,7 @@ class Settings:
             enabled = True,
             name = 'obstacle_course',
             camera = Algorithm.Camera.FORWARD,
-            thresholds = ((0, 0, 0), (255, 255, 255)),
+            thresholds = ([0, 0, 0], [255, 255, 255]), # TODO: Get real thresholds for this
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 3,
             confidence_type = Algorithm.Confidence.RECTANGLE,
@@ -77,22 +79,18 @@ class Settings:
             annotation_type = Algorithm.Annotation.ROTATION
         ),
         
-        # TODO: Add more forward algorithms here
-        
         # Downward Paths
         Algorithm(
             enabled = True,
             name = 'paths',
             camera = Algorithm.Camera.DOWNWARD,
-            thresholds = ((5, 50, 50), (15, 255, 255)),
+            thresholds = ([5, 50, 50], [15, 255, 255]),
             analysis = Algorithm.Analysis.RECTANGLE,
             max_point_sets = 2,
             confidence_type = Algorithm.Confidence.RECTANGLE,
             annotation_color = (0, 128, 255), # Orange
             annotation_type = Algorithm.Annotation.ROTATION
         ),
-        
-        # TODO: Add more downward algorithms here
         
     ]
 

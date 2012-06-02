@@ -22,7 +22,7 @@ void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 }
 
 void setDepthSpeed(float speed) {
-	speed *= -255;
+	speed *= 255;
 	int speedInt = speed; //truncate to an integer value
 	if(speedInt > 255)
 		speedInt = 255;
@@ -35,7 +35,7 @@ void setDepthSpeed(float speed) {
 //		);
 	setMotors(REAR_DEPTH_MOTOR_BIT | FRONT_DEPTH_MOTOR_BIT,  
 			0,        0,          
-			speedInt, speedInt, 
+			-speedInt, -speedInt, 
 			0,        0          
 		);
 }

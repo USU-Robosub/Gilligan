@@ -59,7 +59,8 @@ int filter(int speed) {
 		speed = 255;
 	if(speed <= -256)
 		speed = -255;
-	return -speed;
+	speed = -speed;
+	return speed;
 }
 
 void MotorControllerHandler::setMotorSpeed(int right, int left) {
