@@ -12,6 +12,7 @@
   <depend package="roscpp"/>
   <depend package="SubMotorController"/>
   <depend package="Robosub"/>
+  <depend package="SubImageRecognition"/>
 
 </package>
 
