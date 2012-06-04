@@ -15,7 +15,7 @@ roslaunch SubCameraDriver camera.launch &
 rosrun SubSensorController SubSensorController /dev/controller_sensor &
 
 # Start the imu
-rosrun SubImuController SubImuController /dev/controller_Imu &
+rosrun SubAttitudeResolver SubAttitudeResolver /dev/controller_Imu &
 
 # Start the motor controllers
 rosrun SubMotorController SubMotorController &
@@ -28,6 +28,9 @@ rosrun SubTranslators DepthTranslator &
 
 # Simple Depth Controller maintains a target depth
 rosrun subSim simpleDepth &
+
+# Simple Heading Controller maintains a target heading
+rosrun subSim simpleHeading &
 
 sleep 2
 
