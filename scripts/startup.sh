@@ -9,7 +9,7 @@ sleep 2
 ## Stage 2
 
 # Cameras driver
-roslaunch SubCameraDriver camera.launch &
+roslaunch SubCameraDriver cameras.launch &
 
 # Start the sensor board
 rosrun SubSensorController SubSensorController /dev/controller_sensor &
