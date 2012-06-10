@@ -366,6 +366,26 @@ float computeConfidence(Algorithm& algorithm, BlobAnalysis& a) {
 	}
 }
 
+void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
+	int r, x, y;
+	switch (algorithm.annotationType) {
+	case ANNOTATION_ROTATION:
+		x = (int) (a.center_x / 2.0 * cos(a.rotation));
+		y = (int) (a.center_x / 2.0 * sin(a.rotation));
+		circle(image, Point(a.center_x, a.center_y), 1,
+				algorithm.annotationColor, 5, CV_AA);
+		line(image, Point(a.center_x, a.center_y),
+				Point(a.center_x + x, a.center_y + y),
+				algorithm.annotationColor, CV_AA);
+		break;
+	case ANNOTATION_RADIUS:
+		r = (int) ((a.width + a.height) / 2.0);
+		circle(image, Point(a.center_x, a.center_y), r,
+				algorithm.annotationColor, 2);
+		break;
+	}
+}
+
 void genericCallback(
 		const int camera,
 		const sensor_msgs::ImageConstPtr& rosImage,
@@ -417,7 +437,7 @@ void genericCallback(
 					msg.confidence = computeConfidence(algorithm, analysis);
 					algorithm.publisher.publish(msg);
 					// Annotate image
-					// TODO
+					annotateImage(rotated.image, algorithm, analysis);
 				}
 			}
 		}

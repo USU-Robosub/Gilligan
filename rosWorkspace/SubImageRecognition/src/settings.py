@@ -25,7 +25,7 @@ class Settings:
             camera = Algorithm.Camera.FORWARD,
             thresholds = ([0, 0, 0], [250, 180, 60]), # ([0, 0, 60], [250, 180, 135]), # Old values, when we were looking for 2 orange and 1 black rectangle
             analysis = Algorithm.Analysis.RECTANGLE,
-            max_point_sets = 12
+            max_point_sets = 12,
             confidence_type = Algorithm.Confidence.RECTANGLE,
             annotation_color = (0, 128, 255), # Orange
             annotation_type = Algorithm.Annotation.ROTATION
@@ -93,4 +93,3 @@ class Settings:
         ),
         
     ]
-
