@@ -119,7 +119,7 @@ void SubAttitudeResolver::run()
             accelReadingsDoubles[1] = accelReadings[1];
             accelReadingsDoubles[2] = accelReadings[2];
 
-            //kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &R, m_PrAccel, m_residualAccel); // Accelerometer readings
+            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &R, m_PrAccel, m_residualAccel); // Accelerometer readings
 
             publishAccelDebug(m_residualAccel, m_PrAccel);
         }
@@ -138,7 +138,7 @@ void SubAttitudeResolver::run()
             magReadingsDoubles[2] = magReadings[2];
 
             // Run update with magnetometer readings
-            //kalmanUpdate(m_expectedMag, magReadingsDoubles, &R, m_PrMag, m_residualMag);
+            kalmanUpdate(m_expectedMag, magReadingsDoubles, &R, m_PrMag, m_residualMag);
 
             publishMagDebug(m_residualMag, m_PrMag);
         }
