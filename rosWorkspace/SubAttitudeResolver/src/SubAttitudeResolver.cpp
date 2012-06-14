@@ -13,14 +13,14 @@
 #include "SubAttitudeResolver.hpp"
 #include "std_msgs/Float64MultiArray.h"
 
-#define BAUD_RATE B57600
-
 /**
  * @brief Constructor
  */
 SubAttitudeResolver::SubAttitudeResolver(std::string devName)
   : m_nodeHandle(),
     m_attitudePublisher(),
+    m_magDebugPublisher(),
+    m_accelDebugPublisher(),
     m_yaw(0.0),
     m_pitch(0.0),
     m_roll(0.0),
@@ -43,7 +43,31 @@ SubAttitudeResolver::SubAttitudeResolver(std::string devName)
     m_P[4] = 0.0;
     m_P[5] = 3.046174197867086e-004;
 
+    m_PrAccel[0] = 0.0;
+    m_PrAccel[1] = 0.0;
+    m_PrAccel[2] = 0.0;
+    m_PrAccel[3] = 0.0;
+    m_PrAccel[4] = 0.0;
+    m_PrAccel[5] = 0.0;
+
+    m_residualAccel[0] = 0.0;
+    m_residualAccel[1] = 0.0;
+    m_residualAccel[2] = 0.0;
+
+    m_PrMag[0] = 0.0;
+    m_PrMag[1] = 0.0;
+    m_PrMag[2] = 0.0;
+    m_PrMag[3] = 0.0;
+    m_PrMag[4] = 0.0;
+    m_PrMag[5] = 0.0;
+
+    m_residualMag[0] = 0.0;
+    m_residualMag[1] = 0.0;
+    m_residualMag[2] = 0.0;
+
     m_attitudePublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("IMU_Attitude", 100);
+    m_magDebugPublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("Mag_Debug", 100);
+    m_accelDebugPublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("Accel_Debug", 100);
 }
 
 /**
@@ -82,8 +106,8 @@ void SubAttitudeResolver::run()
         sampleGyro(&rawGyroX, &rawGyroY, &rawGyroZ);
         updateOmega(rawGyroX, rawGyroY, rawGyroZ);
 
-        // Sample accel at 20 Hz
-        if((count % 5) == 0)
+        // Sample accel at 5 Hz
+        if((count % 20) == 0)
         {
             double accelReadingsDoubles[3];
 
@@ -95,11 +119,13 @@ void SubAttitudeResolver::run()
             accelReadingsDoubles[1] = accelReadings[1];
             accelReadingsDoubles[2] = accelReadings[2];
 
-            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &R); // Accelerometer readings
+            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &R, m_PrAccel, m_residualAccel); // Accelerometer readings
+
+            publishAccelDebug(m_residualAccel, m_PrAccel);
         }
 
-        // Sample mag at 5 Hz
-        if((count % 20) == 0)
+        // Sample mag at 10 Hz
+        if((count % 10) == 0)
         {
             double magReadingsDoubles[3];
 
@@ -112,7 +138,9 @@ void SubAttitudeResolver::run()
             magReadingsDoubles[2] = magReadings[2];
 
             // Run update with magnetometer readings
-            kalmanUpdate(m_expectedMag, magReadingsDoubles, &R);
+            kalmanUpdate(m_expectedMag, magReadingsDoubles, &R, m_PrMag, m_residualMag);
+
+            publishMagDebug(m_residualMag, m_PrMag);
         }
 
         kalmanPropagate();
@@ -143,6 +171,40 @@ void SubAttitudeResolver::publishAttitude(double yaw, double pitch, double roll)
     attitudeMsg.data.push_back(roll);
 
     m_attitudePublisher.publish(attitudeMsg);
+}
+
+/**
+ * @brief Publishes the Mag_Debug message
+ */
+void SubAttitudeResolver::publishMagDebug(double* pResidual, double* pPr)
+{
+    std_msgs::Float64MultiArray magDebugMsg;
+
+    magDebugMsg.data.push_back(pResidual[0]);
+    magDebugMsg.data.push_back(pResidual[1]);
+    magDebugMsg.data.push_back(pResidual[2]);
+    magDebugMsg.data.push_back(pPr[0]);
+    magDebugMsg.data.push_back(pPr[3]);
+    magDebugMsg.data.push_back(pPr[5]);
+
+    m_magDebugPublisher.publish(magDebugMsg);
+}
+
+/**
+ * @brief Publishes the Accel_Debug message
+ */
+void SubAttitudeResolver::publishAccelDebug(double* pResidual, double* pPr)
+{
+    std_msgs::Float64MultiArray accelDebugMsg;
+
+    accelDebugMsg.data.push_back(pResidual[0]);
+    accelDebugMsg.data.push_back(pResidual[1]);
+    accelDebugMsg.data.push_back(pResidual[2]);
+    accelDebugMsg.data.push_back(pPr[0]);
+    accelDebugMsg.data.push_back(pPr[3]);
+    accelDebugMsg.data.push_back(pPr[5]);
+
+    m_accelDebugPublisher.publish(accelDebugMsg);
 }
 
 /**
@@ -344,7 +406,7 @@ void SubAttitudeResolver::kalmanPropagate()
     m_P[5] = P_new[5];
 }
 
-void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R)
+void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual)
 {
     double Ry[3]; // Rotate Inertial Vector to Body
     double detPr; // Determinat of Measurement Covariance
@@ -409,23 +471,23 @@ void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R)
     PHT[8] = m_P[4]*Ry[0] - m_P[2]*Ry[1];
 
     // Calculate Measurement Covariance
-    m_Pr[0] = *R - PHT[3]*Ry[2] + PHT[6]*Ry[1];
-    m_Pr[1] = PHT[7]*Ry[1] - PHT[4]*Ry[2];
-    m_Pr[2] = PHT[8]*Ry[1] - PHT[5]*Ry[2];
-    m_Pr[3] = *R + PHT[1]*Ry[2] - PHT[7]*Ry[0];
-    m_Pr[4] = PHT[2]*Ry[2] - PHT[8]*Ry[0];
-    m_Pr[5] = *R - PHT[2]*Ry[1] + PHT[5]*Ry[0];
+    Pr[0] = *R - PHT[3]*Ry[2] + PHT[6]*Ry[1];
+    Pr[1] = PHT[7]*Ry[1] - PHT[4]*Ry[2];
+    Pr[2] = PHT[8]*Ry[1] - PHT[5]*Ry[2];
+    Pr[3] = *R + PHT[1]*Ry[2] - PHT[7]*Ry[0];
+    Pr[4] = PHT[2]*Ry[2] - PHT[8]*Ry[0];
+    Pr[5] = *R - PHT[2]*Ry[1] + PHT[5]*Ry[0];
 
     // Calculate Determinant of Measurement Covariance
-    detPr = - m_Pr[5]*m_Pr[1]*m_Pr[1] + 2*m_Pr[1]*m_Pr[2]*m_Pr[4] - m_Pr[3]*m_Pr[2]*m_Pr[2] - m_Pr[0]*m_Pr[4]*m_Pr[4] + m_Pr[0]*m_Pr[3]*m_Pr[5];
+    detPr = - Pr[5]*Pr[1]*Pr[1] + 2*Pr[1]*Pr[2]*Pr[4] - Pr[3]*Pr[2]*Pr[2] - Pr[0]*Pr[4]*Pr[4] + Pr[0]*Pr[3]*Pr[5];
 
     // Calculate Inverse of Measurement Covariance
-    invPr[0] = (m_Pr[3]*m_Pr[5] - m_Pr[4]*m_Pr[4])/detPr;
-    invPr[1] = (m_Pr[2]*m_Pr[4] - m_Pr[1]*m_Pr[5])/detPr;
-    invPr[2] = (m_Pr[1]*m_Pr[4] - m_Pr[2]*m_Pr[3])/detPr;
-    invPr[3] = (m_Pr[0]*m_Pr[5] - m_Pr[2]*m_Pr[2])/detPr;
-    invPr[4] = (m_Pr[1]*m_Pr[2] - m_Pr[0]*m_Pr[4])/detPr;
-    invPr[5] = (m_Pr[0]*m_Pr[3] - m_Pr[1]*m_Pr[1])/detPr;
+    invPr[0] = (Pr[3]*Pr[5] - Pr[4]*Pr[4])/detPr;
+    invPr[1] = (Pr[2]*Pr[4] - Pr[1]*Pr[5])/detPr;
+    invPr[2] = (Pr[1]*Pr[4] - Pr[2]*Pr[3])/detPr;
+    invPr[3] = (Pr[0]*Pr[5] - Pr[2]*Pr[2])/detPr;
+    invPr[4] = (Pr[1]*Pr[2] - Pr[0]*Pr[4])/detPr;
+    invPr[5] = (Pr[0]*Pr[3] - Pr[1]*Pr[1])/detPr;
 
     // Calculate Kalman Gain
     K[0] = PHT[0]*invPr[0] + PHT[1]*invPr[1] + PHT[2]*invPr[2];
@@ -447,14 +509,14 @@ void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R)
     P_new[5] = m_P[5]*(K[7]*Ry[0] - K[6]*Ry[1] + 1.0) - m_P[2]*(K[7]*Ry[2] - K[8]*Ry[1]) + m_P[4]*(K[6]*Ry[2] - K[8]*Ry[0]);
 
     // Calculate Residual
-    m_residual[0] = y_b[0] - Ry[0];
-    m_residual[1] = y_b[1] - Ry[1];
-    m_residual[2] = y_b[2] - Ry[2];
+    residual[0] = y_b[0] - Ry[0];
+    residual[1] = y_b[1] - Ry[1];
+    residual[2] = y_b[2] - Ry[2];
 
     // Calculate Quaternion Update
-    dq[0] = (K[0]*m_residual[0] + K[1]*m_residual[1] + K[2]*m_residual[2])*0.5;
-    dq[1] = (K[3]*m_residual[0] + K[4]*m_residual[1] + K[5]*m_residual[2])*0.5;
-    dq[2] = (K[6]*m_residual[0] + K[7]*m_residual[1] + K[8]*m_residual[2])*0.5;
+    dq[0] = (K[0]*residual[0] + K[1]*residual[1] + K[2]*residual[2])*0.5;
+    dq[1] = (K[3]*residual[0] + K[4]*residual[1] + K[5]*residual[2])*0.5;
+    dq[2] = (K[6]*residual[0] + K[7]*residual[1] + K[8]*residual[2])*0.5;
 
     // Update Quaternion
     q_new[0] = m_q[0] + dq[2]*m_q[1] - dq[1]*m_q[2] + dq[0]*m_q[3];
