@@ -32,83 +32,90 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubImageRecognition
+CMAKE_SOURCE_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImageRecognition/build
+CMAKE_BINARY_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build
 
 # Utility rule file for ROSBUILD_genmsg_py.
 
 CMakeFiles/ROSBUILD_genmsg_py: ../src/SubImageRecognition/msg/__init__.py
 
-../src/SubImageRecognition/msg/__init__.py: ../src/SubImageRecognition/msg/_OrangeRectangle.py
-	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles $(CMAKE_PROGRESS_1)
+../src/SubImageRecognition/msg/__init__.py: ../src/SubImageRecognition/msg/_ImgRecObject.py
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating ../src/SubImageRecognition/msg/__init__.py"
-	/opt/ros/diamondback/stacks/ros_comm/clients/rospy/scripts/genmsg_py.py --initpy /opt/robosub/rosWorkspace/SubImageRecognition/msg/OrangeRectangle.msg
+	/opt/ros/diamondback/stacks/ros_comm/clients/rospy/scripts/genmsg_py.py --initpy /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/msg/ImgRecObject.msg
 
-../src/SubImageRecognition/msg/_OrangeRectangle.py: ../msg/OrangeRectangle.msg
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/scripts/genmsg_py.py
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/core/roslib/scripts/gendeps
-../src/SubImageRecognition/msg/_OrangeRectangle.py: ../manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/tools/rospack/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/core/roslib/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/core/rosbuild/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/core/roslang/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/vision_opencv/opencv2/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/utilities/cpp_common/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_traits/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/utilities/rostime/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_serialization/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/utilities/xmlrpcpp/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosconsole/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/tools/rosclean/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosgraph/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosparam/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosmaster/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosout/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/roslaunch/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/ros/tools/rosunit/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rostest/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosbag/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosbagmigration/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/vision_opencv/cv_bridge/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/yaml_cpp/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/image_common/camera_calibration_parsers/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/image_common/camera_info_manager/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/tinyxml/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/pluginlib/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/utilities/message_filters/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/image_common/image_transport/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/bond/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/smclib/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/bondcpp/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/nodelet/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/camera_umd/uvc_camera/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/robosub/rosWorkspace/SubCameraDriver/manifest.xml
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/msg_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/msg_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/msg_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/srv_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/srv_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/msg_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/msg_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/srv_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/bond/msg_gen/generated
-../src/SubImageRecognition/msg/_OrangeRectangle.py: /opt/ros/diamondback/stacks/common/nodelet/srv_gen/generated
-	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles $(CMAKE_PROGRESS_2)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating ../src/SubImageRecognition/msg/_OrangeRectangle.py"
-	/opt/ros/diamondback/stacks/ros_comm/clients/rospy/scripts/genmsg_py.py --noinitpy /opt/robosub/rosWorkspace/SubImageRecognition/msg/OrangeRectangle.msg
+../src/SubImageRecognition/msg/_ImgRecObject.py: ../msg/ImgRecObject.msg
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/scripts/genmsg_py.py
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/core/roslib/scripts/gendeps
+../src/SubImageRecognition/msg/_ImgRecObject.py: ../manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/core/rosbuild/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/core/roslang/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/utilities/cpp_common/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_traits/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/utilities/rostime/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_serialization/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/tools/rospack/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/core/roslib/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/utilities/xmlrpcpp/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosconsole/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/vision_opencv/opencv2/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/tools/rosclean/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosgraph/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosparam/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosmaster/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosout/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/roslaunch/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/ros/tools/rosunit/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rostest/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosbag/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosbagmigration/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/vision_opencv/cv_bridge/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/tinyxml/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/pluginlib/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/utilities/message_filters/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/image_common/image_transport/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosmsg/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rostopic/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/rosservice/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/driver_common/dynamic_reconfigure/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/image_transport_plugins/compressed_image_transport/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/yaml_cpp/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/image_common/camera_calibration_parsers/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/image_common/camera_info_manager/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/bond/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/smclib/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/bondcpp/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/nodelet/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /home/bryhansen/ros_workspace/camera_umd/uvc_camera/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubCameraDriver/manifest.xml
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/messages/rosgraph_msgs/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/srv_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/ros_comm/tools/topic_tools/srv_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common_msgs/geometry_msgs/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common_msgs/sensor_msgs/srv_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/driver_common/dynamic_reconfigure/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/driver_common/dynamic_reconfigure/srv_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/bond/msg_gen/generated
+../src/SubImageRecognition/msg/_ImgRecObject.py: /opt/ros/diamondback/stacks/common/nodelet/srv_gen/generated
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles $(CMAKE_PROGRESS_2)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating ../src/SubImageRecognition/msg/_ImgRecObject.py"
+	/opt/ros/diamondback/stacks/ros_comm/clients/rospy/scripts/genmsg_py.py --noinitpy /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/msg/ImgRecObject.msg
 
 ROSBUILD_genmsg_py: CMakeFiles/ROSBUILD_genmsg_py
 ROSBUILD_genmsg_py: ../src/SubImageRecognition/msg/__init__.py
-ROSBUILD_genmsg_py: ../src/SubImageRecognition/msg/_OrangeRectangle.py
+ROSBUILD_genmsg_py: ../src/SubImageRecognition/msg/_ImgRecObject.py
 ROSBUILD_genmsg_py: CMakeFiles/ROSBUILD_genmsg_py.dir/build.make
 .PHONY : ROSBUILD_genmsg_py
 
@@ -121,6 +128,6 @@ CMakeFiles/ROSBUILD_genmsg_py.dir/clean:
 .PHONY : CMakeFiles/ROSBUILD_genmsg_py.dir/clean
 
 CMakeFiles/ROSBUILD_genmsg_py.dir/depend:
-	cd /opt/robosub/rosWorkspace/SubImageRecognition/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /opt/robosub/rosWorkspace/SubImageRecognition /opt/robosub/rosWorkspace/SubImageRecognition /opt/robosub/rosWorkspace/SubImageRecognition/build /opt/robosub/rosWorkspace/SubImageRecognition/build /opt/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles/ROSBUILD_genmsg_py.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles/ROSBUILD_genmsg_py.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ROSBUILD_genmsg_py.dir/depend
 

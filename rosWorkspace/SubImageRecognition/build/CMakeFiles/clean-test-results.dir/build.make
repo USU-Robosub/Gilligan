@@ -32,15 +32,15 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubImageRecognition
+CMAKE_SOURCE_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImageRecognition/build
+CMAKE_BINARY_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build
 
 # Utility rule file for clean-test-results.
 
 CMakeFiles/clean-test-results:
-	if ! rm -rf /home/robosub/.ros/test_results/SubImageRecognition; then echo WARNING:\ failed\ to\ remove\ test-results\ directory ; fi
+	if ! rm -rf /home/bryhansen/.ros/test_results/SubImageRecognition; then echo WARNING:\ failed\ to\ remove\ test-results\ directory ; fi
 
 clean-test-results: CMakeFiles/clean-test-results
 clean-test-results: CMakeFiles/clean-test-results.dir/build.make
@@ -55,6 +55,6 @@ CMakeFiles/clean-test-results.dir/clean:
 .PHONY : CMakeFiles/clean-test-results.dir/clean
 
 CMakeFiles/clean-test-results.dir/depend:
-	cd /opt/robosub/rosWorkspace/SubImageRecognition/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /opt/robosub/rosWorkspace/SubImageRecognition /opt/robosub/rosWorkspace/SubImageRecognition /opt/robosub/rosWorkspace/SubImageRecognition/build /opt/robosub/rosWorkspace/SubImageRecognition/build /opt/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles/clean-test-results.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubImageRecognition/build/CMakeFiles/clean-test-results.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/clean-test-results.dir/depend
 
