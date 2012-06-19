@@ -94,7 +94,8 @@ void SubAttitudeResolver::run()
     short rawGyroZ = 0;
     short accelReadings[3];
     short magReadings[3];
-    double R = 0.001;
+    double magR =   0.000005;
+    double accelR = 0.00005;
 
     calculateGyroBias();
     calculateExpectedAccel();
@@ -119,9 +120,9 @@ void SubAttitudeResolver::run()
             accelReadingsDoubles[1] = accelReadings[1];
             accelReadingsDoubles[2] = accelReadings[2];
 
-            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &R, m_PrAccel, m_residualAccel); // Accelerometer readings
+            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &accelR, m_PrAccel, m_residualAccel, true); // Accelerometer readings
 
-            publishAccelDebug(m_residualAccel, m_PrAccel);
+            //publishAccelDebug(m_residualAccel, m_PrAccel);
         }
 
         // Sample mag at 10 Hz
@@ -138,12 +139,15 @@ void SubAttitudeResolver::run()
             magReadingsDoubles[2] = magReadings[2];
 
             // Run update with magnetometer readings
-            kalmanUpdate(m_expectedMag, magReadingsDoubles, &R, m_PrMag, m_residualMag);
+            kalmanUpdate(m_expectedMag, magReadingsDoubles, &magR, m_PrMag, m_residualMag, false);
 
-            publishMagDebug(m_residualMag, m_PrMag);
+            //publishMagDebug(m_residualMag, m_PrMag);
         }
 
         kalmanPropagate();
+
+        //double test = (180/pi) * 2 * acos(m_q[3]);
+        //printf("%lf\n", test)
 
         // Publish attitude to system at 20 Hz
         if((count % 5) == 0)
@@ -310,7 +314,8 @@ void SubAttitudeResolver::calculateExpectedMag(void)
  */
 void SubAttitudeResolver::kalmanPropagate()
 {
-    double sigma_w2[3] = {3.046174197867087e-008,3.046174197867087e-008,3.046174197867087e-008}; // Gyro Uncertainty (0.01 Degrees/second)
+    //double sigma_w2[3] = {3.046174197867087e-008,3.046174197867087e-008,3.046174197867087e-008}; // Gyro Uncertainty (0.01 Degrees/second)
+    double sigma_w2[3] = {1e-005, 1e-005, 1e-005};
     double dt = 0.01;  // Sampling time (Currently 100 Hz)
     double q_new[4]; // Temporary Propagated Quaternion
     double P_new[6]; // Temporary Propagated Covariance
@@ -406,7 +411,7 @@ void SubAttitudeResolver::kalmanPropagate()
     m_P[5] = P_new[5];
 }
 
-void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual)
+void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual, bool isAccel)
 {
     double Ry[3]; // Rotate Inertial Vector to Body
     double detPr; // Determinat of Measurement Covariance
@@ -478,6 +483,16 @@ void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, doub
     Pr[4] = PHT[2]*Ry[2] - PHT[8]*Ry[0];
     Pr[5] = *R - PHT[2]*Ry[1] + PHT[5]*Ry[0];
 
+    // Calculate Residual
+    residual[0] = y_b[0] - Ry[0];
+    residual[1] = y_b[1] - Ry[1];
+    residual[2] = y_b[2] - Ry[2];
+
+//    if(isAccel && ((residual[0] > 3*sqrt(Pr[0])) || (residual[1] > 3*sqrt(Pr[3])) || (residual[2] > 3*sqrt(Pr[5]))))
+//    {
+//        return;
+//    }
+
     // Calculate Determinant of Measurement Covariance
     detPr = - Pr[5]*Pr[1]*Pr[1] + 2*Pr[1]*Pr[2]*Pr[4] - Pr[3]*Pr[2]*Pr[2] - Pr[0]*Pr[4]*Pr[4] + Pr[0]*Pr[3]*Pr[5];
 
@@ -507,11 +522,6 @@ void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, doub
     P_new[3] = m_P[3]*(K[3]*Ry[2] - K[5]*Ry[0] + 1.0) - m_P[4]*(K[3]*Ry[1] - K[4]*Ry[0]) - m_P[1]*(K[4]*Ry[2] - K[5]*Ry[1]);
     P_new[4] = m_P[4]*(K[3]*Ry[2] - K[5]*Ry[0] + 1.0) - m_P[5]*(K[3]*Ry[1] - K[4]*Ry[0]) - m_P[2]*(K[4]*Ry[2] - K[5]*Ry[1]);
     P_new[5] = m_P[5]*(K[7]*Ry[0] - K[6]*Ry[1] + 1.0) - m_P[2]*(K[7]*Ry[2] - K[8]*Ry[1]) + m_P[4]*(K[6]*Ry[2] - K[8]*Ry[0]);
-
-    // Calculate Residual
-    residual[0] = y_b[0] - Ry[0];
-    residual[1] = y_b[1] - Ry[1];
-    residual[2] = y_b[2] - Ry[2];
 
     // Calculate Quaternion Update
     dq[0] = (K[0]*residual[0] + K[1]*residual[1] + K[2]*residual[2])*0.5;

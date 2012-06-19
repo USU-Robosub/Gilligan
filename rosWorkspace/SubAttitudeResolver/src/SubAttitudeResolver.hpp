@@ -29,7 +29,7 @@ class SubAttitudeResolver
       void publishAttitude(double yaw, double pitch, double roll);
       void publishMagDebug(double* pResidual, double* pPr);
       void publishAccelDebug(double* pResidual, double* pPr);
-      void kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual);
+      void kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual, bool isAccel);
       void kalmanPropagate(void);
       void sampleGyro(short* pRawX, short* pRawY, short* pRawZ);
       void sampleAccel(short* pRawX, short* pRawY, short* pRawZ);

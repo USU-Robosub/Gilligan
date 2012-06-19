@@ -160,7 +160,7 @@ void ImuTuner::setupPlot(QwtPlot* pPlot, const char* plotTitle)
     // axis
     pPlot->setAxisTitle(QwtPlot::xBottom, "Samples");
     pPlot->setAxisTitle(QwtPlot::yLeft, "Values");
-    pPlot->setAxisScale(QwtPlot::yLeft, -0.4, 0.4);
+    pPlot->setAxisScale(QwtPlot::yLeft, -0.1, 0.1);
 
     pPlot->setGeometry(0,0,500,400);
 }
