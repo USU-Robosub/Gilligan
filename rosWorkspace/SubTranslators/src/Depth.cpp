@@ -2,7 +2,7 @@
 #include "std_msgs/Float32.h"
 
 float offset = 83;
-float scalingFactor = 0.297; //feet per tick
+float scalingFactor = 0.177; //feet per tick
 float currentDepthRaw = 16.6;
 float lastTicks = 83;
 
@@ -22,6 +22,7 @@ void calibrationCallback(const std_msgs::Float32 msg) {
 		offset = lastTicks;
 	} else {
 		scalingFactor = depth / (lastTicks - offset);
+		printf("scalingFactor = %f\n", scalingFactor);
 	}
 }
 
