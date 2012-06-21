@@ -19,8 +19,10 @@ using namespace std;
 
 // CONSTANTS
 
+const bool VIEW_THRESHOLD = false;
+
 const int SAMPLE_SIZE = 6;
-const int MIN_POINTS = 30;
+const unsigned int MIN_POINTS = 30;
 
 const char TOPIC_ROOT[] = "image_recognition/";
 const char TOPIC_FORWARD[] = "";
@@ -66,9 +68,9 @@ public:
 			int _confidenceType,
 			Scalar _annotationColor,
 			int _annotationType) {
-		// Correct hue values - the 0.5 is to allow us to round up
-		_minThreshold[0] = (int) ((_minThreshold[0] * 179.0 / 255.0) + 0.5);
-		_maxThreshold[0] = (int) ((_maxThreshold[0] * 179.0 / 255.0) + 0.5);
+		// Correct hue values
+		_minThreshold[0] *= 179.0 / 255.0;
+		_maxThreshold[0] *= 179.0 / 255.0;
 
 		// Save class properties
 		enabled = _enabled;
@@ -121,30 +123,15 @@ public:
 
 		// Convert rotation from degrees to radians
 		rotation *= M_PI / 180.0;
-		
+
 		// Correct dimensions and rotation so that height is always larger
 		if (height < width) {
 			unsigned int temp = height;
 			height = width;
 			width = temp;
-			rotation += M_PI / 2.0;
+		} else {
+			rotation -= M_PI / 2.0;
 		}
-
-		// Normalize rotation
-		// TODO: I've disabled rotation normalization for now so that I can
-		//       re-evaluate the best way to go about doing this
-/*
-		if (sin(rotation) > 0) {
-			rotation += M_PI;
-		}
-		while (rotation > M_PI * 2.0) {
-			rotation -= M_PI * 2.0;
-		}
-		if (rotation == 0) {
-			rotation = M_PI * 2.0;
-		}
-		rotation -= M_PI * 1.5;
-*/
 	}
 };
 
@@ -162,7 +149,7 @@ Mat forwardThreshold, downwardThreshold;
 
 void initAlgorithms() {
 	algorithms.push_back(Algorithm(
-		false,
+		true,
 		"gate",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -174,7 +161,7 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		false,
+		true,
 		"buoys/red",
 		CAMERA_FORWARD,
 		Scalar(135, 0, 30),
@@ -186,7 +173,7 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		false,
+		true,
 		"buoys/green",
 		CAMERA_FORWARD,
 		Scalar(110, 200, 110),
@@ -198,7 +185,7 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		false,
+		true,
 		"buoys/yellow",
 		CAMERA_FORWARD,
 		Scalar(95, 185, 160),
@@ -210,11 +197,11 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		false,
+		true,
 		"obstacle_course",
 		CAMERA_FORWARD,
-		Scalar(0, 0, 0),       // TODO: Get real thresholds
-		Scalar(255, 255, 255), //       for these
+		Scalar(0, 0, 0),
+		Scalar(120, 255, 210),
 		ANALYSIS_RECTANGLE,
 		3,
 		CONFIDENCE_RECTANGLE,
@@ -222,7 +209,7 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		false,
+		true,
 		"paths",
 		CAMERA_DOWNWARD,
 		Scalar(5, 50, 50),
@@ -247,46 +234,41 @@ void normalizeValue(Mat& image, Mat& temp) {
 void reduceNoise(Mat& image) {
 	const static Size size(3, 3);
 	const static Point point(1, 1);
-	const static Mat elementEllipse = getStructuringElement(
-			MORPH_ELLIPSE, size, point);
 	const static Mat elementRect = getStructuringElement(
 			MORPH_RECT, size, point);
-	erode(image, image, elementEllipse, point, 2);
-	dilate(image, image, elementEllipse, point, 4);
-	erode(image, image, elementRect, point, 2);
-	dilate(image, image, elementRect, point, 4);
+	erode(image, image, elementRect, point, 4);
+	dilate(image, image, elementRect, point, 2);
 }
 
 Points findBlob(Mat& image, int i, int j) {
-	uint8_t *pixelPtr = (uint8_t *) image.data;
 	unsigned int index = 0;
 	Points blob;
-	Point point;
-	blob.push_back(Point(i, j));
-	pixelPtr[i * image.cols + j] = 0;
+	Point point(j, i);
+	blob.push_back(point);
+	image.at<uint8_t>(i, j, 0) = 127;
 	while (index < blob.size()) {
 		point = blob[index];
-		i = point.x;
-		j = point.y;
-		if (i + SAMPLE_SIZE < image.rows &&
-				pixelPtr[(i + SAMPLE_SIZE) * image.cols + j] == 255) {
-			blob.push_back(Point(i + SAMPLE_SIZE, j));
-			pixelPtr[(i + SAMPLE_SIZE) * image.cols + j] = 127;
+		i = point.y;
+		j = point.x;
+		if (i+SAMPLE_SIZE < image.rows
+				&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == 255) {
+			blob.push_back(Point(j, i+SAMPLE_SIZE));
+			image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 127;
 		}
-		if (i - SAMPLE_SIZE >= 0 &&
-				pixelPtr[(i - SAMPLE_SIZE) * image.cols + j] == 255) {
-			blob.push_back(Point(i - SAMPLE_SIZE, j));
-			pixelPtr[(i - SAMPLE_SIZE) * image.cols + j] = 127;
+		if (i-SAMPLE_SIZE >= 0
+				&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == 255) {
+			blob.push_back(Point(j, i-SAMPLE_SIZE));
+			image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 127;
 		}
-		if (j + SAMPLE_SIZE < image.cols &&
-				pixelPtr[i * image.cols + (j + SAMPLE_SIZE)] == 255) {
-			blob.push_back(Point(i, j + SAMPLE_SIZE));
-			pixelPtr[i * image.cols + (j + SAMPLE_SIZE)] = 127;
+		if (j+SAMPLE_SIZE < image.cols
+				&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == 255) {
+			blob.push_back(Point(j+SAMPLE_SIZE, i));
+			image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 127;
 		}
-		if (j - SAMPLE_SIZE >= 0 &&
-				pixelPtr[i * image.cols + (j - SAMPLE_SIZE)] == 255) {
-			blob.push_back(Point(i, j - SAMPLE_SIZE));
-			pixelPtr[i * image.cols + (j - SAMPLE_SIZE)] = 127;
+		if (j-SAMPLE_SIZE >= 0 &&
+				image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == 255) {
+			blob.push_back(Point(j-SAMPLE_SIZE, i));
+			image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 127;
 		}
 		index++;
 	}
@@ -300,13 +282,12 @@ bool compareBlobs(Points& blob0, Points& blob1) {
 vector<Points> findBlobs(Mat& image,
 		const int offset, const unsigned int maxBlobs) {
 	// First get all blobs that are at least the minimum size
-	uint8_t *pixelPtr = (uint8_t *) image.data;
 	vector<Points> allBlobs;
 	for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 		for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-			if (pixelPtr[i * image.cols + j] == 255) {
+			if (image.at<uint8_t>(i, j, 0) == 255) {
 				Points blob = findBlob(image, i, j);
-				if (blob.size() >= MIN_POINTS * 2) {
+				if (blob.size() >= MIN_POINTS) {
 					allBlobs.push_back(blob);
 				}
 			}
@@ -370,18 +351,18 @@ void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
 	int r, x, y;
 	switch (algorithm.annotationType) {
 	case ANNOTATION_ROTATION:
-		x = (int) (a.center_x / 2.0 * cos(a.rotation));
-		y = (int) (a.center_x / 2.0 * sin(a.rotation));
+		x = (int) (a.height / 2.0 * cos(a.rotation));
+		y = (int) (a.height / 2.0 * sin(a.rotation));
 		circle(image, Point(a.center_x, a.center_y), 1,
 				algorithm.annotationColor, 5, CV_AA);
 		line(image, Point(a.center_x, a.center_y),
 				Point(a.center_x + x, a.center_y + y),
-				algorithm.annotationColor, CV_AA);
+				algorithm.annotationColor, 1, CV_AA);
 		break;
 	case ANNOTATION_RADIUS:
 		r = (int) ((a.width + a.height) / 2.0);
 		circle(image, Point(a.center_x, a.center_y), r,
-				algorithm.annotationColor, 2);
+				algorithm.annotationColor, 2, CV_AA);
 		break;
 	}
 }
@@ -416,9 +397,16 @@ void genericCallback(
 		if (algorithm.enabled && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
 					algorithm.maxThreshold, threshold);
+			bitwise_not(threshold, threshold);
 			reduceNoise(threshold);
 			vector<Points> blobs = findBlobs(
-					segmented, offset, algorithm.maxBlobs);
+					threshold, offset, algorithm.maxBlobs);
+			if (VIEW_THRESHOLD) {
+				cv_bridge::CvImage temp;
+				temp.encoding = "mono8";
+				temp.image = threshold;
+				publisher.publish(temp.toImageMsg());
+			}
 			// Iterate through all blobs
 			for (unsigned int j = 0; j < blobs.size(); j++) {
 				Points blob = blobs.at(j);
@@ -429,9 +417,9 @@ void genericCallback(
 					BlobAnalysis analysis = analysisList[k];
 					// Publish information
 					SubImageRecognition::ImgRecObject msg;
-					msg.center_x = analysis.center_x;
-					msg.center_y = analysis.center_y;
-					msg.rotation = analysis.rotation;
+					msg.center_x = analysis.center_x - rotated.image.cols / 2;
+					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+					msg.rotation = analysis.rotation + M_PI / 2.0;
 					msg.width = analysis.width;
 					msg.height = analysis.height;
 					msg.confidence = computeConfidence(algorithm, analysis);
@@ -444,7 +432,9 @@ void genericCallback(
 	}
 
 	// Publish annotated image
-	publisher.publish(rotated.toImageMsg());
+	if (!VIEW_THRESHOLD) {
+		publisher.publish(rotated.toImageMsg());
+	}
 }
 
 void forwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {

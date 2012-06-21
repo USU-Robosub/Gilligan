@@ -24,4 +24,30 @@ void setMotors(unsigned int mask,
 	motorController.publish(msg);
 }
 
+int filter(int speed) {
+	return (double)speed /100.0 * 255
+}
 
+void setDrive(int speed) {
+	speed = filter(speed);
+	setMotors(RIGHT_DRIVE_MOTOR_BIT | LEFT_DRIVE_MOTOR_BIT,
+			speed, speed, 0, 0, 0, 0);
+}
+
+void setStraf(int speed) {
+	speed = filter(speed);
+	setMotors(FRONT_TURN_MOTOR_BIT | REAR_TURN_MOTOR_BIT,
+			0, 0, speed, -speed, 0, 0);
+}
+
+void setTurn(int speed) {
+	speed = filter(speed);
+	setMotors(FRONT_TURN_MOTOR_BIT | REAR_TURN_MOTOR_BIT,
+			0, 0, speed, speed, 0, 0);
+}
+
+void setDive(int speed) {
+	speed = filter(speed);
+	setMotors(FRONT_DEPTH_MOTOR_BIT | REAR_DEPTH_MOTOR_BIT,
+			0, 0, 0, 0, speed, speed);
+}
