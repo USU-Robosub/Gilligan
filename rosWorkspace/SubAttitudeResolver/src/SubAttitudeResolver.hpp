@@ -12,7 +12,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/Int16.h"
-#include "serialib.h"
+#include "SerialDevice.hpp"
 
 /**
  * @brief Class responsible for performing a kalman filter to determine attitude and publish it
@@ -29,7 +29,7 @@ class SubAttitudeResolver
       void publishAttitude(double yaw, double pitch, double roll);
       void publishMagDebug(double* pResidual, double* pPr);
       void publishAccelDebug(double* pResidual, double* pPr);
-      void kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual, bool isAccel);
+      void kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual);
       void kalmanPropagate(void);
       void sampleGyro(short* pRawX, short* pRawY, short* pRawZ);
       void sampleAccel(short* pRawX, short* pRawY, short* pRawZ);
@@ -38,7 +38,7 @@ class SubAttitudeResolver
       void calculateGyroBias(void);
       void calculateExpectedAccel(void);
       void calculateExpectedMag(void);
-      bool syncSerial(char command);
+      bool syncSerial(unsigned char command);
 
       ros::NodeHandle m_nodeHandle;          //!< ROS node handle
       ros::Publisher m_attitudePublisher;    //!< Publishes the Sub_Attitude topic
@@ -61,11 +61,11 @@ class SubAttitudeResolver
       double m_expectedAccel[3];   //!< Expected reading for accelerometer
       double m_expectedMag[3];     //!< Expected reading for magnetometer
 
-      serialib m_serialPort;  //!< Serial port used for communication
+      SerialDevice m_serialPort;  //!< Serial port used for communication
       std::string m_devName;  //!< IMU device location to open
 
       static const double pi = 3.14159265358979;
-      static const int gyroFullScale = 250;
+      static const int gyroFullScale = 285;
       static const double gyroConversion = gyroFullScale / 32767.0;
 };
 
