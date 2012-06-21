@@ -1,4 +1,5 @@
 #include "BuoysTask.hpp"
+#include "Robosub/HighLevelControl.h"
 
 BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
     : m_nodeHandle(),
@@ -6,6 +7,7 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
       m_yellowBuoySubcriber(),
       m_redBuoySubcriber(),
       m_taskStateSubscriber(),
+      m_highLevelMotorPublisher(),
       m_firstToBump(first),
       m_secondToBump(second),
       m_isEnabled(false)
@@ -24,7 +26,8 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
 
    // @todo Setup publisher for center on point
 
-   // @todo Setup publisher for navigation control
+   // @todo Setup publisher for high level motor control
+    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motor_Control", 100);
 
    // @todo Setup publisher for center on line
 }
@@ -91,6 +94,8 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 
 void BuoysTask::performTask(void)
 {
+    Robosub::HighLevelControl highLevelControlMsg;
+
     // Initialize buoy values
     for(int i = 0; i < 3; i++)
     {
@@ -105,6 +110,7 @@ void BuoysTask::performTask(void)
     }
 
 //    1. find bouys - keep driving forward
+    m_highLevelMotorPublisher.
 
 //    2. Identify first buoy to bump - look at buoy array to determine which to use
 //    3. bump buoy - center on point and drive forward
