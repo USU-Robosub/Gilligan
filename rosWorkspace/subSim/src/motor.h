@@ -20,3 +20,14 @@ void setMotors(unsigned int mask,
 //  be adjusted
 //
 
+//Positive = forward
+void setDrive(int speed);
+
+//Positive = right
+void setStraf(int speed);
+
+//Positive = right
+void setTurn(int speed);
+
+//Positive = dive
+void setDive(int speed);
