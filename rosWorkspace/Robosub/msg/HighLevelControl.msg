@@ -1,3 +1,3 @@
-String Direction
-String MotionType
-Float32 Value
+string Direction
+string MotionType
+float32 Value
