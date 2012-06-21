@@ -66,8 +66,8 @@ SubAttitudeResolver::SubAttitudeResolver(std::string devName)
     m_residualMag[2] = 0.0;
 
     m_attitudePublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("IMU_Attitude", 100);
-    m_magDebugPublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("Mag_Debug", 100);
-    m_accelDebugPublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("Accel_Debug", 100);
+    //m_magDebugPublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("Mag_Debug", 100);
+    //m_accelDebugPublisher = m_nodeHandle.advertise<std_msgs::Float64MultiArray>("Accel_Debug", 100);
 }
 
 /**
@@ -75,7 +75,7 @@ SubAttitudeResolver::SubAttitudeResolver(std::string devName)
  */
 SubAttitudeResolver::~SubAttitudeResolver()
 {
-    m_serialPort.Close();
+
 }
 
 /**
@@ -84,7 +84,7 @@ SubAttitudeResolver::~SubAttitudeResolver()
 void SubAttitudeResolver::run()
 {
     printf("SubAttitudeResolver: Openning %s\n", m_devName.c_str());
-    m_serialPort.Open(m_devName.c_str(), 57600);
+    m_serialPort.openDevice(m_devName.c_str(), 57600, 0);
 
     ros::Rate loop_rate(100);
     int count = 0;
@@ -103,46 +103,50 @@ void SubAttitudeResolver::run()
 
     while(ros::ok())
     {
+//        struct timespec ts;
+//        clock_gettime(CLOCK_REALTIME, &ts);
+//        printf("%lu:%li\n", ts.tv_sec, ts.tv_nsec);
+
         // Sample gyro at 100 Hz
         sampleGyro(&rawGyroX, &rawGyroY, &rawGyroZ);
         updateOmega(rawGyroX, rawGyroY, rawGyroZ);
 
-        // Sample accel at 5 Hz
-        if((count % 20) == 0)
-        {
-            double accelReadingsDoubles[3];
+//        // Sample accel at 5 Hz
+//        if((count % 20) == 0)
+//        {
+//            double accelReadingsDoubles[3];
 
-            // Sample accelerometer
-            sampleAccel(&accelReadings[0], &accelReadings[1], &accelReadings[2]);
+//            // Sample accelerometer
+//            sampleAccel(&accelReadings[0], &accelReadings[1], &accelReadings[2]);
 
-            // Convert to doubles
-            accelReadingsDoubles[0] = accelReadings[0];
-            accelReadingsDoubles[1] = accelReadings[1];
-            accelReadingsDoubles[2] = accelReadings[2];
+//            // Convert to doubles
+//            accelReadingsDoubles[0] = accelReadings[0];
+//            accelReadingsDoubles[1] = accelReadings[1];
+//            accelReadingsDoubles[2] = accelReadings[2];
 
-            kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &accelR, m_PrAccel, m_residualAccel, true); // Accelerometer readings
+//            //kalmanUpdate(m_expectedAccel, accelReadingsDoubles, &accelR, m_PrAccel, m_residualAccel); // Accelerometer readings
 
-            //publishAccelDebug(m_residualAccel, m_PrAccel);
-        }
+//            //publishAccelDebug(m_residualAccel, m_PrAccel);
+//        }
 
-        // Sample mag at 10 Hz
-        if((count % 10) == 0)
-        {
-            double magReadingsDoubles[3];
+//        // Sample mag at 10 Hz
+//        if((count % 10) == 0)
+//        {
+//            double magReadingsDoubles[3];
 
-            // Sample magnetometer
-            sampleMag(&magReadings[0], &magReadings[1], &magReadings[2]);
+//            // Sample magnetometer
+//            sampleMag(&magReadings[0], &magReadings[1], &magReadings[2]);
 
-            // Convert to doubles
-            magReadingsDoubles[0] = magReadings[0];
-            magReadingsDoubles[1] = magReadings[1];
-            magReadingsDoubles[2] = magReadings[2];
+//            // Convert to doubles
+//            magReadingsDoubles[0] = magReadings[0];
+//            magReadingsDoubles[1] = magReadings[1];
+//            magReadingsDoubles[2] = magReadings[2];
 
-            // Run update with magnetometer readings
-            kalmanUpdate(m_expectedMag, magReadingsDoubles, &magR, m_PrMag, m_residualMag, false);
+//            // Run update with magnetometer readings
+//            //kalmanUpdate(m_expectedMag, magReadingsDoubles, &magR, m_PrMag, m_residualMag);
 
-            //publishMagDebug(m_residualMag, m_PrMag);
-        }
+//            //publishMagDebug(m_residualMag, m_PrMag);
+//        }
 
         kalmanPropagate();
 
@@ -161,6 +165,8 @@ void SubAttitudeResolver::run()
         ros::spinOnce();
         loop_rate.sleep();
     }
+
+    m_serialPort.closeDevice();
 }
 
 /**
@@ -297,7 +303,7 @@ void SubAttitudeResolver::calculateExpectedMag(void)
         sumY += rawY;
         sumZ += rawZ;
 
-        usleep(100000); // Mag should be sampled faster than 0.1 seconds
+        usleep(100000); // Mag should not be sampled faster than 0.1 seconds
     }
 
     m_expectedMag[0] = sumX / 5.0;
@@ -411,7 +417,7 @@ void SubAttitudeResolver::kalmanPropagate()
     m_P[5] = P_new[5];
 }
 
-void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual, bool isAccel)
+void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual)
 {
     double Ry[3]; // Rotate Inertial Vector to Body
     double detPr; // Determinat of Measurement Covariance
@@ -488,11 +494,6 @@ void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, doub
     residual[1] = y_b[1] - Ry[1];
     residual[2] = y_b[2] - Ry[2];
 
-//    if(isAccel && ((residual[0] > 3*sqrt(Pr[0])) || (residual[1] > 3*sqrt(Pr[3])) || (residual[2] > 3*sqrt(Pr[5]))))
-//    {
-//        return;
-//    }
-
     // Calculate Determinant of Measurement Covariance
     detPr = - Pr[5]*Pr[1]*Pr[1] + 2*Pr[1]*Pr[2]*Pr[4] - Pr[3]*Pr[2]*Pr[2] - Pr[0]*Pr[4]*Pr[4] + Pr[0]*Pr[3]*Pr[5];
 
@@ -566,7 +567,7 @@ void SubAttitudeResolver::kalmanUpdate(double* y_i, double* y_b, double* R, doub
 void SubAttitudeResolver::sampleGyro(short* pRawX, short* pRawY, short* pRawZ)
 {
     bool synched = false;
-    char readBuf[6];
+    unsigned char readBuf[6];
     int bytesRead = 0;
     char getGyroCommand = 'G';
 
@@ -576,9 +577,13 @@ void SubAttitudeResolver::sampleGyro(short* pRawX, short* pRawY, short* pRawZ)
     {
         while((bytesRead < 6) && (ros::ok()))
         {
-            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
+            if(m_serialPort.readSerial(&readBuf[bytesRead], 1) == 1)
             {
                 bytesRead++;
+            }
+            else
+            {
+                usleep(100);
             }
         }
 
@@ -601,7 +606,7 @@ void SubAttitudeResolver::sampleGyro(short* pRawX, short* pRawY, short* pRawZ)
 void SubAttitudeResolver::sampleAccel(short* pRawX, short* pRawY, short* pRawZ)
 {
     bool synched = false;
-    char readBuf[6];
+    unsigned char readBuf[6];
     int bytesRead = 0;
     char getAccelCommand = 'A';
 
@@ -611,9 +616,13 @@ void SubAttitudeResolver::sampleAccel(short* pRawX, short* pRawY, short* pRawZ)
     {
         while((bytesRead < 6) && (ros::ok()))
         {
-            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
+            if(m_serialPort.readSerial(&readBuf[bytesRead], 1) == 1)
             {
                 bytesRead++;
+            }
+            else
+            {
+                usleep(100);
             }
         }
 
@@ -636,7 +645,7 @@ void SubAttitudeResolver::sampleAccel(short* pRawX, short* pRawY, short* pRawZ)
 void SubAttitudeResolver::sampleMag(short* pRawX, short* pRawY, short* pRawZ)
 {
     bool synched = false;
-    char readBuf[6];
+    unsigned char readBuf[6];
     int bytesRead = 0;
     char getMagCommand = 'M';
 
@@ -646,9 +655,13 @@ void SubAttitudeResolver::sampleMag(short* pRawX, short* pRawY, short* pRawZ)
     {
         while((bytesRead < 6) && (ros::ok()))
         {
-            if(m_serialPort.Read(&readBuf[bytesRead], 1, 10) == 1)
+            if(m_serialPort.readSerial(&readBuf[bytesRead], 1) == 1)
             {
                 bytesRead++;
+            }
+            else
+            {
+                usleep(100);
             }
         }
 
@@ -661,7 +674,7 @@ void SubAttitudeResolver::sampleMag(short* pRawX, short* pRawY, short* pRawZ)
     }
 }
 
-bool SubAttitudeResolver::syncSerial(char command)
+bool SubAttitudeResolver::syncSerial(unsigned char command)
 {
     const unsigned char firstSync = 0xF1;
     const unsigned char secondSync = 0xF5;
@@ -673,23 +686,29 @@ bool SubAttitudeResolver::syncSerial(char command)
     // Read in sync chars
     while(!synched && ros::ok())
     {
-        m_serialPort.WriteChar(command);
+        m_serialPort.writeSerial(&command, 1);
 
-        bytesRead = m_serialPort.Read(&syncByte, 1, 100);
+        usleep(3000);
+
+        bytesRead = m_serialPort.readSerial(&syncByte, 1);
 
         if((bytesRead == 1) && (syncByte == firstSync))
         {
-            bytesRead = m_serialPort.Read(&syncByte, 1, 10);
+            bytesRead = m_serialPort.readSerial(&syncByte, 1);
 
             if((bytesRead == 1) && (syncByte == secondSync))
             {
-                bytesRead = m_serialPort.Read(&syncByte, 1, 10);
+                bytesRead = m_serialPort.readSerial(&syncByte, 1);
 
                 if((bytesRead == 1) && (syncByte == thirdSync))
                 {
                     synched = true;
                 }
             }
+        }
+        else
+        {
+            usleep(100);
         }
     }
 

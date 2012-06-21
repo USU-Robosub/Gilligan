@@ -3,5 +3,5 @@
 src/SubAttitudeResolverMain.cpp
 src/SubAttitudeResolver.hpp
 src/SubAttitudeResolver.cpp
-src/serialib.h
-src/serialib.cpp
+src/SerialDevice.hpp
+src/SerialDevice.cpp
