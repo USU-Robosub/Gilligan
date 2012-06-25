@@ -22,7 +22,7 @@ using namespace std;
 const bool VIEW_THRESHOLD = false;
 
 const int SAMPLE_SIZE = 6;
-const unsigned int MIN_POINTS = 30;
+const unsigned int MIN_POINTS = 10;
 
 const char TOPIC_ROOT[] = "image_recognition/";
 const char TOPIC_FORWARD[] = "";
@@ -149,7 +149,7 @@ Mat forwardThreshold, downwardThreshold;
 
 void initAlgorithms() {
 	algorithms.push_back(Algorithm(
-		true,
+		false,
 		"gate",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -164,8 +164,8 @@ void initAlgorithms() {
 		true,
 		"buoys/red",
 		CAMERA_FORWARD,
-		Scalar(135, 0, 30),
-		Scalar(200, 210, 120),
+		Scalar(135, 0, 75),
+		Scalar(255, 255, 110),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -176,8 +176,8 @@ void initAlgorithms() {
 		true,
 		"buoys/green",
 		CAMERA_FORWARD,
-		Scalar(110, 200, 110),
-		Scalar(130, 240, 200),
+		Scalar(0, 0, 0),
+		Scalar(130, 245, 125),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -188,8 +188,8 @@ void initAlgorithms() {
 		true,
 		"buoys/yellow",
 		CAMERA_FORWARD,
-		Scalar(95, 185, 160),
-		Scalar(115, 240, 220),
+		Scalar(0, 185, 110),
+		Scalar(130, 240, 140),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -197,7 +197,7 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		true,
+		false,
 		"obstacle_course",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -387,8 +387,8 @@ void genericCallback(
 	cvtColor(rotated.image, segmented, CV_BGR2HSV);
 
 	// Normalize brightness and copy back to BGR
-	normalizeValue(segmented, threshold);
-	cvtColor(segmented, rotated.image, CV_HSV2BGR);
+	//normalizeValue(segmented, threshold);
+	//cvtColor(segmented, rotated.image, CV_HSV2BGR);
 
 	// Iterate through all algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
@@ -397,7 +397,7 @@ void genericCallback(
 		if (algorithm.enabled && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
 					algorithm.maxThreshold, threshold);
-			bitwise_not(threshold, threshold);
+			//bitwise_not(threshold, threshold);
 			reduceNoise(threshold);
 			vector<Points> blobs = findBlobs(
 					threshold, offset, algorithm.maxBlobs);
@@ -432,9 +432,7 @@ void genericCallback(
 	}
 
 	// Publish annotated image
-	if (!VIEW_THRESHOLD) {
-		publisher.publish(rotated.toImageMsg());
-	}
+	publisher.publish(rotated.toImageMsg());
 }
 
 void forwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
