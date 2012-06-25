@@ -1,0 +1,9 @@
+string algorithm
+uint8 enabled
+uint8 max_h
+uint8 min_h
+uint8 max_s
+uint8 min_s
+uint8 max_v
+uint8 min_v
+uint8 scale_flags

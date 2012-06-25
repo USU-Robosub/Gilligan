@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES0
 
 #include <algorithm>
 #include <cv_bridge/cv_bridge.h>
@@ -10,9 +10,10 @@
 #include <string.h>
 #include <vector>
 
+#include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
 #include "SubImageRecognition/ListAlgorithms.h"
-#include "SubImageRecognition/SwitchAlgorithm.h"
+#include "SubImageRecognition/UpdateAlgorithm.h"
 
 using namespace cv;
 using namespace std;
@@ -451,20 +452,24 @@ bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Request& req,
 		SubImageRecognition::ListAlgorithms::Response& res) {
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		res.algorithms.push_back(algorithms.at(i).name);
+		// TODO
+		//res.algorithms.push_back(algorithms.at(i).name);
 	}
 	return true;
 }
 
-bool switchAlgorithmCallback(
-		SubImageRecognition::SwitchAlgorithm::Request& req,
-		SubImageRecognition::SwitchAlgorithm::Response& res) {
+bool updateAlgorithmCallback(
+		SubImageRecognition::UpdateAlgorithm::Request& req,
+		SubImageRecognition::UpdateAlgorithm::Response& res) {
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		// TODO
+		/*
 		if (req.algorithm.compare(algorithms.at(i).name) == 0) {
 			algorithms.at(i).enabled = (req.enabled != 0);
 			res.result = 1;
 			break;
 		}
+		*/
 	}
 	return true;
 }
@@ -482,10 +487,10 @@ int main(int argc, char **argv) {
 	ros::ServiceServer listAlgorithmsService = nodeHandle.advertiseService(
 			listAlgorithmsTopic, listAlgorithmsCallback);
 
-	string switchAlgorithmTopic(TOPIC_ROOT);
-	switchAlgorithmTopic += "switch_algorithm";
-	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
-			switchAlgorithmTopic, switchAlgorithmCallback);
+	string updateAlgorithmTopic(TOPIC_ROOT);
+	updateAlgorithmTopic += "update_algorithm";
+	ros::ServiceServer updateAlgorithmService = nodeHandle.advertiseService(
+			updateAlgorithmTopic, updateAlgorithmCallback);
 
 	image_transport::Subscriber forwardSubscriber =
 			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
