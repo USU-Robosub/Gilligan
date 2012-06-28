@@ -75,7 +75,7 @@ SubAttitudeResolver::SubAttitudeResolver(std::string devName)
  */
 SubAttitudeResolver::~SubAttitudeResolver()
 {
-
+    m_serialPort.closeDevice();
 }
 
 /**
@@ -165,8 +165,6 @@ void SubAttitudeResolver::run()
         ros::spinOnce();
         loop_rate.sleep();
     }
-
-    m_serialPort.closeDevice();
 }
 
 /**

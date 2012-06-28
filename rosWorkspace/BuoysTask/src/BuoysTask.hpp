@@ -45,6 +45,7 @@ private:
     ros::Subscriber m_yellowBuoySubcriber;
     ros::Subscriber m_redBuoySubcriber;
     ros::Subscriber m_taskStateSubscriber;
+    ros::Publisher m_highLevelMotorPublisher;
     BuoyColors m_firstToBump;
     BuoyColors m_secondToBump;
     bool m_isEnabled;

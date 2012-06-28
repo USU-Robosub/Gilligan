@@ -36,10 +36,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubImageRecognition
+CMAKE_SOURCE_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubImageRecognition
+CMAKE_BINARY_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -66,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/build/CMakeFiles /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubImageRecognition/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -94,19 +94,6 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
-
-#=============================================================================
-# Target rules for targets named ImageRecognition
-
-# Build rule for target.
-ImageRecognition: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ImageRecognition
-.PHONY : ImageRecognition
-
-# fast build rule for target.
-ImageRecognition/fast:
-	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/build
-.PHONY : ImageRecognition/fast
 
 #=============================================================================
 # Target rules for targets named ROSBUILD_genmsg_cpp
@@ -174,17 +161,17 @@ ROSBUILD_gensrv_lisp/fast:
 .PHONY : ROSBUILD_gensrv_lisp/fast
 
 #=============================================================================
-# Target rules for targets named ROSBUILD_gensrv_py
+# Target rules for targets named USUbConsole
 
 # Build rule for target.
-ROSBUILD_gensrv_py: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ROSBUILD_gensrv_py
-.PHONY : ROSBUILD_gensrv_py
+USUbConsole: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 USUbConsole
+.PHONY : USUbConsole
 
 # fast build rule for target.
-ROSBUILD_gensrv_py/fast:
-	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_py.dir/build.make CMakeFiles/ROSBUILD_gensrv_py.dir/build
-.PHONY : ROSBUILD_gensrv_py/fast
+USUbConsole/fast:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/build
+.PHONY : USUbConsole/fast
 
 #=============================================================================
 # Target rules for targets named clean-test-results
@@ -278,19 +265,6 @@ rospack_gensrv/fast:
 .PHONY : rospack_gensrv/fast
 
 #=============================================================================
-# Target rules for targets named rospack_gensrv_all
-
-# Build rule for target.
-rospack_gensrv_all: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 rospack_gensrv_all
-.PHONY : rospack_gensrv_all
-
-# fast build rule for target.
-rospack_gensrv_all/fast:
-	$(MAKE) -f CMakeFiles/rospack_gensrv_all.dir/build.make CMakeFiles/rospack_gensrv_all.dir/build
-.PHONY : rospack_gensrv_all/fast
-
-#=============================================================================
 # Target rules for targets named test
 
 # Build rule for target.
@@ -356,19 +330,79 @@ tests/fast:
 .PHONY : tests/fast
 
 # target to build an object file
-src/ImageRecognition.o:
-	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/src/ImageRecognition.o
-.PHONY : src/ImageRecognition.o
+src/SubConsole.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/SubConsole.o
+.PHONY : src/SubConsole.o
 
 # target to preprocess a source file
-src/ImageRecognition.i:
-	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/src/ImageRecognition.i
-.PHONY : src/ImageRecognition.i
+src/SubConsole.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/SubConsole.i
+.PHONY : src/SubConsole.i
 
 # target to generate assembly for a file
-src/ImageRecognition.s:
-	$(MAKE) -f CMakeFiles/ImageRecognition.dir/build.make CMakeFiles/ImageRecognition.dir/src/ImageRecognition.s
-.PHONY : src/ImageRecognition.s
+src/SubConsole.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/SubConsole.s
+.PHONY : src/SubConsole.s
+
+# target to build an object file
+src/attitude_indicator.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/attitude_indicator.o
+.PHONY : src/attitude_indicator.o
+
+# target to preprocess a source file
+src/attitude_indicator.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/attitude_indicator.i
+.PHONY : src/attitude_indicator.i
+
+# target to generate assembly for a file
+src/attitude_indicator.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/attitude_indicator.s
+.PHONY : src/attitude_indicator.s
+
+# target to build an object file
+src/main.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/main.o
+.PHONY : src/main.o
+
+# target to preprocess a source file
+src/main.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/main.i
+.PHONY : src/main.i
+
+# target to generate assembly for a file
+src/main.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/main.s
+.PHONY : src/main.s
+
+# target to build an object file
+src/moc_SubConsole.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_SubConsole.o
+.PHONY : src/moc_SubConsole.o
+
+# target to preprocess a source file
+src/moc_SubConsole.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_SubConsole.i
+.PHONY : src/moc_SubConsole.i
+
+# target to generate assembly for a file
+src/moc_SubConsole.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_SubConsole.s
+.PHONY : src/moc_SubConsole.s
+
+# target to build an object file
+src/moc_attitude_indicator.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_attitude_indicator.o
+.PHONY : src/moc_attitude_indicator.o
+
+# target to preprocess a source file
+src/moc_attitude_indicator.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_attitude_indicator.i
+.PHONY : src/moc_attitude_indicator.i
+
+# target to generate assembly for a file
+src/moc_attitude_indicator.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_attitude_indicator.s
+.PHONY : src/moc_attitude_indicator.s
 
 # Help Target
 help:
@@ -376,13 +410,12 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... ImageRecognition"
 	@echo "... ROSBUILD_genmsg_cpp"
 	@echo "... ROSBUILD_genmsg_lisp"
 	@echo "... ROSBUILD_genmsg_py"
 	@echo "... ROSBUILD_gensrv_cpp"
 	@echo "... ROSBUILD_gensrv_lisp"
-	@echo "... ROSBUILD_gensrv_py"
+	@echo "... USUbConsole"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
@@ -392,15 +425,26 @@ help:
 	@echo "... rospack_genmsg_all"
 	@echo "... rospack_genmsg_libexe"
 	@echo "... rospack_gensrv"
-	@echo "... rospack_gensrv_all"
 	@echo "... test"
 	@echo "... test-future"
 	@echo "... test-results"
 	@echo "... test-results-run"
 	@echo "... tests"
-	@echo "... src/ImageRecognition.o"
-	@echo "... src/ImageRecognition.i"
-	@echo "... src/ImageRecognition.s"
+	@echo "... src/SubConsole.o"
+	@echo "... src/SubConsole.i"
+	@echo "... src/SubConsole.s"
+	@echo "... src/attitude_indicator.o"
+	@echo "... src/attitude_indicator.i"
+	@echo "... src/attitude_indicator.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/moc_SubConsole.o"
+	@echo "... src/moc_SubConsole.i"
+	@echo "... src/moc_SubConsole.s"
+	@echo "... src/moc_attitude_indicator.o"
+	@echo "... src/moc_attitude_indicator.i"
+	@echo "... src/moc_attitude_indicator.s"
 .PHONY : help
 
 

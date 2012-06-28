@@ -34,8 +34,6 @@ public:
    void moboTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
    void depthCallback(const std_msgs::Float32::ConstPtr& msg);
-   void motorStateCallback(const std_msgs::UInt8::ConstPtr& msg);
-   void missionStateCallback(const std_msgs::UInt8::ConstPtr& msg);
    void forwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
    void downwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
    void currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
@@ -49,13 +47,12 @@ private:
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
+   ros::Publisher m_imageRecPublisher;              //!< Publishes to the image recognition topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Attitude topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_moboTempSubscriber;            //!< Subscribes to the Mobo_Temp topic
    ros::Subscriber m_pressureSubscriber;            //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_depthSubscriber;               //!< Subscribes to the Motor_Controller_Temp topic
-   ros::Subscriber m_motorStateSubscriber;          //!< Subscribes to the Pressure_Data topic
-   ros::Subscriber m_missionStateSubscriber;        //!< Subscribes to the Mission_State topic
    ros::Subscriber m_forwardCameraSubscriber;       //!< Subscribes to the Forward_Camera topic
    ros::Subscriber m_downwardCameraSubscriber;      //!< Subscribes to the Downward_Camera topic
    ros::Subscriber m_voltageCurrentSubscriber;      //!< Subscribes to the Computer_Cur_Volt topic
@@ -103,10 +100,16 @@ private slots:
    void joyConnect(void);
    void toggleDownwardPiP(void);
    void toggleForwardPiP(void);
-   void adjustFwdTurnMax(int sliderValue);
-   void adjustLeftThrustMax(int sliderValue);
-   void adjustRightThrustMax(int sliderValue);
-
+   void enableAlgorithm(void);
+   void disableAlgorithm(void);
+   void setThresholds(void);
+   void viewThresholds(void);
+   void adjustHueMin(int sliderValue);
+   void adjustHueMax(int sliderValue);
+   void adjustSatMin(int sliderValue);
+   void adjustSatMax(int sliderValue);
+   void adjustValMin(int sliderValue);
+   void adjustValMax(int sliderValue);
 };
 
 #endif // SUBCONSOLE_HPP

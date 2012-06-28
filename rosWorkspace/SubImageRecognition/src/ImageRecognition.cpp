@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES0
 
 #include <algorithm>
 #include <cv_bridge/cv_bridge.h>
@@ -10,23 +10,31 @@
 #include <string.h>
 #include <vector>
 
+#include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
 #include "SubImageRecognition/ListAlgorithms.h"
-#include "SubImageRecognition/SwitchAlgorithm.h"
+#include "SubImageRecognition/UpdateAlgorithm.h"
 
 using namespace cv;
 using namespace std;
 
 // CONSTANTS
 
-const bool VIEW_THRESHOLD = false;
-
 const int SAMPLE_SIZE = 6;
-const unsigned int MIN_POINTS = 30;
+const unsigned int MIN_POINTS = 10;
 
-const char TOPIC_ROOT[] = "image_recognition/";
-const char TOPIC_FORWARD[] = "";
-const char TOPIC_DOWNWARD[] = "";
+const char NAMESPACE_ROOT[] = "img_rec/";
+
+const char PARAM_FLAGS[] = "/flags"; // int (0+) see flag constants below
+const char PARAM_H_MAX[] = "/h_max"; // double (0-255)
+const char PARAM_H_MIN[] = "/h_min"; // double (0-255)
+const char PARAM_S_MAX[] = "/s_max"; // double (0-255)
+const char PARAM_S_MIN[] = "/s_min"; // double (0-255)
+const char PARAM_V_MAX[] = "/v_max"; // double (0-255)
+const char PARAM_V_MIN[] = "/v_min"; // double (0-255)
+
+const int FLAG_ENABLED = 1;
+const int FLAG_PUBLISH_THRESHOLD = 2;
 
 const int CAMERA_FORWARD = 0;
 const int CAMERA_DOWNWARD = 1;
@@ -44,9 +52,17 @@ const int ANNOTATION_RADIUS = 1;
 typedef vector<Point> Points;
 
 class Algorithm {
+private:
+	string buildParamName(const char* param) {
+		string paramName(NAMESPACE_ROOT);
+		paramName += name;
+		paramName += param;
+		return paramName;
+	}
+
 public:
-	bool enabled;
 	string name;
+	int flags;
 	int camera;
 	Scalar minThreshold;
 	Scalar maxThreshold;
@@ -58,46 +74,46 @@ public:
 	ros::Publisher publisher;
 
 	Algorithm(
-			bool _enabled,
 			string _name,
 			int _camera,
-			Scalar _minThreshold,
-			Scalar _maxThreshold,
 			int _analysisType,
 			int _maxBlobs,
 			int _confidenceType,
 			Scalar _annotationColor,
 			int _annotationType) {
-		// Correct hue values
-		_minThreshold[0] *= 179.0 / 255.0;
-		_maxThreshold[0] *= 179.0 / 255.0;
-
 		// Save class properties
-		enabled = _enabled;
 		name = _name;
 		camera = _camera;
-		minThreshold = _minThreshold;
-		maxThreshold = _maxThreshold;
 		analysisType = _analysisType;
 		maxBlobs = _maxBlobs;
 		confidenceType = _confidenceType;
 		annotationColor = _annotationColor;
 		annotationType = _annotationType;
 
-		// Prepare the publisher for use later on
+		// Retrieve persisted settings from parameter server
 		ros::NodeHandle nodeHandle;
-		string topic(TOPIC_ROOT);
-		switch (camera) {
-		case CAMERA_FORWARD:
-			topic += TOPIC_FORWARD;
-			break;
-		case CAMERA_DOWNWARD:
-			topic += TOPIC_DOWNWARD;
-			break;
-		}
-		topic += this->name;
-		this->publisher =
+		nodeHandle.param<int>(buildParamName(PARAM_FLAGS), flags, 0);
+		nodeHandle.param<double>(buildParamName(PARAM_H_MAX), maxThreshold[0], 255);
+		nodeHandle.param<double>(buildParamName(PARAM_H_MIN), minThreshold[0], 0);
+		nodeHandle.param<double>(buildParamName(PARAM_S_MAX), maxThreshold[1], 255);
+		nodeHandle.param<double>(buildParamName(PARAM_S_MIN), minThreshold[1], 0);
+		nodeHandle.param<double>(buildParamName(PARAM_V_MAX), maxThreshold[2], 255);
+		nodeHandle.param<double>(buildParamName(PARAM_V_MIN), minThreshold[2], 0);
+
+		// Fix hue thresholds
+		maxThreshold[0] *= 179.0 / 255.0;
+		minThreshold[0] *= 179.0 / 255.0;
+
+		// Prepare the publisher for use later on
+		string topic(NAMESPACE_ROOT);
+		topic += name;
+		publisher =
 				nodeHandle.advertise<SubImageRecognition::ImgRecObject>(topic, 1);
+	}
+
+	~Algorithm() {
+		// Save persisted settings on parameter server
+		//TODO
 	}
 };
 
@@ -149,11 +165,8 @@ Mat forwardThreshold, downwardThreshold;
 
 void initAlgorithms() {
 	algorithms.push_back(Algorithm(
-		true,
 		"gate",
 		CAMERA_FORWARD,
-		Scalar(0, 0, 0),
-		Scalar(250, 180, 60),
 		ANALYSIS_RECTANGLE,
 		2,
 		CONFIDENCE_RECTANGLE,
@@ -161,11 +174,8 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		true,
 		"buoys/red",
 		CAMERA_FORWARD,
-		Scalar(135, 0, 30),
-		Scalar(200, 210, 120),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -173,11 +183,8 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		true,
 		"buoys/green",
 		CAMERA_FORWARD,
-		Scalar(110, 200, 110),
-		Scalar(130, 240, 200),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -185,11 +192,8 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		true,
 		"buoys/yellow",
 		CAMERA_FORWARD,
-		Scalar(95, 185, 160),
-		Scalar(115, 240, 220),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -197,11 +201,8 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		true,
 		"obstacle_course",
 		CAMERA_FORWARD,
-		Scalar(0, 0, 0),
-		Scalar(120, 255, 210),
 		ANALYSIS_RECTANGLE,
 		3,
 		CONFIDENCE_RECTANGLE,
@@ -209,11 +210,8 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		true,
 		"paths",
 		CAMERA_DOWNWARD,
-		Scalar(5, 50, 50),
-		Scalar(15, 255, 255),
 		ANALYSIS_RECTANGLE,
 		2,
 		CONFIDENCE_RECTANGLE,
@@ -387,21 +385,20 @@ void genericCallback(
 	cvtColor(rotated.image, segmented, CV_BGR2HSV);
 
 	// Normalize brightness and copy back to BGR
-	normalizeValue(segmented, threshold);
-	cvtColor(segmented, rotated.image, CV_HSV2BGR);
+	//normalizeValue(segmented, threshold);
+	//cvtColor(segmented, rotated.image, CV_HSV2BGR);
 
 	// Iterate through all algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
 		Algorithm algorithm = algorithms.at(i);
 		// Run applicable algorithms
-		if (algorithm.enabled && algorithm.camera == camera) {
+		if ((algorithm.flags & FLAG_ENABLED) && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
 					algorithm.maxThreshold, threshold);
-			bitwise_not(threshold, threshold);
 			reduceNoise(threshold);
 			vector<Points> blobs = findBlobs(
 					threshold, offset, algorithm.maxBlobs);
-			if (VIEW_THRESHOLD) {
+			if (algorithm.flags & FLAG_PUBLISH_THRESHOLD) {
 				cv_bridge::CvImage temp;
 				temp.encoding = "mono8";
 				temp.image = threshold;
@@ -432,9 +429,7 @@ void genericCallback(
 	}
 
 	// Publish annotated image
-	if (!VIEW_THRESHOLD) {
-		publisher.publish(rotated.toImageMsg());
-	}
+	publisher.publish(rotated.toImageMsg());
 }
 
 void forwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
@@ -453,20 +448,24 @@ bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Request& req,
 		SubImageRecognition::ListAlgorithms::Response& res) {
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		res.algorithms.push_back(algorithms.at(i).name);
+		// TODO
+		//res.algorithms.push_back(algorithms.at(i).name);
 	}
 	return true;
 }
 
-bool switchAlgorithmCallback(
-		SubImageRecognition::SwitchAlgorithm::Request& req,
-		SubImageRecognition::SwitchAlgorithm::Response& res) {
+bool updateAlgorithmCallback(
+		SubImageRecognition::UpdateAlgorithm::Request& req,
+		SubImageRecognition::UpdateAlgorithm::Response& res) {
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		// TODO
+		/*
 		if (req.algorithm.compare(algorithms.at(i).name) == 0) {
 			algorithms.at(i).enabled = (req.enabled != 0);
 			res.result = 1;
 			break;
 		}
+		*/
 	}
 	return true;
 }
@@ -479,15 +478,15 @@ int main(int argc, char **argv) {
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
-	string listAlgorithmsTopic(TOPIC_ROOT);
+	string listAlgorithmsTopic(NAMESPACE_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
 	ros::ServiceServer listAlgorithmsService = nodeHandle.advertiseService(
 			listAlgorithmsTopic, listAlgorithmsCallback);
 
-	string switchAlgorithmTopic(TOPIC_ROOT);
-	switchAlgorithmTopic += "switch_algorithm";
-	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
-			switchAlgorithmTopic, switchAlgorithmCallback);
+	string updateAlgorithmTopic(NAMESPACE_ROOT);
+	updateAlgorithmTopic += "update_algorithm";
+	ros::ServiceServer updateAlgorithmService = nodeHandle.advertiseService(
+			updateAlgorithmTopic, updateAlgorithmCallback);
 
 	image_transport::Subscriber forwardSubscriber =
 			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
