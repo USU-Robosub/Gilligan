@@ -10,6 +10,7 @@
 
 #include "SubConsole.hpp"
 #include "USUbConsole/MotorMessage.h"
+#include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "ui_SubConsole.h"
 
 /**
@@ -83,6 +84,7 @@ SubConsole::SubConsole(QWidget* pParent)
 
    m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
    m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
+   m_imageRecPublisher = m_nodeHandle.advertise<SubImageRecognition::ImgRecAlgorithm>("Image_Rec", 100);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Attitude", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -530,23 +532,79 @@ void SubConsole::adjustValMax(int sliderValue)
     }
 }
 
-void SubConsole::enableAlgorithms(void)
+void SubConsole::enableAlgorithm(void)
 {
+    SubImageRecognition::imageRecMsg imageRecMsg;
 
+    imageRecMsg.algorithm = getSelectedAlgorithm();
+    imageRecMsg.flags = 1;
+
+    m_imageRecPublisher.publish(imageRecMsg);
 }
 
-void SubConsole::disableAlgorithms(void)
+void SubConsole::disableAlgorithm(void)
 {
-
+    printf("Disable aglorithm\n");
 }
 
 void SubConsole::setThresholds(void)
 {
+    SubImageRecognition::imageRecMsg imageRecMsg;
 
+    imageRecMsg.algorithm = getSelectedAlgorithm();
+    imageRecMsg.flags = 1;
+    imageRecMsg.h_max = m_pUi->hueMaxSlider->sliderPosition();
+    imageRecMsg.h_min = m_pUi->hueMinSlider->sliderPosition();
+    imageRecMsg.s_max = m_pUi->satMaxSlider->sliderPosition();
+    imageRecMsg.s_min = m_pUi->satMinSlider->sliderPosition();
+    imageRecMsg.v_max = m_pUi->valMaxSlider->sliderPosition();
+    imageRecMsg.v_min = m_pUi->valMinSlider->sliderPosition();
+
+    m_imageRecPublisher.publish(imageRecMsg);
 }
 
 void SubConsole::viewThresholds(void)
 {
+    SubImageRecognition::imageRecMsg imageRecMsg;
 
+    imageRecMsg.algorithm = getSelectedAlgorithm();
+    imageRecMsg.flags = 2;
+
+    m_imageRecPublisher.publish(imageRecMsg);
+}
+
+std::string SubConsole::getSelectedAlgorithm(void)
+{
+    std::string selected = "";
+    if (m_pUi->algorithmComboBox->currentText() == "Red Buoy")
+    {
+        selected = "buoys/red";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Green Buoy")
+    {
+        selected = "buoys/green";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Yellow Buoy")
+    {
+        selected = "buoys/yellow";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Gate")
+    {
+        selected = "gate";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Obstable Course")
+    {
+        selected = "obstacleCourse";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Torpedo Target")
+    {
+        selected = "torpedo";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Path")
+    {
+        selected = "path";
+    }
+
+    return selected;
 }
 

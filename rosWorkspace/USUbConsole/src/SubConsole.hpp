@@ -47,6 +47,7 @@ private:
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
+   ros::Publisher m_imageRecPublisher;              //!< Publishes to the image recognition topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Attitude topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_moboTempSubscriber;            //!< Subscribes to the Mobo_Temp topic
@@ -99,8 +100,8 @@ private slots:
    void joyConnect(void);
    void toggleDownwardPiP(void);
    void toggleForwardPiP(void);
-   void enableAlgorithms(void);
-   void disableAlgorithms(void);
+   void enableAlgorithm(void);
+   void disableAlgorithm(void);
    void setThresholds(void);
    void viewThresholds(void);
    void adjustHueMin(int sliderValue);
