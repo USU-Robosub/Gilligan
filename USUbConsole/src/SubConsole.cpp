@@ -31,7 +31,6 @@ SubConsole::SubConsole(QWidget* pParent)
      m_moboTempSubscriber(),
      m_pressureSubscriber(),
      m_depthSubscriber(),
-     m_motorStateSubscriber(),
      m_forwardCameraSubscriber(),
      m_downwardCameraSubscriber(),
      m_voltageCurrentSubscriber(),
@@ -60,9 +59,16 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
-   connect(m_pUi->turnThrustFwdSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustFwdTurnMax(int)));
-   connect(m_pUi->leftThrustSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustLeftThrustMax(int)));
-   connect(m_pUi->rightThrustSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustRightThrustMax(int)));
+   connect(m_pUi->enableAlgorithmButton, SIGNAL(clicked()), this, SLOT(enableAlgorithm()));
+   connect(m_pUi->disableAlgorithmButton, SIGNAL(clicked()), this, SLOT(disableAlgorithm()));
+   connect(m_pUi->setThresholdsButton, SIGNAL(clicked()), this, SLOT(setThresholds()));
+   connect(m_pUi->viewThresholdsButton, SIGNAL(clicked()), this, SLOT(viewThresholds()));
+   connect(m_pUi->hueMinSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustHueMin(int)));
+   connect(m_pUi->hueMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustHueMax(int)));
+   connect(m_pUi->satMinSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustSatMin(int)));
+   connect(m_pUi->satMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustSatMax(int)));
+   connect(m_pUi->valMinSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustValMin(int)));
+   connect(m_pUi->valMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustValMax(int)));
 
    m_pCallbackTimer->start();
 
@@ -83,7 +89,6 @@ SubConsole::SubConsole(QWidget* pParent)
    m_moboTempSubscriber = m_nodeHandle.subscribe("Mobo_Temp", 100, &SubConsole::moboTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_depthSubscriber = m_nodeHandle.subscribe("Sub_Depth", 100, &SubConsole::depthCallback, this);
-   m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State", 100, &SubConsole::motorStateCallback, this);
    m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_compressed/compressed", 100, &SubConsole::forwardCameraCallback, this);
    m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
    m_voltageCurrentSubscriber = m_nodeHandle.subscribe("Computer_Cur_Volt", 100, &SubConsole::currentVoltageCallback, this);
@@ -356,44 +361,6 @@ void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
 }
 
 /**
- * @brief ROS callback for Motor_State subscription
- *
- * @param msg The received message
- **/
-void SubConsole::motorStateCallback(const std_msgs::UInt8::ConstPtr& msg)
-{
-   bool motorEnabled = msg->data;
-
-   if(motorEnabled)
-   {
-      m_pUi->motorStateLineEdit->setText("Enabled");
-   }
-   else
-   {
-      m_pUi->motorStateLineEdit->setText("Disabled");
-   }
-}
-
-/**
- * @brief ROS callback for Mission_State subscription
- *
- * @param msg The received message
- **/
-void SubConsole::missionStateCallback(const std_msgs::UInt8::ConstPtr& msg)
-{
-   bool missionEnabled = msg->data;
-
-   if(missionEnabled)
-   {
-      m_pUi->missionStateLineEdit->setText("Enabled");
-   }
-   else
-   {
-      m_pUi->missionStateLineEdit->setText("Disabled");
-   }
-}
-
-/**
  * @brief ROS callback for Computer_Cur_Volt subscription
  *
  * @param msg The received message
@@ -497,34 +464,89 @@ void SubConsole::toggleForwardPiP(void)
     }
 }
 
-/**
- * @brief Called when the turn thruster fwd thrust percentage slider is moved
- *
- * @param sliderValue The value of the slider
- **/
-void SubConsole::adjustFwdTurnMax(int sliderValue)
+void SubConsole::adjustHueMin(int sliderValue)
 {
-    QString percentString = QString::number(sliderValue);
+    if (sliderValue > m_pUi->hueMaxSlider->sliderPosition())
+    {
+        m_pUi->hueMinSlider->setSliderPosition(m_pUi->hueMaxSlider->sliderPosition());
+        sliderValue = m_pUi->hueMaxSlider->sliderPosition();
+    }
 
-    percentString += "% FwdTurn Limit";
-    m_turnForwardPercentage = sliderValue / 100.0;
-    m_pUi->turnFwdPercentageLabel->setText(percentString);
+    m_pUi->hueMinLineEdit->setText(QString::number(sliderValue));
 }
 
-void SubConsole::adjustLeftThrustMax(int sliderValue)
+void SubConsole::adjustHueMax(int sliderValue)
 {
-    QString percentString = QString::number(sliderValue);
+    if (sliderValue < m_pUi->hueMinSlider->sliderPosition())
+    {
+        m_pUi->hueMaxSlider->setSliderPosition(m_pUi->hueMinSlider->sliderPosition());
+        sliderValue = m_pUi->hueMinSlider->sliderPosition();
+    }
 
-    percentString += "% Left Thrust";
-    m_leftThrustPercentage = sliderValue / 100.0;
-    m_pUi->leftThrustPercentageLabel->setText(percentString);
+    m_pUi->hueMaxLineEdit->setText(QString::number(sliderValue));
 }
 
-void SubConsole::adjustRightThrustMax(int sliderValue)
+void SubConsole::adjustSatMin(int sliderValue)
 {
-    QString percentString = QString::number(sliderValue);
+    if (sliderValue > m_pUi->satMaxSlider->sliderPosition())
+    {
+        m_pUi->satMinSlider->setSliderPosition(m_pUi->satMaxSlider->sliderPosition());
+        sliderValue = m_pUi->satMaxSlider->sliderPosition();
+    }
 
-    percentString += "% Right Thrust";
-    m_rightThrustPercentage = sliderValue / 100.0;
-    m_pUi->rightThrustPercentageLabel->setText(percentString);
+    m_pUi->satMinLineEdit->setText(QString::number(sliderValue));
 }
+
+void SubConsole::adjustSatMax(int sliderValue)
+{
+    m_pUi->satMaxLineEdit->setText(QString::number(sliderValue));
+
+    if (sliderValue < m_pUi->satMinSlider->sliderPosition())
+    {
+        m_pUi->satMaxSlider->setSliderPosition(m_pUi->satMinSlider->sliderPosition());
+        sliderValue = m_pUi->satMinSlider->sliderPosition();
+    }
+}
+
+void SubConsole::adjustValMin(int sliderValue)
+{
+    if (sliderValue > m_pUi->valMaxSlider->sliderPosition())
+    {
+        m_pUi->valMinSlider->setSliderPosition(m_pUi->valMaxSlider->sliderPosition());
+        sliderValue = m_pUi->valMaxSlider->sliderPosition();
+    }
+
+    m_pUi->valMinLineEdit->setText(QString::number(sliderValue));
+}
+
+void SubConsole::adjustValMax(int sliderValue)
+{
+    m_pUi->valMaxLineEdit->setText(QString::number(sliderValue));
+
+    if (sliderValue < m_pUi->valMinSlider->sliderPosition())
+    {
+        m_pUi->valMaxSlider->setSliderPosition(m_pUi->valMinSlider->sliderPosition());
+        sliderValue = m_pUi->valMinSlider->sliderPosition();
+    }
+}
+
+void SubConsole::enableAlgorithms(void)
+{
+
+}
+
+void SubConsole::disableAlgorithms(void)
+{
+
+}
+
+void SubConsole::setThresholds(void)
+{
+
+}
+
+void SubConsole::viewThresholds(void)
+{
+
+}
+
