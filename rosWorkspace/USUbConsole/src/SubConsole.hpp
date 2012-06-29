@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <vector>
 
 #include "joystick.h"
 #include "qwt/qwt_compass.h"
@@ -16,6 +17,7 @@
 #include "std_msgs/Int16.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/CompressedImage.h"
+#include "SubImageRecognition/ImgRecAlgorithm.h"
 
 namespace Ui
 {
@@ -47,7 +49,8 @@ private:
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
-   ros::Publisher m_imageRecPublisher;              //!< Publishes to the image recognition topic
+   ros::ServiceClient m_imageRecService;            //!< Publishes to the image recognition topic
+   ros::ServiceClient m_listAlgorithmService;       //!< Publishes to the image recognition topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Attitude topic
    ros::Subscriber m_motorControllerTempSubscriber; //!< Subscribes to the Motor_Controller_Temp topic
    ros::Subscriber m_moboTempSubscriber;            //!< Subscribes to the Mobo_Temp topic
@@ -75,6 +78,8 @@ private:
    AttitudeIndicator* m_pPitchIndicator;     //!< Qwt attitude indicator used for pitch
    AttitudeIndicator* m_pRollIndicator;      //!< Qwt attitude indicator used for roll
 
+   std::vector<SubImageRecognition::ImgRecAlgorithm> m_algorithmSettings;
+
    /**
     * @brief Class constants and mask values
     */
@@ -93,6 +98,7 @@ private:
    };
 
    void sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn);
+   std::string getSelectedAlgorithm(void);
 
 private slots:
    void readJoystickInput(void);
@@ -102,14 +108,15 @@ private slots:
    void toggleForwardPiP(void);
    void enableAlgorithm(void);
    void disableAlgorithm(void);
-   void setThresholds(void);
    void viewThresholds(void);
+   void getThresholds(void);
    void adjustHueMin(int sliderValue);
    void adjustHueMax(int sliderValue);
    void adjustSatMin(int sliderValue);
    void adjustSatMax(int sliderValue);
    void adjustValMin(int sliderValue);
    void adjustValMax(int sliderValue);
+   void selectedAlgorithmChanged(const QString& selected);
 };
 
 #endif // SUBCONSOLE_HPP

@@ -407,13 +407,18 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>180</width>
+       <width>187</width>
        <height>111</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QComboBox" name="algorithmComboBox">
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
         <item>
          <property name="text">
           <string>Red Buoy</string>
@@ -456,7 +461,7 @@
         <item>
          <widget class="QPushButton" name="enableAlgorithmButton">
           <property name="text">
-           <string>Enable</string>
+           <string>Enable/Set</string>
           </property>
          </widget>
         </item>
@@ -470,16 +475,16 @@
        </layout>
       </item>
       <item>
-       <widget class="QPushButton" name="setThresholdsButton">
+       <widget class="QPushButton" name="viewThresholdsButton">
         <property name="text">
-         <string>Set Thresholds</string>
+         <string>Enable/Set/View</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="viewThresholdsButton">
+       <widget class="QPushButton" name="getThresholdsButton">
         <property name="text">
-         <string>View Thresholds</string>
+         <string>Get Current Thresholds</string>
         </property>
        </widget>
       </item>
