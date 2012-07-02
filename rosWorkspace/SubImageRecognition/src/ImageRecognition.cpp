@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES0
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cv_bridge/cv_bridge.h>
@@ -60,6 +60,17 @@ private:
 		return paramName;
 	}
 
+	void saveSettings() {
+		ros::NodeHandle nodeHandle;
+		nodeHandle.setParam(buildParamName(PARAM_FLAGS), flags);
+		nodeHandle.setParam(buildParamName(PARAM_H_MAX), maxThreshold[0] * 255.0 / 179.0);
+		nodeHandle.setParam(buildParamName(PARAM_H_MIN), minThreshold[0] * 255.0 / 179.0);
+		nodeHandle.setParam(buildParamName(PARAM_S_MAX), maxThreshold[1]);
+		nodeHandle.setParam(buildParamName(PARAM_S_MIN), minThreshold[1]);
+		nodeHandle.setParam(buildParamName(PARAM_V_MAX), maxThreshold[2]);
+		nodeHandle.setParam(buildParamName(PARAM_V_MIN), minThreshold[2]);
+	}
+
 public:
 	string name;
 	int flags;
@@ -76,6 +87,8 @@ public:
 	Algorithm(
 			string _name,
 			int _camera,
+			Scalar _minThreshold,
+			Scalar _maxThreshold,
 			int _analysisType,
 			int _maxBlobs,
 			int _confidenceType,
@@ -92,17 +105,19 @@ public:
 
 		// Retrieve persisted settings from parameter server
 		ros::NodeHandle nodeHandle;
-		nodeHandle.param<int>(buildParamName(PARAM_FLAGS), flags, 0);
-		nodeHandle.param<double>(buildParamName(PARAM_H_MAX), maxThreshold[0], 255);
-		nodeHandle.param<double>(buildParamName(PARAM_H_MIN), minThreshold[0], 0);
-		nodeHandle.param<double>(buildParamName(PARAM_S_MAX), maxThreshold[1], 255);
-		nodeHandle.param<double>(buildParamName(PARAM_S_MIN), minThreshold[1], 0);
-		nodeHandle.param<double>(buildParamName(PARAM_V_MAX), maxThreshold[2], 255);
-		nodeHandle.param<double>(buildParamName(PARAM_V_MIN), minThreshold[2], 0);
+		nodeHandle.param<int>(buildParamName(PARAM_FLAGS), flags, 1);
+		nodeHandle.param<double>(buildParamName(PARAM_H_MAX), maxThreshold[0], _maxThreshold[0]);
+		nodeHandle.param<double>(buildParamName(PARAM_H_MIN), minThreshold[0], _minThreshold[0]);
+		nodeHandle.param<double>(buildParamName(PARAM_S_MAX), maxThreshold[1], _maxThreshold[1]);
+		nodeHandle.param<double>(buildParamName(PARAM_S_MIN), minThreshold[1], _minThreshold[1]);
+		nodeHandle.param<double>(buildParamName(PARAM_V_MAX), maxThreshold[2], _maxThreshold[2]);
+		nodeHandle.param<double>(buildParamName(PARAM_V_MIN), minThreshold[2], _minThreshold[2]);
 
 		// Fix hue thresholds
 		maxThreshold[0] *= 179.0 / 255.0;
 		minThreshold[0] *= 179.0 / 255.0;
+
+		saveSettings();
 
 		// Prepare the publisher for use later on
 		string topic(NAMESPACE_ROOT);
@@ -111,9 +126,28 @@ public:
 				nodeHandle.advertise<SubImageRecognition::ImgRecObject>(topic, 1);
 	}
 
-	~Algorithm() {
-		// Save persisted settings on parameter server
-		//TODO
+	void updateSettings(SubImageRecognition::ImgRecAlgorithm& a) {
+		flags = (int) a.flags;
+		maxThreshold[0] = ((double) a.h_max) * 179.0 / 255.0;
+		minThreshold[0] = ((double) a.h_min) * 179.0 / 255.0;
+		maxThreshold[1] = (double) a.s_max;
+		minThreshold[1] = (double) a.s_min;
+		maxThreshold[2] = (double) a.v_max;
+		minThreshold[2] = (double) a.v_min;
+
+		saveSettings();
+	}
+
+	SubImageRecognition::ImgRecAlgorithm toImgRecAlgorithm() {
+		SubImageRecognition::ImgRecAlgorithm alg;
+		alg.algorithm = name;
+		alg.h_max = (int) ((maxThreshold[0] * 255.0 / 179.0) + 0.5);
+		alg.h_min = (int) ((minThreshold[0] * 255.0 / 179.0) + 0.5);
+		alg.s_max = maxThreshold[1];
+		alg.s_min = minThreshold[1];
+		alg.v_max = maxThreshold[2];
+		alg.v_min = minThreshold[2];
+		return alg;
 	}
 };
 
@@ -167,6 +201,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"gate",
 		CAMERA_FORWARD,
+		Scalar(0, 0, 0),
+		Scalar(250, 180, 60),
 		ANALYSIS_RECTANGLE,
 		2,
 		CONFIDENCE_RECTANGLE,
@@ -176,6 +212,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"buoys/red",
 		CAMERA_FORWARD,
+		Scalar(135, 0, 75),
+		Scalar(255, 255, 110),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -185,6 +223,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"buoys/green",
 		CAMERA_FORWARD,
+		Scalar(0, 0, 0),
+		Scalar(130, 245, 125),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -194,6 +234,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"buoys/yellow",
 		CAMERA_FORWARD,
+		Scalar(0, 185, 110),
+		Scalar(130, 240, 140),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -203,6 +245,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"obstacle_course",
 		CAMERA_FORWARD,
+		Scalar(0, 0, 0),
+		Scalar(120, 255, 210),
 		ANALYSIS_RECTANGLE,
 		3,
 		CONFIDENCE_RECTANGLE,
@@ -212,6 +256,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"paths",
 		CAMERA_DOWNWARD,
+		Scalar(5, 50, 50),
+		Scalar(15, 255, 255),
 		ANALYSIS_RECTANGLE,
 		2,
 		CONFIDENCE_RECTANGLE,
@@ -296,6 +342,7 @@ vector<Points> findBlobs(Mat& image,
 		return allBlobs;
 	}
 	// Otherwise limit to the biggest 'maxBlobs' blobs
+	// TODO: This seems to be taking the smallest blobs rather than the biggest
 	make_heap(allBlobs.begin(), allBlobs.end(), compareBlobs);
 	vector<Points> blobs = vector<Points>();
 	blobs.push_back(allBlobs.front());
@@ -447,9 +494,9 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Request& req,
 		SubImageRecognition::ListAlgorithms::Response& res) {
+	printf("[SubImageRecognition] Received call to listAlgorithms()\n");
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		// TODO
-		//res.algorithms.push_back(algorithms.at(i).name);
+		res.algorithms.push_back(algorithms.at(i).toImgRecAlgorithm());
 	}
 	return true;
 }
@@ -457,15 +504,18 @@ bool listAlgorithmsCallback(
 bool updateAlgorithmCallback(
 		SubImageRecognition::UpdateAlgorithm::Request& req,
 		SubImageRecognition::UpdateAlgorithm::Response& res) {
+	SubImageRecognition::ImgRecAlgorithm a = req.algorithm;
+	printf("[SubImageRecognition] Received call to updateAlgorithm()\n");
+	printf("\talgorithm: %s, flags: %u, hue: %u-%u, sat: %u-%u, val: %u-%u\n",
+			a.algorithm.c_str(), a.flags, a.h_min, a.h_max,
+			a.s_min, a.s_max, a.v_min, a.v_max);
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		// TODO
-		/*
-		if (req.algorithm.compare(algorithms.at(i).name) == 0) {
-			algorithms.at(i).enabled = (req.enabled != 0);
+		Algorithm algorithm = algorithms.at(i);
+		if (a.algorithm.compare(algorithm.name) == 0) {
+			algorithm.updateSettings(a);
 			res.result = 1;
 			break;
 		}
-		*/
 	}
 	return true;
 }
@@ -497,4 +547,3 @@ int main(int argc, char **argv) {
 	ros::spin();
 	return 0;
 }
-
