@@ -1,8 +1,0 @@
-/home/bryhansen/ros_workspace/robosub/USUbConsole/src/main.cpp
-/home/bryhansen/ros_workspace/robosub/USUbConsole/src/SubConsole.cpp
-/home/bryhansen/ros_workspace/robosub/USUbConsole/src/SubConsole.hpp
-/home/bryhansen/ros_workspace/robosub/USUbConsole/src/SubConsole.ui
-/home/bryhansen/ros_workspace/robosub/USUbConsole/CMakeLists.txt
-/home/bryhansen/ros_workspace/robosub/USUbConsole/manifest.xml
-src/attitude_indicator.h
-src/attitude_indicator.cpp

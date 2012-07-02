@@ -12,7 +12,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/Int16.h"
-#include "SerialDevice.hpp"
+#include "serialib.h"
 
 /**
  * @brief Class responsible for performing a kalman filter to determine attitude and publish it
@@ -38,7 +38,7 @@ class SubAttitudeResolver
       void calculateGyroBias(void);
       void calculateExpectedAccel(void);
       void calculateExpectedMag(void);
-      bool syncSerial(unsigned char command);
+      bool syncSerial(char command);
 
       ros::NodeHandle m_nodeHandle;          //!< ROS node handle
       ros::Publisher m_attitudePublisher;    //!< Publishes the Sub_Attitude topic
@@ -61,7 +61,7 @@ class SubAttitudeResolver
       double m_expectedAccel[3];   //!< Expected reading for accelerometer
       double m_expectedMag[3];     //!< Expected reading for magnetometer
 
-      SerialDevice m_serialPort;  //!< Serial port used for communication
+      serialib m_serialPort;  //!< Serial port used for communication
       std::string m_devName;  //!< IMU device location to open
 
       static const double pi = 3.14159265358979;
