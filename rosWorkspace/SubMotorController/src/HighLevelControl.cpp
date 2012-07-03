@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
-#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "Robosub/HighLevelControl.h"
 #include "SubMotorController/MotorMessage.h"
 
@@ -65,6 +65,12 @@ void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 	} else if (msg->Direction == "Forward" && msg->MotionType == "Manual") {
 		ForwardMode = MANUAL;
 		ForwardSpeed = msg->Value;
+	} else if(msg->Direction == "Turn" && msg->MotionType == "Offset") {
+		TurnMode = AUTOMATIC;
+		TurnOffset = msg->Value;
+	} else if (msg->Direction == "Turn" && msg->MotionType == "Manual") {
+		TurnMode = MANUAL;
+		TurnSpeed = msg->Value;
 	} else if(msg->Direction == "Straf" && msg->MotionType == "Offset") {
 		StrafMode = AUTOMATIC;
 		StrafOffset = msg->Value;
@@ -109,15 +115,17 @@ void sendMotorMessage(unsigned int mask, int FR, int FL, int TR, int TF, int DR,
 void updateDepth(std_msgs::Float32::ConstPtr msg) {
 	DepthOffset = DepthOffset + CurrentDepth - msg->data;
 	CurrentDepth = msg->data;
-	printf("DepthOffset = %f\n", DepthOffset);
+//	printf("DepthOffset = %f\n", DepthOffset);
 }
 
-void updateAttitude(const std_msgs::Float32MultiArray::ConstPtr msg) {
+void updateAttitude(const std_msgs::Float64MultiArray::ConstPtr msg) {
 	YawOffset = YawOffset + CurrentYaw - msg->data[0];
+	TurnOffset = TurnOffset + CurrentYaw - msg->data[0];
 	CurrentYaw = msg->data[0];
 
 	PitchOffset = PitchOffset + CurrentPitch - msg->data[1];
 	CurrentPitch = msg->data[1];
+	printf("Turn Message = %lf\n", msg->data[0]);
 }
 
 void UpdateForwardVelocity() {
@@ -151,11 +159,9 @@ int CalcDepth() {
 
 int CalcTurn() {
 	if(TurnMode == AUTOMATIC) {
-		double speed = TurnOffset / 20;
-		return sanatize(speed * 255.0);
-	} else {
-		return TurnSpeed;
+		TurnSpeed = sanatize(TurnOffset / 8.0 * 255)/4;
 	}
+	return TurnSpeed;
 }
 
 int CalcStraf() {
@@ -182,8 +188,8 @@ void ManageForwardThrusters() {
 	UpdateForwardVelocity();
 	if(ForwardMode == AUTOMATIC) {
 		ForwardOffset -= ForwardVelocity;
-		printf("forward offset = %f\n", ForwardOffset);
-		printf("forward velocity = %f\n", ForwardVelocity);
+//		printf("forward offset = %f\n", ForwardOffset);
+//		printf("forward velocity = %f\n", ForwardVelocity);
 		double speed = ForwardOffset / 1.5;
 		ForwardSpeed = sanatize(speed * 255.0);
 	}
@@ -212,6 +218,8 @@ void ManageTurnThrusters() {
 	   FrontThrust != currentValueFront) {
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
 				0, 0, RearThrust, FrontThrust, 0, 0);
+		currentValueRear = RearThrust;
+		currentValueFront = FrontThrust;
 	}
 }
 
@@ -237,11 +245,11 @@ void ManageDepthThrusters() {
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "HighLevelControl");
 	ros::NodeHandle nh;
-	ros::Publisher motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Controller", 1);
+	ros::Publisher motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Control", 1);
 	motorPub = &motorPublisher;
-	ros::Subscriber DepthSub = nh.subscribe("/Sub_Depth", 1, updateDepth);
-	ros::Subscriber AttitudeSub = nh.subscribe("/Sub_Attitude", 1, updateAttitude);
-	ros::Subscriber CommandSub = nh.subscribe("/High_Level_Motion", 100, commandCallback);
+	ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
+	ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
+	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 100, commandCallback);
 
 	while(ros::ok()) {
 		ManageForwardThrusters();
