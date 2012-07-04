@@ -320,7 +320,7 @@ Points findBlob(Mat& image, int i, int j) {
 }
 
 bool compareBlobs(Points& blob0, Points& blob1) {
-	return blob0.size() > blob1.size();
+	return blob0.size() < blob1.size();
 }
 
 vector<Points> findBlobs(Mat& image,
@@ -342,7 +342,6 @@ vector<Points> findBlobs(Mat& image,
 		return allBlobs;
 	}
 	// Otherwise limit to the biggest 'maxBlobs' blobs
-	// TODO: This seems to be taking the smallest blobs rather than the biggest
 	make_heap(allBlobs.begin(), allBlobs.end(), compareBlobs);
 	vector<Points> blobs = vector<Points>();
 	blobs.push_back(allBlobs.front());
