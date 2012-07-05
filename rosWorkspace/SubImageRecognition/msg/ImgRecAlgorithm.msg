@@ -1,4 +1,4 @@
-string algorithm
+string name
 uint8 flags
 uint8 h_max
 uint8 h_min

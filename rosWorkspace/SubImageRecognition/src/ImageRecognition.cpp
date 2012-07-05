@@ -140,7 +140,8 @@ public:
 
 	SubImageRecognition::ImgRecAlgorithm toImgRecAlgorithm() {
 		SubImageRecognition::ImgRecAlgorithm alg;
-		alg.algorithm = name;
+		alg.name = name;
+		alg.flags = flags;
 		alg.h_max = (int) ((maxThreshold[0] * 255.0 / 179.0) + 0.5);
 		alg.h_min = (int) ((minThreshold[0] * 255.0 / 179.0) + 0.5);
 		alg.s_max = maxThreshold[1];
@@ -148,6 +149,12 @@ public:
 		alg.v_max = maxThreshold[2];
 		alg.v_min = minThreshold[2];
 		return alg;
+	}
+
+	void print() {
+		printf("algorithm:{name: %s, flags: %i, hue: %f-%f, sat: %f-%f, val: %f-%f}\n",
+			name.c_str(), flags, minThreshold[0], maxThreshold[0],
+			minThreshold[1], maxThreshold[1], minThreshold[2], maxThreshold[2]);
 	}
 };
 
@@ -436,7 +443,7 @@ void genericCallback(
 
 	// Iterate through all algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		Algorithm algorithm = algorithms.at(i);
+		Algorithm algorithm = algorithms[i];
 		// Run applicable algorithms
 		if ((algorithm.flags & FLAG_ENABLED) && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
@@ -452,9 +459,8 @@ void genericCallback(
 			}
 			// Iterate through all blobs
 			for (unsigned int j = 0; j < blobs.size(); j++) {
-				Points blob = blobs.at(j);
 				vector<BlobAnalysis> analysisList =
-						analyzeBlob(algorithm, blob, rotated.image);
+						analyzeBlob(algorithm, blobs[j], rotated.image);
 				// Iterate through all blob analysis objects
 				for (unsigned int k = 0; k < analysisList.size(); k++) {
 					BlobAnalysis analysis = analysisList[k];
@@ -495,7 +501,7 @@ bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Response& res) {
 	printf("[SubImageRecognition] Received call to listAlgorithms()\n");
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		res.algorithms.push_back(algorithms.at(i).toImgRecAlgorithm());
+		res.algorithms.push_back(algorithms[i].toImgRecAlgorithm());
 	}
 	return true;
 }
@@ -505,13 +511,12 @@ bool updateAlgorithmCallback(
 		SubImageRecognition::UpdateAlgorithm::Response& res) {
 	SubImageRecognition::ImgRecAlgorithm a = req.algorithm;
 	printf("[SubImageRecognition] Received call to updateAlgorithm()\n");
-	printf("\talgorithm: %s, flags: %u, hue: %u-%u, sat: %u-%u, val: %u-%u\n",
-			a.algorithm.c_str(), a.flags, a.h_min, a.h_max,
+	printf("\tname: %s, flags: %u, hue: %u-%u, sat: %u-%u, val: %u-%u\n",
+			a.name.c_str(), a.flags, a.h_min, a.h_max,
 			a.s_min, a.s_max, a.v_min, a.v_max);
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		Algorithm algorithm = algorithms.at(i);
-		if (a.algorithm.compare(algorithm.name) == 0) {
-			algorithm.updateSettings(a);
+		if (a.name.compare(algorithms[i].name) == 0) {
+			algorithms[i].updateSettings(a);
 			res.result = 1;
 			break;
 		}
