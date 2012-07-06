@@ -1,8 +1,8 @@
 #ifndef _BUOYS_TASK_HPP
 #define _BUOYS_TASK_HPP
 
+#include <list>
 #include "ros/ros.h"
-
 #include "std_msgs/UInt8.h"
 #include "Robosub/ModuleEnableMsg.h"
 #include "Robosub/HighLevelControl.h"
@@ -17,7 +17,7 @@ enum BuoyColors
 
 struct BuoyData
 {
-    ros::Time lastSampleTime;
+    ros::Time sampleTime;
     short centerX;
     short centerY;
     short height;
@@ -39,13 +39,16 @@ public:
 private:
     void performTask(void);
 
-    BuoyData m_buoys[3];
+    std::list<BuoyData> m_greenBuoySamples;
+    std::list<BuoyData> m_yellowBuoySamples;
+    std::list<BuoyData> m_redBuoySamples;
     ros::NodeHandle m_nodeHandle;
     ros::Subscriber m_greenBuoySubcriber;
     ros::Subscriber m_yellowBuoySubcriber;
     ros::Subscriber m_redBuoySubcriber;
     ros::Subscriber m_taskStateSubscriber;
     ros::Publisher m_highLevelMotorPublisher;
+    ros::Publisher m_centerOnPointPublisher;
     BuoyColors m_firstToBump;
     BuoyColors m_secondToBump;
     bool m_isEnabled;

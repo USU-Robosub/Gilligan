@@ -542,7 +542,7 @@ void SubConsole::enableAlgorithm(void)
     SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
     SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
 
-    updateAlgorithmService.algorithm.algorithm = getSelectedAlgorithm();
+    updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
     updateAlgorithmService.algorithm.flags = 1;
     updateAlgorithmService.algorithm.h_max = m_pUi->hueMaxSlider->sliderPosition();
     updateAlgorithmService.algorithm.h_min = m_pUi->hueMinSlider->sliderPosition();
@@ -569,7 +569,7 @@ void SubConsole::disableAlgorithm(void)
     SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
     SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
 
-    updateAlgorithmService.algorithm.algorithm = getSelectedAlgorithm();
+    updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
     updateAlgorithmService.algorithm.flags = 0;
 
     if (m_imageRecService.call(updateAlgorithmService, updateAlgorithmResponse))
@@ -587,7 +587,7 @@ void SubConsole::viewThresholds(void)
     SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
     SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
 
-    updateAlgorithmService.algorithm.algorithm = getSelectedAlgorithm();
+    updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
     updateAlgorithmService.algorithm.flags = 3;
     updateAlgorithmService.algorithm.h_max = m_pUi->hueMaxSlider->sliderPosition();
     updateAlgorithmService.algorithm.h_min = m_pUi->hueMinSlider->sliderPosition();
@@ -671,8 +671,8 @@ void SubConsole::selectedAlgorithmChanged(const QString& selected)
     {
         for (int i = 0; i < m_algorithmSettings.size(); i++)
         {
-            printf("Comparing %s against %s\n", algorithm.c_str(), m_algorithmSettings[i].algorithm.c_str());
-            if (algorithm == m_algorithmSettings[i].algorithm)
+            printf("Comparing %s against %s\n", algorithm.c_str(), m_algorithmSettings[i].name.c_str());
+            if (algorithm == m_algorithmSettings[i].name)
             {
                 printf("m_algorithmSettings[i].h_min: %i\n", m_algorithmSettings[i].h_min);
                 m_pUi->hueMinSlider->setSliderPosition(m_algorithmSettings[i].h_min);

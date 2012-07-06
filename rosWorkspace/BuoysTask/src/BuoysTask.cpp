@@ -1,5 +1,6 @@
 #include "BuoysTask.hpp"
 #include "Robosub/HighLevelControl.h"
+#include "Robosub/Point.h"
 
 BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
     : m_nodeHandle(),
@@ -8,6 +9,7 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
       m_redBuoySubcriber(),
       m_taskStateSubscriber(),
       m_highLevelMotorPublisher(),
+      m_centerOnPointPublisher(),
       m_firstToBump(first),
       m_secondToBump(second),
       m_isEnabled(false)
@@ -24,10 +26,11 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
     // Subscribe to task state message
     m_taskStateSubscriber = m_nodeHandle.subscribe("Module_Enable", 10, &BuoysTask::moduleEnableCallback, this);
 
-   // @todo Setup publisher for center on point
+   // Setup publisher for center on point
+    m_centerOnPointPublisher = m_nodeHandle.advertise<Robosub::Point>("Center_On_Point", 10);
 
-   // @todo Setup publisher for high level motor control
-    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motor_Control", 100);
+   // Setup publisher for high level motor control
+    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motor_Control", 10);
 
    // @todo Setup publisher for center on line
 }
@@ -57,12 +60,21 @@ void BuoysTask::greenBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
-        m_buoys[0].centerX = msg.center_x;
-        m_buoys[0].centerY = msg.center_y;
-        m_buoys[0].lastSampleTime = msg.stamp;
-        m_buoys[0].height = msg.height;
-        m_buoys[0].width = msg.width;
-        m_buoys[0].confidence = msg.confidence;
+        struct BuoyData data;
+
+        data.centerX = msg.center_x;
+        data.centerY = msg.center_y;
+        data.sampleTime = msg.stamp;
+        data.height = msg.height;
+        data.width = msg.width;
+        data.confidence = msg.confidence;
+
+        m_greenBuoySamples.push_back(data);
+
+        if (m_greenBuoySamples.size() > 50)
+        {
+            m_greenBuoySamples.pop_front();
+        }
     }
 }
 
@@ -70,12 +82,21 @@ void BuoysTask::yellowBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
-        m_buoys[1].centerX = msg.center_x;
-        m_buoys[1].centerY = msg.center_y;
-        m_buoys[1].lastSampleTime = msg.stamp;
-        m_buoys[1].height = msg.height;
-        m_buoys[1].width = msg.width;
-        m_buoys[1].confidence = msg.confidence;
+        struct BuoyData data;
+
+        data.centerX = msg.center_x;
+        data.centerY = msg.center_y;
+        data.sampleTime = msg.stamp;
+        data.height = msg.height;
+        data.width = msg.width;
+        data.confidence = msg.confidence;
+
+        m_yellowBuoySamples.push_back(data);
+
+        if (m_yellowBuoySamples.size() > 50)
+        {
+            m_yellowBuoySamples.pop_front();
+        }
     }
 }
 
@@ -83,44 +104,160 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
-        m_buoys[2].centerX = msg.center_x;
-        m_buoys[2].centerY = msg.center_y;
-        m_buoys[2].lastSampleTime = msg.stamp;
-        m_buoys[2].height = msg.height;
-        m_buoys[2].width = msg.width;
-        m_buoys[2].confidence = msg.confidence;
+        struct BuoyData data;
+
+        data.centerX = msg.center_x;
+        data.centerY = msg.center_y;
+        data.sampleTime = msg.stamp;
+        data.height = msg.height;
+        data.width = msg.width;
+        data.confidence = msg.confidence;
+
+        m_redBuoySamples.push_back(data);
+
+        if (m_redBuoySamples.size() > 50)
+        {
+            m_redBuoySamples.pop_front();
+        }
     }
 }
 
 void BuoysTask::performTask(void)
 {
     Robosub::HighLevelControl highLevelControlMsg;
+    int retries = 0;
 
-    // Initialize buoy values
-    for(int i = 0; i < 3; i++)
+    // 1. find bouys - keep driving forward
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Manual";
+    highLevelControlMsg.Value = 75.0f;
+
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    // Get at least 10 samples of the red buoy before considering centering on buoy
+    retries = 150;  // 15 seconds-ish
+    while ((m_redBuoySamples.size() <= 30) && (retries > 0))
     {
-        m_buoys[i].centerX = 0;
-        m_buoys[i].centerY = 0;
-        m_buoys[i].lastSampleTime.sec = 0;
-        m_buoys[i].lastSampleTime.nsec = 0;
-        m_buoys[i].height = 0;
-        m_buoys[i].width = 0;
-        m_buoys[i].confidence = 0.0f;
-
+        usleep(100000);
+        retries--;
     }
 
-//    1. find bouys - keep driving forward
-    m_highLevelMotorPublisher.
+    // @todo Determine distance to red buoy, make sure we are sufficiently close instead of just using number of red samples
 
-//    2. Identify first buoy to bump - look at buoy array to determine which to use
-//    3. bump buoy - center on point and drive forward
-//    4. Reverse - drive backward
-//    5. Identify next buoy to bump
-//    6. Bump bouy
-//    7. Reverse and move above buoys
-//    8. move past buoys safely
-//    9. Find next path behind buoys
-//    10. signal done on topic: Task_Complete
+    // 2. Identify first buoy to bump and center on point
+    centerOnBuoy(m_firstToBump);
+
+    // 3. Bump buoy by driving forward
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = 10.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    sleep(10);
+
+    // 4. Reverse back to sufficient distance to identify next buoy
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = -15.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    sleep(10);
+
+    // 5. Identify next buoy to bump
+    centerOnBuoy(m_secondToBump);
+
+    // 6. Bump bouy
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = 10.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    sleep(10);
+
+    // 7. Reverse
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = -5.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    sleep(5);
+
+    // 8. Rise above buoys
+    highLevelControlMsg.Direction = "Depth";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = -3.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    sleep(5);
+
+    // 9. Move past buoys safely
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = 10.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    // 10. Dive back to nominal depth
+    highLevelControlMsg.Direction = "Depth";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = 3.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+    // 11. Signal done on topic Task_Complete
+
+}
+
+bool BuoysTask::centerOnBuoy(BuoyColors color)
+{
+    Robosub::Point pointMsg;
+    bool isCentered = false;
+
+    while (!isCentered)
+    {
+        bool shouldSendCenterMsg = false;
+        switch (color)
+        {
+            case RED:
+                if (m_redBuoySamples.size() > 10)
+                {
+                    pointMsg.x = m_redBuoySamples.back().centerX;
+                    pointMsg.y = m_redBuoySamples.back().centerY;
+                    shouldSendCenterMsg = true;
+                }
+                break;
+
+            case GREEN:
+                if (m_greenBuoySamples.size () > 10)
+                {
+                    pointMsg.x = m_greenBuoySamples.back().centerX;
+                    pointMsg.y = m_greenBuoySamples.back().centerY;
+                    shouldSendCenterMsg = true;
+                }
+                break;
+
+            case YELLOW:
+                if (m_yellowBuoySamples.size() > 10)
+                {
+                    pointMsg.x = m_yellowBuoySamples.back().centerX;
+                    pointMsg.y = m_yellowBuoySamples.back().centerY;
+                    shouldSendCenterMsg = true;
+                }
+                break;
+        }
+
+        if (shouldSendCenterMsg)
+        {
+            m_centerOnPointPublisher.publish(pointMsg);
+
+            if ((pointMsg.x <= 10) && (point.x >= -10) && (pointMsg.y <= 10) && (pointMsg.y >= -10))
+            {
+                isCentered = true;
+            }
+        }
+
+        usleep(100000);
+    }
+
+    return isCentered;
 }
 
 
