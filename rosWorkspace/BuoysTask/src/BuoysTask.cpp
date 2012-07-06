@@ -248,7 +248,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
         {
             m_centerOnPointPublisher.publish(pointMsg);
 
-            if ((pointMsg.x <= 10) && (point.x >= -10) && (pointMsg.y <= 10) && (pointMsg.y >= -10))
+            if ((pointMsg.x <= 10) && (pointMsg.x >= -10) && (pointMsg.y <= 10) && (pointMsg.y >= -10))
             {
                 isCentered = true;
             }
