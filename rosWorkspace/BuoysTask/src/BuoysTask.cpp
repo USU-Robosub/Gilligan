@@ -46,11 +46,13 @@ void BuoysTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
     {
         if(msg.State == true)
         {
+            printf("BuoysTask: Enabled\n");
             m_isEnabled = true;
             performTask();
         }
         else
         {
+            printf("BuoysTask: Disabled\n");
             m_isEnabled = false;
         }
     }
@@ -104,6 +106,8 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
+        printf("BuoysTask: Got red buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
+
         struct BuoyData data;
 
         data.centerX = msg.center_x;
@@ -127,6 +131,9 @@ void BuoysTask::performTask(void)
     Robosub::HighLevelControl highLevelControlMsg;
     int retries = 0;
 
+
+    printf("BuoysTask: Driving Forward to find buoys...\n");
+
     // 1. find bouys - keep driving forward
     highLevelControlMsg.Direction = "Forward";
     highLevelControlMsg.MotionType = "Manual";
@@ -145,9 +152,11 @@ void BuoysTask::performTask(void)
     // @todo Determine distance to red buoy, make sure we are sufficiently close instead of just using number of red samples
 
     // 2. Identify first buoy to bump and center on point
+    printf("BuoysTask: Centering on point to bump first buoy\n");
     centerOnBuoy(m_firstToBump);
 
     // 3. Bump buoy by driving forward
+    printf("BuoysTask: Driving Forward to bump first buoy\n");
     highLevelControlMsg.Direction = "Forward";
     highLevelControlMsg.MotionType = "Offset";
     highLevelControlMsg.Value = 10.0f;
