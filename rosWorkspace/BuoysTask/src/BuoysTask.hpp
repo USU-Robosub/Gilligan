@@ -36,6 +36,7 @@ public:
     void yellowBuoyCallback(const SubImageRecognition::ImgRecObject& msg);
     void redBuoyCallback(const SubImageRecognition::ImgRecObject& msg);
     bool centerOnBuoy(BuoyColors color);
+    void bumpBuoy(BuoyColors color);
 
 private:
     void performTask(void);
