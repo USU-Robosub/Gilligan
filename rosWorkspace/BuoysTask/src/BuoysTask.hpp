@@ -39,7 +39,7 @@ public:
     void bumpBuoy(BuoyColors color);
 
 private:
-    void performTask(void);
+    bool performTask(void);
 
     std::list<BuoyData> m_greenBuoySamples;
     std::list<BuoyData> m_yellowBuoySamples;

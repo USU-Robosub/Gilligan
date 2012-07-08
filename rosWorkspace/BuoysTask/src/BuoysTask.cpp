@@ -42,9 +42,9 @@ BuoysTask::~BuoysTask()
 
 void BuoysTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
 {
-    if(msg.Module == "BuoysTask")
+    if (msg.Module == "BuoysTask")
     {
-        if(msg.State == true)
+        if (msg.State == true)
         {
             bool status = false;
             printf("BuoysTask: Enabled\n");
