@@ -19,9 +19,9 @@ set(QT_INCLUDE_DIR ${QT_ROOT}/include)
 set(QT_LIBRARY_DIR ${QT_ROOT}/lib)
 set(QT_QTCORE_LIBRARY ${QT_ROOT}/lib)
 
-SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp)
+SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp src/ClickableLabel.cpp)
 SET(subConsole_FORMS src/SubConsole.ui)
-SET(subConsole_HEADERS src/SubConsole.hpp src/attitude_indicator.h)
+SET(subConsole_HEADERS src/SubConsole.hpp src/attitude_indicator.h src/ClickableLabel.hpp)
 
 QT4_WRAP_CPP(subConsole_HEADERS_MOC ${subConsole_HEADERS})
 QT4_WRAP_UI(subConsole_FORMS_HEADERS ${subConsole_FORMS})

@@ -330,6 +330,21 @@ tests/fast:
 .PHONY : tests/fast
 
 # target to build an object file
+src/ClickableLabel.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/ClickableLabel.o
+.PHONY : src/ClickableLabel.o
+
+# target to preprocess a source file
+src/ClickableLabel.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/ClickableLabel.i
+.PHONY : src/ClickableLabel.i
+
+# target to generate assembly for a file
+src/ClickableLabel.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/ClickableLabel.s
+.PHONY : src/ClickableLabel.s
+
+# target to build an object file
 src/SubConsole.o:
 	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/SubConsole.o
 .PHONY : src/SubConsole.o
@@ -373,6 +388,21 @@ src/main.i:
 src/main.s:
 	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/main.s
 .PHONY : src/main.s
+
+# target to build an object file
+src/moc_ClickableLabel.o:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_ClickableLabel.o
+.PHONY : src/moc_ClickableLabel.o
+
+# target to preprocess a source file
+src/moc_ClickableLabel.i:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_ClickableLabel.i
+.PHONY : src/moc_ClickableLabel.i
+
+# target to generate assembly for a file
+src/moc_ClickableLabel.s:
+	$(MAKE) -f CMakeFiles/USUbConsole.dir/build.make CMakeFiles/USUbConsole.dir/src/moc_ClickableLabel.s
+.PHONY : src/moc_ClickableLabel.s
 
 # target to build an object file
 src/moc_SubConsole.o:
@@ -430,6 +460,9 @@ help:
 	@echo "... test-results"
 	@echo "... test-results-run"
 	@echo "... tests"
+	@echo "... src/ClickableLabel.o"
+	@echo "... src/ClickableLabel.i"
+	@echo "... src/ClickableLabel.s"
 	@echo "... src/SubConsole.o"
 	@echo "... src/SubConsole.i"
 	@echo "... src/SubConsole.s"
@@ -439,6 +472,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/moc_ClickableLabel.o"
+	@echo "... src/moc_ClickableLabel.i"
+	@echo "... src/moc_ClickableLabel.s"
 	@echo "... src/moc_SubConsole.o"
 	@echo "... src/moc_SubConsole.i"
 	@echo "... src/moc_SubConsole.s"

@@ -8,6 +8,7 @@
 #include "joystick.h"
 #include "qwt/qwt_compass.h"
 #include "attitude_indicator.h"
+#include "ClickableLabel.hpp"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/UInt8.h"
@@ -49,6 +50,7 @@ private:
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
+   ros::Publisher m_thresholdBoxPublisher;          //!< Publishes the Threshold_Box topic
    ros::ServiceClient m_imageRecService;            //!< Publishes to the image recognition topic
    ros::ServiceClient m_listAlgorithmService;       //!< Publishes to the image recognition topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Attitude topic
@@ -77,6 +79,7 @@ private:
    QwtCompass* m_pCompass;                   //!< Qwt compass widget
    AttitudeIndicator* m_pPitchIndicator;     //!< Qwt attitude indicator used for pitch
    AttitudeIndicator* m_pRollIndicator;      //!< Qwt attitude indicator used for roll
+   ClickableLabel* m_pImageRecBoxLabel;
 
    std::vector<SubImageRecognition::ImgRecAlgorithm> m_algorithmSettings;
 
@@ -106,17 +109,10 @@ private slots:
    void joyConnect(void);
    void toggleDownwardPiP(void);
    void toggleForwardPiP(void);
-   void enableAlgorithm(void);
-   void disableAlgorithm(void);
-   void viewThresholds(void);
-   void getThresholds(void);
-   void adjustHueMin(int sliderValue);
-   void adjustHueMax(int sliderValue);
-   void adjustSatMin(int sliderValue);
-   void adjustSatMax(int sliderValue);
-   void adjustValMin(int sliderValue);
-   void adjustValMax(int sliderValue);
-   void selectedAlgorithmChanged(const QString& selected);
+   void toggleBoxThresholding(void);
+   void enableViewThresholds(void);
+   void disableViewThresholds(void);
+   void imageRecThresholdBoxDrawn(void);
 };
 
 #endif // SUBCONSOLE_HPP

@@ -3,6 +3,7 @@
 #include <QImage>
 #include <QImageReader>
 #include <QPixmap>
+#include <QPainter>
 #include <QDebug>
 #include <iostream>
 #include <math.h>
@@ -12,6 +13,7 @@
 #include "USUbConsole/MotorMessage.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
 #include "SubImageRecognition/ListAlgorithms.h"
+#include "SubImageRecognition/ImgRecThreshold.h"
 #include "ui_SubConsole.h"
 
 /**
@@ -28,6 +30,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_nodeHandle(),
      m_motorDriverPublisher(),
      m_depthPublisher(),
+     m_thresholdBoxPublisher(),
      m_imageRecService(),
      m_listAlgorithmService(),
      m_imuSubscriber(),
@@ -52,7 +55,8 @@ SubConsole::SubConsole(QWidget* pParent)
      m_forwardPipEnabled(false),
      m_pCompass(NULL),
      m_pPitchIndicator(NULL),
-     m_pRollIndicator(NULL)
+     m_pRollIndicator(NULL),
+     m_pImageRecBoxLabel(NULL)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -63,17 +67,9 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
-   connect(m_pUi->enableAlgorithmButton, SIGNAL(clicked()), this, SLOT(enableAlgorithm()));
-   connect(m_pUi->disableAlgorithmButton, SIGNAL(clicked()), this, SLOT(disableAlgorithm()));
-   connect(m_pUi->viewThresholdsButton, SIGNAL(clicked()), this, SLOT(viewThresholds()));
-   connect(m_pUi->getThresholdsButton, SIGNAL(clicked()), this, SLOT(getThresholds()));
-   connect(m_pUi->hueMinSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustHueMin(int)));
-   connect(m_pUi->hueMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustHueMax(int)));
-   connect(m_pUi->satMinSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustSatMin(int)));
-   connect(m_pUi->satMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustSatMax(int)));
-   connect(m_pUi->valMinSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustValMin(int)));
-   connect(m_pUi->valMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustValMax(int)));
-   connect(m_pUi->algorithmComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectedAlgorithmChanged(const QString&)));
+   connect(m_pUi->toggleBoxThresholdButton, SIGNAL(clicked()), this, SLOT(toggleBoxThresholding()));
+   connect(m_pUi->enableViewThresholdButton, SIGNAL(clicked()), this, SLOT(enableViewThresholds()));
+   connect(m_pUi->disableViewThresholdButton, SIGNAL(clicked()), this, SLOT(disableViewThresholds()));
 
    m_pCallbackTimer->start();
 
@@ -88,6 +84,7 @@ SubConsole::SubConsole(QWidget* pParent)
 
    m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
    m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
+   m_thresholdBoxPublisher = m_nodeHandle.advertise<SubImageRecognition::ImgRecThreshold>("Threshold_Box", 100);
    m_imageRecService = m_nodeHandle.serviceClient<SubImageRecognition::UpdateAlgorithm>("img_rec/update_algorithm");
    m_listAlgorithmService = m_nodeHandle.serviceClient<SubImageRecognition::ListAlgorithms>("img_rec/list_algorithms");
 
@@ -115,6 +112,11 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pRollIndicator = new AttitudeIndicator(m_pUi->imuGroupBox);
    m_pRollIndicator->resize(80, 80);
    m_pRollIndicator->move(290, 25);
+
+   m_pImageRecBoxLabel = new ClickableLabel(m_pUi->forwardCameraImage);
+   m_pImageRecBoxLabel->resize(478, 638);
+   m_pImageRecBoxLabel->move(1, 1);
+   connect(m_pImageRecBoxLabel, SIGNAL(clicked()), this, SLOT(imageRecThresholdBoxDrawn()));
 }
 
 /**
@@ -471,137 +473,32 @@ void SubConsole::toggleForwardPiP(void)
     }
 }
 
-void SubConsole::adjustHueMin(int sliderValue)
+void SubConsole::toggleBoxThresholding(void)
 {
-    if (sliderValue > m_pUi->hueMaxSlider->sliderPosition())
+    if (m_pUi->toggleBoxThresholdButton->text() == "Enable Box Thresholding")
     {
-        m_pUi->hueMinSlider->setSliderPosition(m_pUi->hueMaxSlider->sliderPosition());
-        sliderValue = m_pUi->hueMaxSlider->sliderPosition();
-    }
-
-    m_pUi->hueMinLineEdit->setText(QString::number(sliderValue));
-}
-
-void SubConsole::adjustHueMax(int sliderValue)
-{
-    if (sliderValue < m_pUi->hueMinSlider->sliderPosition())
-    {
-        m_pUi->hueMaxSlider->setSliderPosition(m_pUi->hueMinSlider->sliderPosition());
-        sliderValue = m_pUi->hueMinSlider->sliderPosition();
-    }
-
-    m_pUi->hueMaxLineEdit->setText(QString::number(sliderValue));
-}
-
-void SubConsole::adjustSatMin(int sliderValue)
-{
-    if (sliderValue > m_pUi->satMaxSlider->sliderPosition())
-    {
-        m_pUi->satMinSlider->setSliderPosition(m_pUi->satMaxSlider->sliderPosition());
-        sliderValue = m_pUi->satMaxSlider->sliderPosition();
-    }
-
-    m_pUi->satMinLineEdit->setText(QString::number(sliderValue));
-}
-
-void SubConsole::adjustSatMax(int sliderValue)
-{
-    m_pUi->satMaxLineEdit->setText(QString::number(sliderValue));
-
-    if (sliderValue < m_pUi->satMinSlider->sliderPosition())
-    {
-        m_pUi->satMaxSlider->setSliderPosition(m_pUi->satMinSlider->sliderPosition());
-        sliderValue = m_pUi->satMinSlider->sliderPosition();
-    }
-}
-
-void SubConsole::adjustValMin(int sliderValue)
-{
-    if (sliderValue > m_pUi->valMaxSlider->sliderPosition())
-    {
-        m_pUi->valMinSlider->setSliderPosition(m_pUi->valMaxSlider->sliderPosition());
-        sliderValue = m_pUi->valMaxSlider->sliderPosition();
-    }
-
-    m_pUi->valMinLineEdit->setText(QString::number(sliderValue));
-}
-
-void SubConsole::adjustValMax(int sliderValue)
-{
-    m_pUi->valMaxLineEdit->setText(QString::number(sliderValue));
-
-    if (sliderValue < m_pUi->valMinSlider->sliderPosition())
-    {
-        m_pUi->valMaxSlider->setSliderPosition(m_pUi->valMinSlider->sliderPosition());
-        sliderValue = m_pUi->valMinSlider->sliderPosition();
-    }
-}
-
-void SubConsole::enableAlgorithm(void)
-{
-    SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
-    SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
-
-    updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
-    updateAlgorithmService.algorithm.flags = 1;
-    updateAlgorithmService.algorithm.h_max = m_pUi->hueMaxSlider->sliderPosition();
-    updateAlgorithmService.algorithm.h_min = m_pUi->hueMinSlider->sliderPosition();
-    updateAlgorithmService.algorithm.s_max = m_pUi->satMaxSlider->sliderPosition();
-    updateAlgorithmService.algorithm.s_min = m_pUi->satMinSlider->sliderPosition();
-    updateAlgorithmService.algorithm.v_max = m_pUi->valMaxSlider->sliderPosition();
-    updateAlgorithmService.algorithm.v_min = m_pUi->valMinSlider->sliderPosition();
-
-    if (m_imageRecService.call(updateAlgorithmService, updateAlgorithmResponse))
-    {
-        printf("Update algorithm status: %i\n", updateAlgorithmResponse.result);
-
-        // Update stored settings for algorithm
-        getThresholds();
+        m_pUi->toggleBoxThresholdButton->setText("Disable Box Thresholding");
+        m_pImageRecBoxLabel->rectangleDrawState(true);
     }
     else
     {
-        printf("Error, failed to send update algorithm service\n");
+        m_pUi->toggleBoxThresholdButton->setText("Enable Box Thresholding");
+        m_pImageRecBoxLabel->rectangleDrawState(false);
+        m_pImageRecBoxLabel->clearRectangle();
     }
 }
 
-void SubConsole::disableAlgorithm(void)
+void SubConsole::enableViewThresholds(void)
 {
     SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
     SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
 
     updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
-    updateAlgorithmService.algorithm.flags = 0;
-
-    if (m_imageRecService.call(updateAlgorithmService, updateAlgorithmResponse))
-    {
-        // printf("Disable algorithm status: %i\n", updateAlgorithmService.response.result);
-    }
-    else
-    {
-        printf("Error, failed to send update algorithm service\n");
-    }
-}
-
-void SubConsole::viewThresholds(void)
-{
-    SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
-    SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
-
-    updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
-    updateAlgorithmService.algorithm.flags = 3;
-    updateAlgorithmService.algorithm.h_max = m_pUi->hueMaxSlider->sliderPosition();
-    updateAlgorithmService.algorithm.h_min = m_pUi->hueMinSlider->sliderPosition();
-    updateAlgorithmService.algorithm.s_max = m_pUi->satMaxSlider->sliderPosition();
-    updateAlgorithmService.algorithm.s_min = m_pUi->satMinSlider->sliderPosition();
-    updateAlgorithmService.algorithm.v_max = m_pUi->valMaxSlider->sliderPosition();
-    updateAlgorithmService.algorithm.v_min = m_pUi->valMinSlider->sliderPosition();
+    updateAlgorithmService.algorithm.flags = 2;
 
     if (m_imageRecService.call(updateAlgorithmService, updateAlgorithmResponse))
     {
         // printf("Update and view thresholds status: %i\n", updateAlgorithmService.response.result);
-
-        // Update stored settings for algorithm
-        getThresholds();
     }
     else
     {
@@ -609,82 +506,21 @@ void SubConsole::viewThresholds(void)
     }
 }
 
-void SubConsole::getThresholds(void)
+void SubConsole::disableViewThresholds(void)
 {
-    SubImageRecognition::ListAlgorithms::Request listAlgorithmsService;
-    SubImageRecognition::ListAlgorithms::Response listAlgorithmsResponse;
+    SubImageRecognition::UpdateAlgorithm::Request updateAlgorithmService;
+    SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
 
-    printf("Requesting thresholds\n");
+    updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
+    updateAlgorithmService.algorithm.flags = 0; // @todo What do set flags to to disable threshold view without disabling algorithm
 
-    if (m_listAlgorithmService.call(listAlgorithmsService, listAlgorithmsResponse))
+    if (m_imageRecService.call(updateAlgorithmService, updateAlgorithmResponse))
     {
-        // Update stored settings for algorithm
-
-        printf("Got get thresholds response\n");
-        m_algorithmSettings = listAlgorithmsResponse.algorithms;
+        // printf("Update and view thresholds status: %i\n", updateAlgorithmService.response.result);
     }
     else
     {
         printf("Error, failed to send update algorithm service\n");
-    }
-}
-
-void SubConsole::selectedAlgorithmChanged(const QString& selected)
-{
-    std::string algorithm = "";
-    std::string selectedStr = selected.toStdString();
-
-    printf("Looking for %s\n", selectedStr.c_str());
-
-    if (selectedStr == "Red Buoy")
-    {
-        algorithm = "buoys/red";
-    }
-    else if (selectedStr == "Green Buoy")
-    {
-        algorithm = "buoys/green";
-    }
-    else if (selectedStr == "Yellow Buoy")
-    {
-        algorithm = "buoys/yellow";
-    }
-    else if (selectedStr == "Gate")
-    {
-        algorithm = "gate";
-    }
-    else if (selectedStr == "Obstable Course")
-    {
-        algorithm = "obstacle_course";
-    }
-    else if (selectedStr == "Torpedo Target")
-    {
-        algorithm = "torpedo";
-    }
-    else if (selectedStr == "Path")
-    {
-        algorithm = "paths";
-    }
-
-    printf("algorithm string: %s, vector size: %i\n", algorithm.c_str(), m_algorithmSettings.size());
-
-    if (algorithm != "")
-    {
-        for (int i = 0; i < m_algorithmSettings.size(); i++)
-        {
-            printf("Comparing %s against %s\n", algorithm.c_str(), m_algorithmSettings[i].name.c_str());
-            if (algorithm == m_algorithmSettings[i].name)
-            {
-                printf("m_algorithmSettings[i].h_min: %i\n", m_algorithmSettings[i].h_min);
-                m_pUi->hueMinSlider->setSliderPosition(m_algorithmSettings[i].h_min);
-                m_pUi->hueMaxSlider->setSliderPosition(m_algorithmSettings[i].h_max);
-                m_pUi->satMinSlider->setSliderPosition(m_algorithmSettings[i].s_min);
-                m_pUi->satMaxSlider->setSliderPosition(m_algorithmSettings[i].s_max);
-                m_pUi->valMinSlider->setSliderPosition(m_algorithmSettings[i].v_min);
-                m_pUi->valMaxSlider->setSliderPosition(m_algorithmSettings[i].v_max);
-
-                break;
-            }
-        }
     }
 }
 
@@ -722,5 +558,21 @@ std::string SubConsole::getSelectedAlgorithm(void)
     }
 
     return selected;
+}
+
+void SubConsole::imageRecThresholdBoxDrawn(void)
+{
+    SubImageRecognition::ImgRecThreshold thresholdMsg;
+
+    thresholdMsg.name = getSelectedAlgorithm();
+    thresholdMsg.x1 = m_pImageRecBoxLabel->getX1();
+    thresholdMsg.y1 = m_pImageRecBoxLabel->getY1();
+    thresholdMsg.x2 = m_pImageRecBoxLabel->getX2();
+    thresholdMsg.y2 = m_pImageRecBoxLabel->getY2();
+
+    if(thresholdMsg.name != "")
+    {
+        m_thresholdBoxPublisher.publish(thresholdMsg);
+    }
 }
 

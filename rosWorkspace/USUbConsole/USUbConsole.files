@@ -7,3 +7,5 @@
 /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/src/SubConsole.ui
 /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/CMakeLists.txt
 /home/bryhansen/ros_workspace/robosub/rosWorkspace/USUbConsole/manifest.xml
+src/ClickableLabel.hpp
+src/ClickableLabel.cpp
