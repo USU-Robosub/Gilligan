@@ -1,5 +1,5 @@
 string name
 uint8 enabled
-uint8 pusblish_threshold
---
+uint8 publish_threshold
+---
 uint8 result

@@ -12,8 +12,10 @@
 
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
+#include "SubImageRecognition/ImgRecThreshold.h"
 #include "SubImageRecognition/ListAlgorithms.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
+#include "SubImageRecognition/SwitchAlgorithm.h"
 
 using namespace cv;
 using namespace std;
@@ -496,7 +498,7 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 	downwardOffset = (downwardOffset + 1) % SAMPLE_SIZE;
 }
 
-void thresholdBoxCallback(SubImageRecognition::ImgRecThreshold& t) {
+void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
 	printf("[SubImageRecognition] Threshold published to Threshold_Box\n");
 	printf("\tname: %s, x1: %i, y1: %i, x2: %i, y2: %i\n",
 			t.name.c_str(), t.x1, t.y1, t.x2, t.y2);
@@ -537,7 +539,23 @@ bool switchAlgorithmCallback(
 	printf("[SubImageRecognition] Received call to switchAlgorithm()\n");
 	printf("\tname: %s, enabled: %u, publish_threshold: %u\n",
 			req.name.c_str(), req.enabled, req.publish_threshold);
-	// TODO
+	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		if (req.name.compare(algorithms[i].name) == 0) {
+			if (req.enabled) {
+				algorithms[1].flags |= FLAG_ENABLED;
+			} else if (algorithms[i].flags & FLAG_ENABLED) {
+				algorithms[i].flags -= FLAG_ENABLED;
+			}
+			if (req.publish_threshold) {
+				algorithms[i].flags |= FLAG_PUBLISH_THRESHOLD;
+			} else if (algorithms[i].flags & FLAG_PUBLISH_THRESHOLD) {
+				algorithms[i].flags -= FLAG_PUBLISH_THRESHOLD;
+			}
+			res.result = 1;
+			break;
+		}
+	}
+	return true;
 }
 
 int main(int argc, char **argv) {
@@ -554,8 +572,8 @@ int main(int argc, char **argv) {
 	image_transport::Subscriber downwardSubscriber =
 			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 
-	image_transport::Subscriber thresholdBoxSubscriber =
-			imageTransport.subscribe("Threshold_Box", 1, thresholdBoxCallback);
+	ros::Subscriber thresholdBoxSubscriber =
+			nodeHandle.subscribe("Threshold_Box", 1, thresholdBoxCallback);
 
 	string listAlgorithmsTopic(NAMESPACE_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
