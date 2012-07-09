@@ -496,6 +496,13 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 	downwardOffset = (downwardOffset + 1) % SAMPLE_SIZE;
 }
 
+void thresholdBoxCallback(SubImageRecognition::ImgRecThreshold& t) {
+	printf("[SubImageRecognition] Threshold published to Threshold_Box\n");
+	printf("\tname: %s, x1: %i, y1: %i, x2: %i, y2: %i\n",
+			t.name.c_str(), t.x1, t.y1, t.x2, t.y2);
+	// TODO
+}
+
 bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Request& req,
 		SubImageRecognition::ListAlgorithms::Response& res) {
@@ -524,6 +531,15 @@ bool updateAlgorithmCallback(
 	return true;
 }
 
+bool switchAlgorithmCallback(
+		SubImageRecognition::SwitchAlgorithm::Request& req,
+		SubImageRecognition::SwitchAlgorithm::Response& res) {
+	printf("[SubImageRecognition] Received call to switchAlgorithm()\n");
+	printf("\tname: %s, enabled: %u, publish_threshold: %u\n",
+			req.name.c_str(), req.enabled, req.publish_threshold);
+	// TODO
+}
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "ImageRecognition");
 	ros::NodeHandle nodeHandle;
@@ -531,6 +547,15 @@ int main(int argc, char **argv) {
 
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
+
+	image_transport::Subscriber forwardSubscriber =
+			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
+
+	image_transport::Subscriber downwardSubscriber =
+			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+
+	image_transport::Subscriber thresholdBoxSubscriber =
+			imageTransport.subscribe("Threshold_Box", 1, thresholdBoxCallback);
 
 	string listAlgorithmsTopic(NAMESPACE_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
@@ -542,12 +567,13 @@ int main(int argc, char **argv) {
 	ros::ServiceServer updateAlgorithmService = nodeHandle.advertiseService(
 			updateAlgorithmTopic, updateAlgorithmCallback);
 
-	image_transport::Subscriber forwardSubscriber =
-			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-	image_transport::Subscriber downwardSubscriber =
-			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+	string switchAlgorithmTopic(NAMESPACE_ROOT);
+	switchAlgorithmTopic += "switch_algorithm";
+	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
+			switchAlgorithmTopic, switchAlgorithmCallback);
 
 	initAlgorithms();
 	ros::spin();
 	return 0;
 }
+
