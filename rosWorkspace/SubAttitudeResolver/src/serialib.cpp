@@ -105,7 +105,7 @@ char serialib::Open(const char *Device,const unsigned int Bauds)
     case 128000 :   dcbSerialParams.BaudRate=CBR_128000; break;
     case 256000 :   dcbSerialParams.BaudRate=CBR_256000; break;
     default : return -4;
-}    
+}
     dcbSerialParams.ByteSize=8;                                         // 8 bit data
     dcbSerialParams.StopBits=ONESTOPBIT;                                // One stop bit
     dcbSerialParams.Parity=NOPARITY;                                    // No parity
@@ -123,7 +123,7 @@ char serialib::Open(const char *Device,const unsigned int Bauds)
     return 1;                                                           // Opening successfull
 
 #endif
-#ifdef __linux__    
+#ifdef __linux__
     struct termios options;						// Structure with the device's options
 
 
@@ -345,7 +345,7 @@ int serialib::ReadString(char *String,char FinalChar,unsigned int MaxNbBytes,uns
         TimeOutParam=TimeOut_ms-Timer.ElapsedTime_ms();                 // Compute the TimeOut for the call of ReadChar
         if (TimeOutParam>0)                                             // If the parameter is higher than zero
         {
-            ret=ReadChar(&String[NbBytes],TimeOutParam);                // Wait for a byte on the serial link            
+            ret=ReadChar(&String[NbBytes],TimeOutParam);                // Wait for a byte on the serial link
             if (ret==1)                                                 // If a byte has been read
             {
 
@@ -403,6 +403,7 @@ int serialib::Read (void *Buffer,unsigned int MaxNbBytes,unsigned int TimeOut_ms
             if (NbByteRead>=MaxNbBytes)                                 // Success : bytes has been read
                 return 1;
         }
+        usleep(300);
     }
     return 0;                                                           // Timeout reached, return 0
 #endif

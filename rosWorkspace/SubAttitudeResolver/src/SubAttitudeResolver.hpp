@@ -27,7 +27,9 @@ class SubAttitudeResolver
 
    private:
       void publishAttitude(double yaw, double pitch, double roll);
-      void kalmanUpdate(double* y_i, double* y_b, double* R);
+      void publishMagDebug(double* pResidual, double* pPr);
+      void publishAccelDebug(double* pResidual, double* pPr);
+      void kalmanUpdate(double* y_i, double* y_b, double* R, double* Pr, double* residual);
       void kalmanPropagate(void);
       void sampleGyro(short* pRawX, short* pRawY, short* pRawZ);
       void sampleAccel(short* pRawX, short* pRawY, short* pRawZ);
@@ -38,14 +40,18 @@ class SubAttitudeResolver
       void calculateExpectedMag(void);
       bool syncSerial(char command);
 
-      ros::NodeHandle m_nodeHandle;        //!< ROS node handle
-      ros::Publisher m_attitudePublisher;  //!< Publishes the Sub_Attitude topic
+      ros::NodeHandle m_nodeHandle;          //!< ROS node handle
+      ros::Publisher m_attitudePublisher;    //!< Publishes the Sub_Attitude topic
+      ros::Publisher m_magDebugPublisher;    //!< Publishes the Mag_Debug topic
+      ros::Publisher m_accelDebugPublisher;  //!< Publishes the Accel_Debug topic
 
       double m_q[4];               //!< Attitude Quaternion
       double m_P[6];               //!< Attitude Covariance, 1 degree Uncertainty
       double m_w[3];               //!< Angular Velocity Read from Gyros in Radians/Second
-      double m_Pr[6];              //!< Output value from kalmanUpdate used to tune uncertainty
-      double m_residual[3];        //!< Output value from kalmanUpdate used to tune uncertainty
+      double m_PrAccel[6];              //!< Output value from kalmanUpdate used to tune uncertainty
+      double m_residualAccel[3];        //!< Output value from kalmanUpdate used to tune uncertainty
+      double m_PrMag[6];              //!< Output value from kalmanUpdate used to tune uncertainty
+      double m_residualMag[3];        //!< Output value from kalmanUpdate used to tune uncertainty
       double m_yaw;                //!< Calculated yaw
       double m_pitch;              //!< Calculated pitch
       double m_roll;               //!< Calculated roll
@@ -59,7 +65,7 @@ class SubAttitudeResolver
       std::string m_devName;  //!< IMU device location to open
 
       static const double pi = 3.14159265358979;
-      static const int gyroFullScale = 250;
+      static const int gyroFullScale = 285;
       static const double gyroConversion = gyroFullScale / 32767.0;
 };
 

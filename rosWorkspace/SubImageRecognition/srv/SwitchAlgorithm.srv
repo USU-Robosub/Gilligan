@@ -1,4 +1,5 @@
-string algorithm
-int8 enabled
+string name
+uint8 enabled
+uint8 publish_threshold
 ---
-int8 result
+uint8 result

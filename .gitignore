@@ -1,5 +1,10 @@
 *.pyc
 *.jpg
 bin
+build
 CMakeFiles
 CMakeCache.txt
+cmake_install.cmake
+msg_gen
+srv_gen
+rosWorkspace/SubImageRecognition/src/SubImageRecognition

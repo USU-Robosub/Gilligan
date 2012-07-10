@@ -10,8 +10,11 @@
 #include <string.h>
 #include <vector>
 
+#include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
+#include "SubImageRecognition/ImgRecThreshold.h"
 #include "SubImageRecognition/ListAlgorithms.h"
+#include "SubImageRecognition/UpdateAlgorithm.h"
 #include "SubImageRecognition/SwitchAlgorithm.h"
 
 using namespace cv;
@@ -20,11 +23,20 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 6;
-const int MIN_POINTS = 30;
+const unsigned int MIN_POINTS = 10;
 
-const char TOPIC_ROOT[] = "image_recognition/";
-const char TOPIC_FORWARD[] = "";
-const char TOPIC_DOWNWARD[] = "";
+const char NAMESPACE_ROOT[] = "img_rec/";
+
+const char PARAM_FLAGS[] = "/flags"; // int (0+) see flag constants below
+const char PARAM_H_MAX[] = "/h_max"; // double (0-255)
+const char PARAM_H_MIN[] = "/h_min"; // double (0-255)
+const char PARAM_S_MAX[] = "/s_max"; // double (0-255)
+const char PARAM_S_MIN[] = "/s_min"; // double (0-255)
+const char PARAM_V_MAX[] = "/v_max"; // double (0-255)
+const char PARAM_V_MIN[] = "/v_min"; // double (0-255)
+
+const int FLAG_ENABLED = 1;
+const int FLAG_PUBLISH_THRESHOLD = 2;
 
 const int CAMERA_FORWARD = 0;
 const int CAMERA_DOWNWARD = 1;
@@ -42,9 +54,28 @@ const int ANNOTATION_RADIUS = 1;
 typedef vector<Point> Points;
 
 class Algorithm {
+private:
+	string buildParamName(const char* param) {
+		string paramName(NAMESPACE_ROOT);
+		paramName += name;
+		paramName += param;
+		return paramName;
+	}
+
+	void saveSettings() {
+		ros::NodeHandle nodeHandle;
+		nodeHandle.setParam(buildParamName(PARAM_FLAGS), flags);
+		nodeHandle.setParam(buildParamName(PARAM_H_MAX), maxThreshold[0] * 255.0 / 179.0);
+		nodeHandle.setParam(buildParamName(PARAM_H_MIN), minThreshold[0] * 255.0 / 179.0);
+		nodeHandle.setParam(buildParamName(PARAM_S_MAX), maxThreshold[1]);
+		nodeHandle.setParam(buildParamName(PARAM_S_MIN), minThreshold[1]);
+		nodeHandle.setParam(buildParamName(PARAM_V_MAX), maxThreshold[2]);
+		nodeHandle.setParam(buildParamName(PARAM_V_MIN), minThreshold[2]);
+	}
+
 public:
-	bool enabled;
 	string name;
+	int flags;
 	int camera;
 	Scalar minThreshold;
 	Scalar maxThreshold;
@@ -56,7 +87,6 @@ public:
 	ros::Publisher publisher;
 
 	Algorithm(
-			bool _enabled,
 			string _name,
 			int _camera,
 			Scalar _minThreshold,
@@ -66,36 +96,67 @@ public:
 			int _confidenceType,
 			Scalar _annotationColor,
 			int _annotationType) {
-		// Correct hue values - the 0.5 is to allow us to round up
-		_minThreshold[0] = (int) ((_minThreshold[0] * 179.0 / 255.0) + 0.5);
-		_maxThreshold[0] = (int) ((_maxThreshold[0] * 179.0 / 255.0) + 0.5);
-
 		// Save class properties
-		enabled = _enabled;
 		name = _name;
 		camera = _camera;
-		minThreshold = _minThreshold;
-		maxThreshold = _maxThreshold;
 		analysisType = _analysisType;
 		maxBlobs = _maxBlobs;
 		confidenceType = _confidenceType;
 		annotationColor = _annotationColor;
 		annotationType = _annotationType;
 
-		// Prepare the publisher for use later on
+		// Retrieve persisted settings from parameter server
 		ros::NodeHandle nodeHandle;
-		string topic(TOPIC_ROOT);
-		switch (camera) {
-		case CAMERA_FORWARD:
-			topic += TOPIC_FORWARD;
-			break;
-		case CAMERA_DOWNWARD:
-			topic += TOPIC_DOWNWARD;
-			break;
-		}
-		topic += this->name;
-		this->publisher =
+		nodeHandle.param<int>(buildParamName(PARAM_FLAGS), flags, 1);
+		nodeHandle.param<double>(buildParamName(PARAM_H_MAX), maxThreshold[0], _maxThreshold[0]);
+		nodeHandle.param<double>(buildParamName(PARAM_H_MIN), minThreshold[0], _minThreshold[0]);
+		nodeHandle.param<double>(buildParamName(PARAM_S_MAX), maxThreshold[1], _maxThreshold[1]);
+		nodeHandle.param<double>(buildParamName(PARAM_S_MIN), minThreshold[1], _minThreshold[1]);
+		nodeHandle.param<double>(buildParamName(PARAM_V_MAX), maxThreshold[2], _maxThreshold[2]);
+		nodeHandle.param<double>(buildParamName(PARAM_V_MIN), minThreshold[2], _minThreshold[2]);
+
+		// Fix hue thresholds
+		maxThreshold[0] *= 179.0 / 255.0;
+		minThreshold[0] *= 179.0 / 255.0;
+
+		saveSettings();
+
+		// Prepare the publisher for use later on
+		string topic(NAMESPACE_ROOT);
+		topic += name;
+		publisher =
 				nodeHandle.advertise<SubImageRecognition::ImgRecObject>(topic, 1);
+	}
+
+	void updateSettings(SubImageRecognition::ImgRecAlgorithm& a) {
+		flags = (int) a.flags;
+		maxThreshold[0] = ((double) a.h_max) * 179.0 / 255.0;
+		minThreshold[0] = ((double) a.h_min) * 179.0 / 255.0;
+		maxThreshold[1] = (double) a.s_max;
+		minThreshold[1] = (double) a.s_min;
+		maxThreshold[2] = (double) a.v_max;
+		minThreshold[2] = (double) a.v_min;
+
+		saveSettings();
+	}
+
+	SubImageRecognition::ImgRecAlgorithm toImgRecAlgorithm() {
+		SubImageRecognition::ImgRecAlgorithm alg;
+		alg.name = name;
+		alg.flags = flags;
+		alg.h_max = (int) ((maxThreshold[0] * 255.0 / 179.0) + 0.5);
+		alg.h_min = (int) ((minThreshold[0] * 255.0 / 179.0) + 0.5);
+		alg.s_max = maxThreshold[1];
+		alg.s_min = minThreshold[1];
+		alg.v_max = maxThreshold[2];
+		alg.v_min = minThreshold[2];
+		return alg;
+	}
+
+	void print() {
+		printf("algorithm:{name: %s, flags: %i, hue: %f-%f, sat: %f-%f, val: %f-%f}\n",
+			name.c_str(), flags, minThreshold[0], maxThreshold[0],
+			minThreshold[1], maxThreshold[1], minThreshold[2], maxThreshold[2]);
 	}
 };
 
@@ -121,30 +182,15 @@ public:
 
 		// Convert rotation from degrees to radians
 		rotation *= M_PI / 180.0;
-		
+
 		// Correct dimensions and rotation so that height is always larger
 		if (height < width) {
 			unsigned int temp = height;
 			height = width;
 			width = temp;
-			rotation += M_PI / 2.0;
+		} else {
+			rotation -= M_PI / 2.0;
 		}
-
-		// Normalize rotation
-		// TODO: I've disabled rotation normalization for now so that I can
-		//       re-evaluate the best way to go about doing this
-/*
-		if (sin(rotation) > 0) {
-			rotation += M_PI;
-		}
-		while (rotation > M_PI * 2.0) {
-			rotation -= M_PI * 2.0;
-		}
-		if (rotation == 0) {
-			rotation = M_PI * 2.0;
-		}
-		rotation -= M_PI * 1.5;
-*/
 	}
 };
 
@@ -162,7 +208,6 @@ Mat forwardThreshold, downwardThreshold;
 
 void initAlgorithms() {
 	algorithms.push_back(Algorithm(
-		false,
 		"gate",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -174,11 +219,10 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		false,
 		"buoys/red",
 		CAMERA_FORWARD,
-		Scalar(135, 0, 30),
-		Scalar(200, 210, 120),
+		Scalar(135, 0, 75),
+		Scalar(255, 255, 110),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -186,11 +230,10 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		false,
 		"buoys/green",
 		CAMERA_FORWARD,
-		Scalar(110, 200, 110),
-		Scalar(130, 240, 200),
+		Scalar(0, 0, 0),
+		Scalar(130, 245, 125),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -198,11 +241,10 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		false,
 		"buoys/yellow",
 		CAMERA_FORWARD,
-		Scalar(95, 185, 160),
-		Scalar(115, 240, 220),
+		Scalar(0, 185, 110),
+		Scalar(130, 240, 140),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -210,11 +252,10 @@ void initAlgorithms() {
 		ANNOTATION_RADIUS
 	));
 	algorithms.push_back(Algorithm(
-		false,
 		"obstacle_course",
 		CAMERA_FORWARD,
-		Scalar(0, 0, 0),       // TODO: Get real thresholds
-		Scalar(255, 255, 255), //       for these
+		Scalar(0, 0, 0),
+		Scalar(120, 255, 210),
 		ANALYSIS_RECTANGLE,
 		3,
 		CONFIDENCE_RECTANGLE,
@@ -222,7 +263,6 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		false,
 		"paths",
 		CAMERA_DOWNWARD,
 		Scalar(5, 50, 50),
@@ -247,46 +287,41 @@ void normalizeValue(Mat& image, Mat& temp) {
 void reduceNoise(Mat& image) {
 	const static Size size(3, 3);
 	const static Point point(1, 1);
-	const static Mat elementEllipse = getStructuringElement(
-			MORPH_ELLIPSE, size, point);
 	const static Mat elementRect = getStructuringElement(
 			MORPH_RECT, size, point);
-	erode(image, image, elementEllipse, point, 2);
-	dilate(image, image, elementEllipse, point, 4);
-	erode(image, image, elementRect, point, 2);
-	dilate(image, image, elementRect, point, 4);
+	erode(image, image, elementRect, point, 4);
+	dilate(image, image, elementRect, point, 2);
 }
 
 Points findBlob(Mat& image, int i, int j) {
-	uint8_t *pixelPtr = (uint8_t *) image.data;
 	unsigned int index = 0;
 	Points blob;
-	Point point;
-	blob.push_back(Point(i, j));
-	pixelPtr[i * image.cols + j] = 0;
+	Point point(j, i);
+	blob.push_back(point);
+	image.at<uint8_t>(i, j, 0) = 127;
 	while (index < blob.size()) {
 		point = blob[index];
-		i = point.x;
-		j = point.y;
-		if (i + SAMPLE_SIZE < image.rows &&
-				pixelPtr[(i + SAMPLE_SIZE) * image.cols + j] == 255) {
-			blob.push_back(Point(i + SAMPLE_SIZE, j));
-			pixelPtr[(i + SAMPLE_SIZE) * image.cols + j] = 127;
+		i = point.y;
+		j = point.x;
+		if (i+SAMPLE_SIZE < image.rows
+				&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == 255) {
+			blob.push_back(Point(j, i+SAMPLE_SIZE));
+			image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 127;
 		}
-		if (i - SAMPLE_SIZE >= 0 &&
-				pixelPtr[(i - SAMPLE_SIZE) * image.cols + j] == 255) {
-			blob.push_back(Point(i - SAMPLE_SIZE, j));
-			pixelPtr[(i - SAMPLE_SIZE) * image.cols + j] = 127;
+		if (i-SAMPLE_SIZE >= 0
+				&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == 255) {
+			blob.push_back(Point(j, i-SAMPLE_SIZE));
+			image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 127;
 		}
-		if (j + SAMPLE_SIZE < image.cols &&
-				pixelPtr[i * image.cols + (j + SAMPLE_SIZE)] == 255) {
-			blob.push_back(Point(i, j + SAMPLE_SIZE));
-			pixelPtr[i * image.cols + (j + SAMPLE_SIZE)] = 127;
+		if (j+SAMPLE_SIZE < image.cols
+				&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == 255) {
+			blob.push_back(Point(j+SAMPLE_SIZE, i));
+			image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 127;
 		}
-		if (j - SAMPLE_SIZE >= 0 &&
-				pixelPtr[i * image.cols + (j - SAMPLE_SIZE)] == 255) {
-			blob.push_back(Point(i, j - SAMPLE_SIZE));
-			pixelPtr[i * image.cols + (j - SAMPLE_SIZE)] = 127;
+		if (j-SAMPLE_SIZE >= 0 &&
+				image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == 255) {
+			blob.push_back(Point(j-SAMPLE_SIZE, i));
+			image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 127;
 		}
 		index++;
 	}
@@ -294,19 +329,18 @@ Points findBlob(Mat& image, int i, int j) {
 }
 
 bool compareBlobs(Points& blob0, Points& blob1) {
-	return blob0.size() > blob1.size();
+	return blob0.size() < blob1.size();
 }
 
 vector<Points> findBlobs(Mat& image,
 		const int offset, const unsigned int maxBlobs) {
 	// First get all blobs that are at least the minimum size
-	uint8_t *pixelPtr = (uint8_t *) image.data;
 	vector<Points> allBlobs;
 	for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 		for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-			if (pixelPtr[i * image.cols + j] == 255) {
+			if (image.at<uint8_t>(i, j, 0) == 255) {
 				Points blob = findBlob(image, i, j);
-				if (blob.size() >= MIN_POINTS * 2) {
+				if (blob.size() >= MIN_POINTS) {
 					allBlobs.push_back(blob);
 				}
 			}
@@ -366,6 +400,26 @@ float computeConfidence(Algorithm& algorithm, BlobAnalysis& a) {
 	}
 }
 
+void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
+	int r, x, y;
+	switch (algorithm.annotationType) {
+	case ANNOTATION_ROTATION:
+		x = (int) (a.height / 2.0 * cos(a.rotation));
+		y = (int) (a.height / 2.0 * sin(a.rotation));
+		circle(image, Point(a.center_x, a.center_y), 1,
+				algorithm.annotationColor, 5, CV_AA);
+		line(image, Point(a.center_x, a.center_y),
+				Point(a.center_x + x, a.center_y + y),
+				algorithm.annotationColor, 1, CV_AA);
+		break;
+	case ANNOTATION_RADIUS:
+		r = (int) ((a.width + a.height) / 2.0);
+		circle(image, Point(a.center_x, a.center_y), r,
+				algorithm.annotationColor, 2, CV_AA);
+		break;
+	}
+}
+
 void genericCallback(
 		const int camera,
 		const sensor_msgs::ImageConstPtr& rosImage,
@@ -386,38 +440,43 @@ void genericCallback(
 	cvtColor(rotated.image, segmented, CV_BGR2HSV);
 
 	// Normalize brightness and copy back to BGR
-	normalizeValue(segmented, threshold);
-	cvtColor(segmented, rotated.image, CV_HSV2BGR);
+	//normalizeValue(segmented, threshold);
+	//cvtColor(segmented, rotated.image, CV_HSV2BGR);
 
 	// Iterate through all algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		Algorithm algorithm = algorithms.at(i);
+		Algorithm algorithm = algorithms[i];
 		// Run applicable algorithms
-		if (algorithm.enabled && algorithm.camera == camera) {
+		if ((algorithm.flags & FLAG_ENABLED) && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
 					algorithm.maxThreshold, threshold);
 			reduceNoise(threshold);
 			vector<Points> blobs = findBlobs(
-					segmented, offset, algorithm.maxBlobs);
+					threshold, offset, algorithm.maxBlobs);
+			if (algorithm.flags & FLAG_PUBLISH_THRESHOLD) {
+				cv_bridge::CvImage temp;
+				temp.encoding = "mono8";
+				temp.image = threshold;
+				publisher.publish(temp.toImageMsg());
+			}
 			// Iterate through all blobs
 			for (unsigned int j = 0; j < blobs.size(); j++) {
-				Points blob = blobs.at(j);
 				vector<BlobAnalysis> analysisList =
-						analyzeBlob(algorithm, blob, rotated.image);
+						analyzeBlob(algorithm, blobs[j], rotated.image);
 				// Iterate through all blob analysis objects
 				for (unsigned int k = 0; k < analysisList.size(); k++) {
 					BlobAnalysis analysis = analysisList[k];
 					// Publish information
 					SubImageRecognition::ImgRecObject msg;
-					msg.center_x = analysis.center_x;
-					msg.center_y = analysis.center_y;
-					msg.rotation = analysis.rotation;
+					msg.center_x = analysis.center_x - rotated.image.cols / 2;
+					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+					msg.rotation = analysis.rotation + M_PI / 2.0;
 					msg.width = analysis.width;
 					msg.height = analysis.height;
 					msg.confidence = computeConfidence(algorithm, analysis);
 					algorithm.publisher.publish(msg);
 					// Annotate image
-					// TODO
+					annotateImage(rotated.image, algorithm, analysis);
 				}
 			}
 		}
@@ -439,11 +498,37 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 	downwardOffset = (downwardOffset + 1) % SAMPLE_SIZE;
 }
 
+void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
+	printf("[SubImageRecognition] Threshold published to Threshold_Box\n");
+	printf("\tname: %s, x1: %i, y1: %i, x2: %i, y2: %i\n",
+			t.name.c_str(), t.x1, t.y1, t.x2, t.y2);
+	// TODO
+}
+
 bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Request& req,
 		SubImageRecognition::ListAlgorithms::Response& res) {
+	printf("[SubImageRecognition] Received call to listAlgorithms()\n");
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		res.algorithms.push_back(algorithms.at(i).name);
+		res.algorithms.push_back(algorithms[i].toImgRecAlgorithm());
+	}
+	return true;
+}
+
+bool updateAlgorithmCallback(
+		SubImageRecognition::UpdateAlgorithm::Request& req,
+		SubImageRecognition::UpdateAlgorithm::Response& res) {
+	SubImageRecognition::ImgRecAlgorithm a = req.algorithm;
+	printf("[SubImageRecognition] Received call to updateAlgorithm()\n");
+	printf("\tname: %s, flags: %u, hue: %u-%u, sat: %u-%u, val: %u-%u\n",
+			a.name.c_str(), a.flags, a.h_min, a.h_max,
+			a.s_min, a.s_max, a.v_min, a.v_max);
+	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		if (a.name.compare(algorithms[i].name) == 0) {
+			algorithms[i].updateSettings(a);
+			res.result = 1;
+			break;
+		}
 	}
 	return true;
 }
@@ -451,9 +536,21 @@ bool listAlgorithmsCallback(
 bool switchAlgorithmCallback(
 		SubImageRecognition::SwitchAlgorithm::Request& req,
 		SubImageRecognition::SwitchAlgorithm::Response& res) {
+	printf("[SubImageRecognition] Received call to switchAlgorithm()\n");
+	printf("\tname: %s, enabled: %u, publish_threshold: %u\n",
+			req.name.c_str(), req.enabled, req.publish_threshold);
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		if (req.algorithm.compare(algorithms.at(i).name) == 0) {
-			algorithms.at(i).enabled = (req.enabled != 0);
+		if (req.name.compare(algorithms[i].name) == 0) {
+			if (req.enabled) {
+				algorithms[1].flags |= FLAG_ENABLED;
+			} else if (algorithms[i].flags & FLAG_ENABLED) {
+				algorithms[i].flags -= FLAG_ENABLED;
+			}
+			if (req.publish_threshold) {
+				algorithms[i].flags |= FLAG_PUBLISH_THRESHOLD;
+			} else if (algorithms[i].flags & FLAG_PUBLISH_THRESHOLD) {
+				algorithms[i].flags -= FLAG_PUBLISH_THRESHOLD;
+			}
 			res.result = 1;
 			break;
 		}
@@ -469,20 +566,29 @@ int main(int argc, char **argv) {
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
-	string listAlgorithmsTopic(TOPIC_ROOT);
+	image_transport::Subscriber forwardSubscriber =
+			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
+
+	image_transport::Subscriber downwardSubscriber =
+			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+
+	ros::Subscriber thresholdBoxSubscriber =
+			nodeHandle.subscribe("Threshold_Box", 1, thresholdBoxCallback);
+
+	string listAlgorithmsTopic(NAMESPACE_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
 	ros::ServiceServer listAlgorithmsService = nodeHandle.advertiseService(
 			listAlgorithmsTopic, listAlgorithmsCallback);
 
-	string switchAlgorithmTopic(TOPIC_ROOT);
+	string updateAlgorithmTopic(NAMESPACE_ROOT);
+	updateAlgorithmTopic += "update_algorithm";
+	ros::ServiceServer updateAlgorithmService = nodeHandle.advertiseService(
+			updateAlgorithmTopic, updateAlgorithmCallback);
+
+	string switchAlgorithmTopic(NAMESPACE_ROOT);
 	switchAlgorithmTopic += "switch_algorithm";
 	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
 			switchAlgorithmTopic, switchAlgorithmCallback);
-
-	image_transport::Subscriber forwardSubscriber =
-			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-	image_transport::Subscriber downwardSubscriber =
-			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 
 	initAlgorithms();
 	ros::spin();
