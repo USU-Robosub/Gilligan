@@ -3,26 +3,26 @@
 #include <SoftwareSerial.h>
 #include <math.h>
 
-//digital pins
-#define motorKilledPin        12
-#define dropperLeftPin        2
-#define dropperRightPin       3
-#define torpedoLeftPin        9
-#define torpedoRightPin       10
 #define numberOfDroppers      2
 #define numberOfTorpedos      2
-
 #define PACKET_SIZE           5
 
+//digital pins
+#define dropperLeftPin        2
+#define dropperRightPin       3
+#define torpedoLeftPin        7
+#define torpedoRightPin       8
+#define motorKilledPin        12
+
 //analog pins
-#define depthPin              3
-#define controller1TempPin    7
-#define controller2TempPin    6
-#define caseTempPin           2
-#define computerCurrentPin    1
 #define computerVoltagePin    0
+#define computerCurrentPin    1
+#define caseTempPin           2
+#define depthPin              3
 #define floodPin1             4
 #define floodPin2             5
+#define controller2TempPin    6
+#define controller1TempPin    7
 
 #define FLOOD_DIF             100
 
@@ -54,6 +54,10 @@ void setup()
   digitalWrite(motorKilledPin, HIGH);
   pinMode(2, OUTPUT);
   pinMode(2, HIGH);
+  pinMode(torpedoLeftPin, OUTPUT);
+  pinMode(torpedoRightPin, OUTPUT);
+  digitalWrite(torpedoLeftPin, LOW);
+  digitalWrite(torpedoRightPin, LOW);
   
   timer = millis();
   Serial.begin(115200);
@@ -164,8 +168,14 @@ float getTemperature(int pin)
   }
   temp /= 100;
   
-  temp *= 4.9; //convert to mV
+  temp *= 4.88; //convert to mV
   temp /= 10; //convert to C
+  temp += 25;
+  
+  if (temp > 125)
+    temp = 0.0;
+  
+  temp = ((9.0/5.0)*temp) + 32; //convert to f
   
   return temp;
 }
@@ -229,7 +239,7 @@ void launchTorpedo(byte torpedo)
   if (torpedo < numberOfTorpedos)
   {
     digitalWrite(torpedoLeftPin + torpedo, HIGH);
-    delay(10);
+    delay(1000);
     digitalWrite(torpedoLeftPin + torpedo, LOW);
   }
 }
