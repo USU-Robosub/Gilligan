@@ -12,8 +12,10 @@
 
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
+#include "SubImageRecognition/ImgRecThreshold.h"
 #include "SubImageRecognition/ListAlgorithms.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
+#include "SubImageRecognition/SwitchAlgorithm.h"
 
 using namespace cv;
 using namespace std;
@@ -192,6 +194,41 @@ public:
 	}
 };
 
+class HsvHistogram {
+private:
+	int histSize[3];
+	float hRanges[2];
+	float svRanges[2];
+	const float* ranges[3];
+	int channels[3];
+
+public:
+	HsvHistogram() {
+		histSize[0] = histSize[1] = histSize[2] = 256;
+		hRanges[0] = svRanges[0] = 0.0;
+		hRanges[1] = 179.0;
+		svRanges[1] = 255.0;
+		ranges[0] = hRanges;
+		ranges[1] = ranges[2] = svRanges;
+		channels[0] = 0;
+		channels[1] = 1;
+		channels[2] = 2;
+	}
+
+	SparseMat getSparseHistogram(const Mat& image) {
+		SparseMat hist(3, histSize, CV_8UC3); // resulting histogram
+		// TODO: These arguments aren't quite right yet
+		calcHist(&image,
+				1,           // histogram of only 1 image
+				channels,    // the channel used
+				cv::Mat(),   // no mask is used
+				hist,        // resulting histogram
+				histSize,    // number of bins
+				ranges);     // pixel value range
+		return hist;
+	}
+};
+
 // GLOBALS  :/  HA HA AH WELL
 
 vector<Algorithm> algorithms;
@@ -273,14 +310,14 @@ void initAlgorithms() {
 	));
 }
 
-void normalizeValue(Mat& image, Mat& temp) {
+/*void normalizeValue(Mat& image, Mat& temp) {
 	const static int valueOut[] = {2, 0};
 	const static int valueIn[] = {0, 2};
 	temp.create(image.rows, image.cols, CV_8UC1);
 	mixChannels(&image, 1, &temp, 1, valueOut, 1);
 	normalize(temp, temp, 0, 255, CV_MINMAX);
 	mixChannels(&temp, 1, &image, 1, valueIn, 1);
-}
+}*/
 
 void reduceNoise(Mat& image) {
 	const static Size size(3, 3);
@@ -496,6 +533,37 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 	downwardOffset = (downwardOffset + 1) % SAMPLE_SIZE;
 }
 
+void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
+	printf("[SubImageRecognition] Threshold published to Threshold_Box\n");
+	printf("\tname: %s, x1: %i, y1: %i, x2: %i, y2: %i\n",
+			t.name.c_str(), t.x1, t.y1, t.x2, t.y2);
+	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		if (t.name.compare(algorithms[i].name) == 0) {
+			// Access correct image
+			Mat& segmented = (algorithms[i].camera == CAMERA_FORWARD) ?
+				forwardSegmented : downwardSegmented;
+			// Ensure points are upper-left and lower-right
+			int x1 = min(t.x1, t.x2);
+			int y1 = min(t.y1, t.y2);
+			int x2 = max(t.x1, t.x2);
+			int y2 = max(t.y1, t.y2);
+			// Convert format to distance from top-left corner and dimensions
+			x1 = t.x1 + (segmented.cols / 2);
+			y1 = t.y1 + (segmented.rows / 2);
+			x2 = t.x2 - t.x1;
+			y2 = t.y2 - t.y1;
+			printf("\t[fixed] x1: %i, y1: %i, x2: %i, y2: %i\n", x1, y1, x2, y2);
+			// Get region of interest and histogram
+			Mat segmentedROI = segmented(Rect(x1, y1, x2, y2));
+			HsvHistogram hsvHistogram();
+			SparseMat hist = hsvHistogram.getSparseHistogram(segmentedROI);
+			// Compute new thresholds from histogram
+			//TODO
+			break;
+		}
+	}
+}
+
 bool listAlgorithmsCallback(
 		SubImageRecognition::ListAlgorithms::Request& req,
 		SubImageRecognition::ListAlgorithms::Response& res) {
@@ -524,6 +592,31 @@ bool updateAlgorithmCallback(
 	return true;
 }
 
+bool switchAlgorithmCallback(
+		SubImageRecognition::SwitchAlgorithm::Request& req,
+		SubImageRecognition::SwitchAlgorithm::Response& res) {
+	printf("[SubImageRecognition] Received call to switchAlgorithm()\n");
+	printf("\tname: %s, enabled: %u, publish_threshold: %u\n",
+			req.name.c_str(), req.enabled, req.publish_threshold);
+	for (unsigned int i = 0; i < algorithms.size(); i++) {
+		if (req.name.compare(algorithms[i].name) == 0) {
+			if (req.enabled) {
+				algorithms[1].flags |= FLAG_ENABLED;
+			} else if (algorithms[i].flags & FLAG_ENABLED) {
+				algorithms[i].flags -= FLAG_ENABLED;
+			}
+			if (req.publish_threshold) {
+				algorithms[i].flags |= FLAG_PUBLISH_THRESHOLD;
+			} else if (algorithms[i].flags & FLAG_PUBLISH_THRESHOLD) {
+				algorithms[i].flags -= FLAG_PUBLISH_THRESHOLD;
+			}
+			res.result = 1;
+			break;
+		}
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "ImageRecognition");
 	ros::NodeHandle nodeHandle;
@@ -531,6 +624,15 @@ int main(int argc, char **argv) {
 
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
+
+	image_transport::Subscriber forwardSubscriber =
+			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
+
+	image_transport::Subscriber downwardSubscriber =
+			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+
+	ros::Subscriber thresholdBoxSubscriber =
+			nodeHandle.subscribe("Threshold_Box", 1, thresholdBoxCallback);
 
 	string listAlgorithmsTopic(NAMESPACE_ROOT);
 	listAlgorithmsTopic += "list_algorithms";
@@ -542,12 +644,13 @@ int main(int argc, char **argv) {
 	ros::ServiceServer updateAlgorithmService = nodeHandle.advertiseService(
 			updateAlgorithmTopic, updateAlgorithmCallback);
 
-	image_transport::Subscriber forwardSubscriber =
-			imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-	image_transport::Subscriber downwardSubscriber =
-			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+	string switchAlgorithmTopic(NAMESPACE_ROOT);
+	switchAlgorithmTopic += "switch_algorithm";
+	ros::ServiceServer switchAlgorithmService = nodeHandle.advertiseService(
+			switchAlgorithmTopic, switchAlgorithmCallback);
 
 	initAlgorithms();
 	ros::spin();
 	return 0;
 }
+
