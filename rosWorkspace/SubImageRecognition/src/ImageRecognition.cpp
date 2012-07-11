@@ -204,10 +204,10 @@ private:
 
 public:
 	HsvHistogram() {
-		histSize[0] = histSize[1] = histSize[2] = 256;
+		histSize[0] = histSize[1] = histSize[2] = 32;
 		hRanges[0] = svRanges[0] = 0.0;
-		hRanges[1] = 179.0;
-		svRanges[1] = 255.0;
+		hRanges[1] = 180.0;
+		svRanges[1] = 256.0;
 		ranges[0] = hRanges;
 		ranges[1] = ranges[2] = svRanges;
 		channels[0] = 0;
@@ -217,15 +217,36 @@ public:
 
 	SparseMat getSparseHistogram(const Mat& image) {
 		SparseMat hist(3, histSize, CV_8UC3); // resulting histogram
-		// TODO: These arguments aren't quite right yet
 		calcHist(&image,
 				1,           // histogram of only 1 image
-				channels,    // the channel used
+				channels,    // the channels used
 				cv::Mat(),   // no mask is used
 				hist,        // resulting histogram
+				3,           // number of dimensions
 				histSize,    // number of bins
 				ranges);     // pixel value range
 		return hist;
+	}
+
+	void printSparseHistogram(SparseMat& hist) {
+		for (int j = 0; j < 3; j++) {
+			switch (j) {
+			case 0:
+				printf("Hue:\n ");
+				break;
+			case 1:
+				printf("\nSaturation:\n ");
+				break;
+			case 2:
+				printf("\nValue:\n ");
+				break;
+			}
+			// TODO: Not sure if this is the correct way to access histogram data
+			for (int i = 0; i < histSize[0]; i++) {
+				printf(" %u", hist.value<uint8_t>(i, j));
+			}
+		}
+		printf("\n");
 	}
 };
 
@@ -555,10 +576,11 @@ void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
 			printf("\t[fixed] x1: %i, y1: %i, x2: %i, y2: %i\n", x1, y1, x2, y2);
 			// Get region of interest and histogram
 			Mat segmentedROI = segmented(Rect(x1, y1, x2, y2));
-			HsvHistogram hsvHistogram();
+			HsvHistogram hsvHistogram;
 			SparseMat hist = hsvHistogram.getSparseHistogram(segmentedROI);
 			// Compute new thresholds from histogram
-			//TODO
+			// TODO
+			hsvHistogram.printSparseHistogram(hist);
 			break;
 		}
 	}
