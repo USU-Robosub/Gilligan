@@ -213,13 +213,16 @@ void mLineCallback(const Robosub::Line::ConstPtr& msg) {
     OnLine = moveToLine(msg->x, msg->y);
     //Once it's on top of the line, rotate
     if (!OnLine){
-        return;
+        return; //keep rotating
     }
 
     int target_rot = msg->rotation;
-    if(!target_rot)
-        return; //Stoppped by Higher Level
-
+    if(!target_rot){
+	 start_rot = 0;
+         Rotating = 0;
+	 setTurn(0);
+	 return; //Stoppped by Higher Level
+    }
     if(!Rotating){
         start_rot = target_rot;
     }
@@ -246,9 +249,6 @@ void mLineCallback(const Robosub::Line::ConstPtr& msg) {
     }
 
     setTurn(rate);
-
-
-
 
 }
 
