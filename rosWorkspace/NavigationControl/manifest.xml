@@ -10,6 +10,8 @@
   <url>http://ros.org/wiki/NavigationControl</url>
   <depend package="std_msgs"/>
   <depend package="roscpp"/>
+  <depend package="Robosub"/>
+  <depend package="subSim"/>
   
 </package>
 
