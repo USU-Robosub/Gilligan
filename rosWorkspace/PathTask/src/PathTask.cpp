@@ -126,7 +126,7 @@ void PathTask::reportSuccess(bool success)
 void PathTask::publishMotor(std::string direction, std::string motion, float value)
 {
   Robosub::HighLevelControl msg;
-  msg.Direction = direction";
+  msg.Direction = direction;
   msg.MotionType = motion;
   msg.Value = value;
 
