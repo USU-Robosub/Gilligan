@@ -68,44 +68,22 @@ void PathTask::pathCallback(const SubImageRecognition::ImgRecObject& msg)
 	  float moveY = msg.center_y;
     float turn = msg.rotation;
 
-    if (m_mode == 0)
+    if (moveX > 10 || moveX < -10)
     {
-      if (moveX <= 10 && moveX >=-10 && moveY <= 10 && moveY >= -10)
-      {
-        //we have arrived, lets spin
-        if (turn <= 1 && turn >= -1)
-        {
-          //signal complete
-          reportSuccess(true);
-        }
-        else
-        {
-          m_mode = 1;
-        }
-      }
-      else if (moveX > 10 || moveX < -10)
-      {
-        printf("Correcting straf by: %f\n", moveX);
-        publishMotor("Straf", "Manual", moveX*10);
-      }
-      else if (moveY > 10 || moveY < -10)
-      {
-        printf("Correcting forward by: %f\n", moveY);
-        publishMotor("Forward", "Manual", moveY*10);
-      }
+      printf("Correcting straf by: %f\n", moveX);
+      publishMotor("Straf", "Manual", moveX*10);
     }
 
-    if (m_mode == 1)
+    if (moveY > 10 || moveY < -10)
     {
-      if (turn <= 1 && turn >= -1)
-      {
-        m_mode = 0;
-      }
-      else
-      {
-        printf("Correcting turn by: %f\n", turn);
-        publishMotor("Turn", "Manual", turn);
-      }
+      printf("Correcting forward by: %f\n", moveY);
+      publishMotor("Forward", "Manual", moveY*10);
+    }
+
+    if (turn > 1 || turn < -1)
+    {
+      printf("Correcting turn by: %f\n", turn);
+      publishMotor("Turn", "Manual", turn);
     }
 	}
 }
