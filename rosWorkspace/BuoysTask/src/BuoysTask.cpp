@@ -1,6 +1,7 @@
 #include "BuoysTask.hpp"
 #include "Robosub/HighLevelControl.h"
 #include "Robosub/Point.h"
+#include "std_msgs/String.h"
 
 BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
     : m_nodeHandle(),
@@ -10,6 +11,7 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
       m_taskStateSubscriber(),
       m_highLevelMotorPublisher(),
       m_centerOnPointPublisher(),
+      m_taskCompletePublisher(),
       m_firstToBump(first),
       m_secondToBump(second),
       m_isEnabled(false)
@@ -32,7 +34,7 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
    // Setup publisher for high level motor control
     m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motor_Control", 10);
 
-   // @todo Setup publisher for center on line
+    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Complete", 10);
 }
 
 BuoysTask::~BuoysTask()
@@ -52,7 +54,18 @@ void BuoysTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
 
             status = performTask();
 
-            // @todo Signal task complete on topic with task finish status
+            // Signal task complete on topic with task finish status
+            std_msgs::String taskCompleteMsg;
+
+            if (status)
+            {
+                taskCompleteMsg.data = "BuoysTask Success";
+            }
+            else
+            {
+                taskCompleteMsg.data = "BuoysTask Failure";
+            }
+            m_taskCompletePublisher.publish(taskCompleteMsg);
         }
         else
         {
