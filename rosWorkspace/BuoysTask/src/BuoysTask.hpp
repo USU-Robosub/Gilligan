@@ -51,6 +51,7 @@ private:
     ros::Subscriber m_taskStateSubscriber;
     ros::Publisher m_highLevelMotorPublisher;
     ros::Publisher m_centerOnPointPublisher;
+    ros::Publisher m_taskCompletePublisher;
     BuoyColors m_firstToBump;
     BuoyColors m_secondToBump;
     bool m_isEnabled;
