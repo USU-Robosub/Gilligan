@@ -1,6 +1,6 @@
 #include "PathTask.hpp"
 #include "Robosub/HighLevelControl.h"
-#include "std_msgs/StringMultiArray.h"
+#include "std_msgs/String.h"
 
 /**
  * @brief The constructor. Subscribes to all needed topics and sets up callbacks
@@ -111,14 +111,14 @@ void PathTask::reportSuccess(bool success)
 {
 	std_msgs::StringMultiArray msg;
 
-	msg.data.push_back("PathTask");
+	msg.data = "PathTask";
 	if (success)
 	{
-		msg.data.push_back("Success");
+		msg.data += " Success";
 	}
 	else
 	{
-	  msg.data.push_back("Failure");
+	  msg.data = " Failure";
 	}
 	m_taskCompletePublisher.publish(msg);
 }
