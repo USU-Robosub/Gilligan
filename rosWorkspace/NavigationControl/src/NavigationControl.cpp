@@ -206,6 +206,13 @@ bool moveToLine(int x, int y){
 
 }
 
+float sanitize(float rot){
+    //converts the given rotation to a number between 0-180
+    if (rot>=180)
+	return rot-360;
+    return rot;
+}
+
 void mLineCallback(const Robosub::Line::ConstPtr& msg) {
 	if(LINEMODE == OFF)
 		return;
@@ -216,7 +223,7 @@ void mLineCallback(const Robosub::Line::ConstPtr& msg) {
         return; //keep rotating
     }
 
-    int target_rot = msg->rotation;
+    int target_rot = sanitize(msg->rotation);
     if(!target_rot){
 	 start_rot = 0;
          Rotating = 0;
@@ -231,8 +238,8 @@ void mLineCallback(const Robosub::Line::ConstPtr& msg) {
 
 
     //This needs to be implemented better (any ideas?)
-    int direction = 1; //always rotate right?
-    //int direction = target_rot>180? -1 : 1; //-1 Rotate left
+    //int direction = 1; //always rotate right?
+    int direction = target_rot>0 ? 1 : -1; //-1 Rotate left
 
 
     int rate = 0;
