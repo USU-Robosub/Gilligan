@@ -221,8 +221,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"buoys/red",
 		CAMERA_FORWARD,
-		Scalar(135, 0, 75),
-		Scalar(255, 255, 110),
+		Scalar(135, 0, 55),
+		Scalar(255, 255, 100),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -265,8 +265,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"paths",
 		CAMERA_DOWNWARD,
-		Scalar(5, 50, 50),
-		Scalar(15, 255, 255),
+		Scalar(0, 0, 0),
+		Scalar(250, 180, 70),
 		ANALYSIS_RECTANGLE,
 		2,
 		CONFIDENCE_RECTANGLE,
@@ -424,7 +424,7 @@ void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
 				algorithm.annotationColor, 1, CV_AA);
 		break;
 	case ANNOTATION_RADIUS:
-		r = (int) ((a.width + a.height) / 2.0);
+		r = (int) ((a.width + a.height) / 4.0);
 		circle(image, Point(a.center_x, a.center_y), r,
 				algorithm.annotationColor, 2, CV_AA);
 		break;
@@ -483,7 +483,7 @@ void genericCallback(
 					msg.id = k;
 					msg.center_x = analysis.center_x - rotated.image.cols / 2;
 					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-					msg.rotation = analysis.rotation + M_PI / 2.0;
+					msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
 					msg.width = analysis.width;
 					msg.height = analysis.height;
 					msg.confidence = computeConfidence(algorithm, analysis);
