@@ -184,6 +184,17 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 
 bool BuoysTask::performTask(void)
 {
+    while (1)
+    {
+        float distance = getDistanceToBuoy(GREEN);
+
+        printf("Distance to green buoy: %f ft\n", distance);
+
+        usleep(100000);
+        ros::spinOnce();
+    }
+
+
     Robosub::HighLevelControl highLevelControlMsg;
     int retries = 0;
 
