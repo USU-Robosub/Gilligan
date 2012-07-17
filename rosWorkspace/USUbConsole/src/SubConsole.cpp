@@ -31,6 +31,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_motorDriverPublisher(),
      m_depthPublisher(),
      m_thresholdBoxPublisher(),
+     m_torpedoPublisher(),
      m_imageRecService(),
      m_listAlgorithmService(),
      m_imuSubscriber(),
@@ -87,6 +88,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_thresholdBoxPublisher = m_nodeHandle.advertise<SubImageRecognition::ImgRecThreshold>("Threshold_Box", 100);
    m_imageRecService = m_nodeHandle.serviceClient<SubImageRecognition::UpdateAlgorithm>("img_rec/update_algorithm");
    m_listAlgorithmService = m_nodeHandle.serviceClient<SubImageRecognition::ListAlgorithms>("img_rec/list_algorithms");
+   m_torpedoPublisher = m_nodeHandle.advertise<std_msgs::UInt8MultiArray>("Torpedo_Launch", 10);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Attitude", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -171,6 +173,29 @@ void SubConsole::readJoystickInput(void)
    short rearTurnValue = 0;
    short frontDepthValue = 0;
    short rearDepthValue = 0;
+
+   if (m_pJoystick->getButton(2))
+   {
+       std_msgs::UInt8MultiArray torpedoMessage;
+       torpedoMessage.data.push_back(0);
+       torpedoMessage.data.push_back(5);
+
+       m_torpedoPublisher.publish(torpedoMessage);
+
+       printf("Fire Torpedo 1\n");
+       usleep(500000);
+   }
+   else if (m_pJoystick->getButton(3))
+   {
+       std_msgs::UInt8MultiArray torpedoMessage;
+       torpedoMessage.data.push_back(0);
+       torpedoMessage.data.push_back(5);
+
+       m_torpedoPublisher.publish(torpedoMessage);
+
+       printf("Fire Torpedo 2\n");
+       usleep(500000);
+   }
 
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
