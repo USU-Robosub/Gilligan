@@ -1,5 +1,5 @@
-string algorithm
 time stamp
+int8 id
 int16 center_x
 int16 center_y
 float32 rotation

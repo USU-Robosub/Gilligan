@@ -62,17 +62,6 @@ private:
 		return paramName;
 	}
 
-	void saveSettings() {
-		ros::NodeHandle nodeHandle;
-		nodeHandle.setParam(buildParamName(PARAM_FLAGS), flags);
-		nodeHandle.setParam(buildParamName(PARAM_H_MAX), maxThreshold[0] * 255.0 / 179.0);
-		nodeHandle.setParam(buildParamName(PARAM_H_MIN), minThreshold[0] * 255.0 / 179.0);
-		nodeHandle.setParam(buildParamName(PARAM_S_MAX), maxThreshold[1]);
-		nodeHandle.setParam(buildParamName(PARAM_S_MIN), minThreshold[1]);
-		nodeHandle.setParam(buildParamName(PARAM_V_MAX), maxThreshold[2]);
-		nodeHandle.setParam(buildParamName(PARAM_V_MIN), minThreshold[2]);
-	}
-
 public:
 	string name;
 	int flags;
@@ -85,6 +74,17 @@ public:
 	Scalar annotationColor;
 	int annotationType;
 	ros::Publisher publisher;
+
+	void saveSettings() {
+		ros::NodeHandle nodeHandle;
+		nodeHandle.setParam(buildParamName(PARAM_FLAGS), flags);
+		nodeHandle.setParam(buildParamName(PARAM_H_MAX), maxThreshold[0] * 255.0 / 179.0);
+		nodeHandle.setParam(buildParamName(PARAM_H_MIN), minThreshold[0] * 255.0 / 179.0);
+		nodeHandle.setParam(buildParamName(PARAM_S_MAX), maxThreshold[1]);
+		nodeHandle.setParam(buildParamName(PARAM_S_MIN), minThreshold[1]);
+		nodeHandle.setParam(buildParamName(PARAM_V_MAX), maxThreshold[2]);
+		nodeHandle.setParam(buildParamName(PARAM_V_MIN), minThreshold[2]);
+	}
 
 	Algorithm(
 			string _name,
@@ -194,62 +194,6 @@ public:
 	}
 };
 
-class HsvHistogram {
-private:
-	int histSize[3];
-	float hRanges[2];
-	float svRanges[2];
-	const float* ranges[3];
-	int channels[3];
-
-public:
-	HsvHistogram() {
-		histSize[0] = histSize[1] = histSize[2] = 32;
-		hRanges[0] = svRanges[0] = 0.0;
-		hRanges[1] = 180.0;
-		svRanges[1] = 256.0;
-		ranges[0] = hRanges;
-		ranges[1] = ranges[2] = svRanges;
-		channels[0] = 0;
-		channels[1] = 1;
-		channels[2] = 2;
-	}
-
-	SparseMat getSparseHistogram(const Mat& image) {
-		SparseMat hist(3, histSize, CV_8UC3); // resulting histogram
-		calcHist(&image,
-				1,           // histogram of only 1 image
-				channels,    // the channels used
-				cv::Mat(),   // no mask is used
-				hist,        // resulting histogram
-				3,           // number of dimensions
-				histSize,    // number of bins
-				ranges);     // pixel value range
-		return hist;
-	}
-
-	void printSparseHistogram(SparseMat& hist) {
-		for (int j = 0; j < 3; j++) {
-			switch (j) {
-			case 0:
-				printf("Hue:\n ");
-				break;
-			case 1:
-				printf("\nSaturation:\n ");
-				break;
-			case 2:
-				printf("\nValue:\n ");
-				break;
-			}
-			// TODO: Not sure if this is the correct way to access histogram data
-			for (int i = 0; i < histSize[0]; i++) {
-				printf(" %u", hist.value<uint8_t>(i, j));
-			}
-		}
-		printf("\n");
-	}
-};
-
 // GLOBALS  :/  HA HA AH WELL
 
 vector<Algorithm> algorithms;
@@ -329,6 +273,17 @@ void initAlgorithms() {
 		Scalar(0, 128, 255), // Orange
 		ANNOTATION_ROTATION
 	));
+	algorithms.push_back(Algorithm(
+		"obstacle_course_downward",
+		CAMERA_DOWNWARD,
+		Scalar(0, 0, 0),
+		Scalar(120, 255, 210),
+		ANALYSIS_RECTANGLE,
+		1,
+		CONFIDENCE_RECTANGLE,
+		Scalar(255, 0, 0), // Blue
+		ANNOTATION_ROTATION
+	));
 }
 
 /*void normalizeValue(Mat& image, Mat& temp) {
@@ -345,7 +300,7 @@ void reduceNoise(Mat& image) {
 	const static Point point(1, 1);
 	const static Mat elementRect = getStructuringElement(
 			MORPH_RECT, size, point);
-	erode(image, image, elementRect, point, 4);
+	erode(image, image, elementRect, point, 5);
 	dilate(image, image, elementRect, point, 2);
 }
 
@@ -524,6 +479,8 @@ void genericCallback(
 					BlobAnalysis analysis = analysisList[k];
 					// Publish information
 					SubImageRecognition::ImgRecObject msg;
+					// XXX: Does 'stamp' get initialized correctly by default?
+					msg.id = k;
 					msg.center_x = analysis.center_x - rotated.image.cols / 2;
 					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
 					msg.rotation = analysis.rotation + M_PI / 2.0;
@@ -574,13 +531,34 @@ void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
 			x2 = t.x2 - t.x1;
 			y2 = t.y2 - t.y1;
 			printf("\t[fixed] x1: %i, y1: %i, x2: %i, y2: %i\n", x1, y1, x2, y2);
-			// Get region of interest and histogram
-			Mat segmentedROI = segmented(Rect(x1, y1, x2, y2));
-			HsvHistogram hsvHistogram;
-			SparseMat hist = hsvHistogram.getSparseHistogram(segmentedROI);
-			// Compute new thresholds from histogram
-			// TODO
-			hsvHistogram.printSparseHistogram(hist);
+			// Validate values
+			if (x1 < 0 || x1 + x2 > segmented.cols ||
+					y1 < 0 || y1 + y2 > segmented.rows) {
+				return;
+			}
+			// Iterate through region of interest to get new thresholds
+			double hMax , hMin , sMax, sMin, vMax, vMin;
+			hMax = sMax = vMax = 0;
+			hMin = sMin = vMin = 255;
+			for (int x = x1; x < x1 + x2; x++) {
+				for (int y = y1; y < y1 + y2; y++) {
+					const Vec3b& hsv = segmented.at<cv::Vec3b>(x, y);
+					if (hsv[0] > hMax) { hMax = hsv[0]; }
+					if (hsv[0] < hMin) { hMin = hsv[0]; }
+					if (hsv[1] > sMax) { sMax = hsv[1]; }
+					if (hsv[1] < sMin) { sMin = hsv[1]; }
+					if (hsv[2] > vMax) { vMax = hsv[2]; }
+					if (hsv[2] < vMin) { vMin = hsv[2]; }
+				}
+			}
+			// Save new thresholds in algorithm
+			algorithms[i].maxThreshold[0] = hMax;
+			algorithms[i].minThreshold[0] = hMin;
+			algorithms[i].maxThreshold[1] = sMax;
+			algorithms[i].minThreshold[1] = sMin;
+			algorithms[i].maxThreshold[2] = vMax;
+			algorithms[i].minThreshold[2] = vMin;
+			algorithms[i].saveSettings();
 			break;
 		}
 	}
@@ -652,6 +630,9 @@ int main(int argc, char **argv) {
 
 	image_transport::Subscriber downwardSubscriber =
 			imageTransport.subscribe("right/image_raw", 1, downwardCallback);
+
+//	image_transport::Subscriber cameraSubscriber =
+//			imageTransport.subscribe("image_raw", 1, forwardCallback);
 
 	ros::Subscriber thresholdBoxSubscriber =
 			nodeHandle.subscribe("Threshold_Box", 1, thresholdBoxCallback);
