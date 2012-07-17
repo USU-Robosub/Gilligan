@@ -66,7 +66,7 @@ int filter(int speed) {
 void MotorControllerHandler::setMotorSpeed(int right, int left) {
 	rightTargetSpeed = filter(right);
 	leftTargetSpeed = filter(left);
-	printf("setting target speeds to %d %d\n", rightTargetSpeed, leftTargetSpeed);
+//	printf("setting target speeds to %d %d\n", rightTargetSpeed, leftTargetSpeed);
 }
 
 Message createMessageFromSpeed(int rightSpeed, int leftSpeed) {
