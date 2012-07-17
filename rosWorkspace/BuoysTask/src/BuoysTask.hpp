@@ -37,6 +37,10 @@ public:
     void redBuoyCallback(const SubImageRecognition::ImgRecObject& msg);
     bool centerOnBuoy(BuoyColors color);
     void bumpBuoy(BuoyColors color);
+    float getDistanceToBuoy(BuoyColors buoy);
+    void clearPastSamples(void);
+    bool isBuoyVisible(BuoyColors buoy);
+    void searchBuoys(BuoyColors buoy);
 
 private:
     bool performTask(void);
@@ -54,6 +58,8 @@ private:
     ros::Publisher m_taskCompletePublisher;
     BuoyColors m_firstToBump;
     BuoyColors m_secondToBump;
+    std::list<BuoyData>* m_pFirstBumpList;
+    std::list<BuoyData>* m_pSecondBumpList;
     bool m_isEnabled;
 
 };

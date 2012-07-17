@@ -221,8 +221,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"buoys/red",
 		CAMERA_FORWARD,
-		Scalar(135, 0, 75),
-		Scalar(255, 255, 110),
+		Scalar(135, 0, 55),
+		Scalar(255, 255, 100),
 		ANALYSIS_RECTANGLE,
 		1,
 		CONFIDENCE_CIRCLE,
@@ -265,8 +265,8 @@ void initAlgorithms() {
 	algorithms.push_back(Algorithm(
 		"paths",
 		CAMERA_DOWNWARD,
-		Scalar(5, 50, 50),
-		Scalar(15, 255, 255),
+		Scalar(0, 0, 0),
+		Scalar(250, 180, 70),
 		ANALYSIS_RECTANGLE,
 		2,
 		CONFIDENCE_RECTANGLE,
@@ -424,7 +424,7 @@ void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
 				algorithm.annotationColor, 1, CV_AA);
 		break;
 	case ANNOTATION_RADIUS:
-		r = (int) ((a.width + a.height) / 2.0);
+		r = (int) ((a.width + a.height) / 4.0);
 		circle(image, Point(a.center_x, a.center_y), r,
 				algorithm.annotationColor, 2, CV_AA);
 		break;
@@ -483,7 +483,7 @@ void genericCallback(
 					msg.id = k;
 					msg.center_x = analysis.center_x - rotated.image.cols / 2;
 					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-					msg.rotation = analysis.rotation + M_PI / 2.0;
+					msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
 					msg.width = analysis.width;
 					msg.height = analysis.height;
 					msg.confidence = computeConfidence(algorithm, analysis);
@@ -520,18 +520,11 @@ void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
 			// Access correct image
 			Mat& segmented = (algorithms[i].camera == CAMERA_FORWARD) ?
 				forwardSegmented : downwardSegmented;
-			// Ensure points are upper-left and lower-right
-			int x1 = min(t.x1, t.x2);
-			int y1 = min(t.y1, t.y2);
-			int x2 = max(t.x1, t.x2);
-			int y2 = max(t.y1, t.y2);
-			// Convert format to distance from top-left corner and dimensions
-			x1 = t.x1 + (segmented.cols / 2);
-			y1 = t.y1 + (segmented.rows / 2);
-			x2 = t.x2 - t.x1;
-			y2 = t.y2 - t.y1;
-			printf("\t[fixed] x1: %i, y1: %i, x2: %i, y2: %i\n", x1, y1, x2, y2);
 			// Validate values
+			int x1 = t.x1;
+			int y1 = t.y1;
+			int x2 = t.x2;
+			int y2 = t.y2;
 			if (x1 < 0 || x1 + x2 > segmented.cols ||
 					y1 < 0 || y1 + y2 > segmented.rows) {
 				return;
@@ -542,7 +535,7 @@ void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
 			hMin = sMin = vMin = 255;
 			for (int x = x1; x < x1 + x2; x++) {
 				for (int y = y1; y < y1 + y2; y++) {
-					const Vec3b& hsv = segmented.at<cv::Vec3b>(x, y);
+					const Vec3b& hsv = segmented.at<cv::Vec3b>(y, x);
 					if (hsv[0] > hMax) { hMax = hsv[0]; }
 					if (hsv[0] < hMin) { hMin = hsv[0]; }
 					if (hsv[1] > sMax) { sMax = hsv[1]; }
@@ -552,6 +545,7 @@ void thresholdBoxCallback(const SubImageRecognition::ImgRecThreshold& t) {
 				}
 			}
 			// Save new thresholds in algorithm
+			printf("\th: %f-%f s: %f-%f v: %f-%f\n", hMin, hMax, sMin, sMax, vMin, vMax);
 			algorithms[i].maxThreshold[0] = hMax;
 			algorithms[i].minThreshold[0] = hMin;
 			algorithms[i].maxThreshold[1] = sMax;
