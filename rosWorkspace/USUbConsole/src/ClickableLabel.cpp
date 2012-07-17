@@ -15,6 +15,7 @@ ClickableLabel::ClickableLabel(QWidget* pParent)
     m_rectangleDrawingEnabled(false)
 {
     this->setAttribute(Qt::WA_PaintOutsidePaintEvent);
+    this->setStyleSheet("QLabel { background-color : transparent; }");
     connect(this, SIGNAL(clicked()), this, SLOT(slotClicked()));
 }
 
@@ -67,22 +68,22 @@ void ClickableLabel::mouseMoveEvent(QMouseEvent* pEvent)
 
 short ClickableLabel::getX1(void)
 {
-    return m_startX - 239;
+    return m_startX;
 }
 
 short ClickableLabel::getY1(void)
 {
-    return -(m_startY - 319);
+    return m_startY;
 }
 
 short ClickableLabel::getX2(void)
 {
-    return m_endX - 239;
+    return m_endX - m_startX;
 }
 
 short ClickableLabel::getY2(void)
 {
-    return -(m_endY - 319);
+    return m_endY - m_startY;
 }
 
 void ClickableLabel::clearRectangle(void)
