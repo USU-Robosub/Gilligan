@@ -1,0 +1,4 @@
+<Inherits>
+CompRun
+<Timers>
+After 5 s do transistion GateTask

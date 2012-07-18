@@ -184,15 +184,16 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 
 bool BuoysTask::performTask(void)
 {
-    while (1)
+    while (ros::ok())
     {
-        float distance = getDistanceToBuoy(GREEN);
+        float distance = getDistanceToBuoy(YELLOW);
 
         printf("Distance to green buoy: %f ft\n", distance);
 
         usleep(100000);
         ros::spinOnce();
     }
+    return true;
 
 
     Robosub::HighLevelControl highLevelControlMsg;
@@ -469,27 +470,27 @@ float BuoysTask::getDistanceToBuoy(BuoyColors buoy)
 {
   float pixelDiameter = 0.0f;
   float distanceInFeet = -1.0f;
-  const float buoySizeInches = 0.0f;
+  const float buoySizeInches = 9.0f;
   const float pi = 3.14159265f;
   const float fieldOfViewRadians = pi / 3.0;
-  const int viewWidthPixels = 480;
+  const float viewWidthPixels = 480;
 
   switch (buoy)
   {
     case RED:
-      if (m_redBuoySamples.size() >= 5)
+      if (m_redBuoySamples.size() >= 1)
       {
         pixelDiameter = (m_redBuoySamples.back().height + m_redBuoySamples.back().width) / 2.0;
       }
       break;
     case GREEN:
-      if (m_greenBuoySamples.size() >= 5)
+      if (m_greenBuoySamples.size() >= 1)
       {
         pixelDiameter = (m_greenBuoySamples.back().height + m_greenBuoySamples.back().width) / 2.0;
       }
       break;
     case YELLOW:
-      if (m_yellowBuoySamples.size() >= 5)
+      if (m_yellowBuoySamples.size() >= 1)
       {
         pixelDiameter = (m_yellowBuoySamples.back().height + m_yellowBuoySamples.back().width) / 2.0;
       }
@@ -498,7 +499,8 @@ float BuoysTask::getDistanceToBuoy(BuoyColors buoy)
 
   if (pixelDiameter != 0.0f)
   {
-      float theta = (pixelDiameter * fieldOfViewRadians) / (2 * viewWidthPixels);
+      float theta = (pixelDiameter * fieldOfViewRadians) / (2.0 * viewWidthPixels);
+      printf("### Calculated theta: %f\n", theta * (pi/180.0));
       distanceInFeet = (buoySizeInches / (2.0 * tan(theta)) / 12.0);
   }
 

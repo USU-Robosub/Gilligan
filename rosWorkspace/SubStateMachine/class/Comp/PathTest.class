@@ -1,0 +1,6 @@
+<Inherits>
+StateChanger
+<Setup>
+message /TestTopic activate PathTask
+<TearDown>
+message /TestTopic deactivate PathTask

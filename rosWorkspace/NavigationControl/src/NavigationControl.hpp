@@ -34,11 +34,11 @@ class NavigationControl
     float start_y;
     float start_rot;
 
-
-    void setDive(int val);
-    void setStraf(int val);
-    void setDrive(int val);
-    void setTurn(int val);
+    float makeVoltage(float percent);
+    void setDive(float val);
+    void setStraf(float val);
+    void setDrive(float val);
+    void setTurn(float val);
     bool moveToLine(int x, int y);
     float sanitize(float rot);
     void LineCallback(const Robosub::Line msg);
