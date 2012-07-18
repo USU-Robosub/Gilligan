@@ -30,29 +30,57 @@ NavigationControl::~NavigationControl()
 
 }
 
-void NavigationControl::setDive(int val)
+/**
+* @brief Translates a percentage to a thrust unit
+*
+* @param percent Percent of the distance
+*/
+float NavigationControl::makeVoltage(float percent)
 {
+    //The smallest output is 60
+    //The largets output is 255
+    
+    //map from 100 to 255 and from 60 to 5 percent
+      
+    return (percent - 5) * (255-60) / (100-5) + 60;
+    //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+    
+}
+// Create a thrust for Diving
+// and send it to the motor
+void NavigationControl::setDive(float val)
+{   
+    
+    float thrust = makeVoltage(val);
+    publishMotor("Depth", "Manual",thrust);
+    
+}
+
+void NavigationControl::setStrafe(float val)
+{
+    float thrust = makeVoltage(val);
+    publishMotor("Straf", "Manual",thrust);
+}
+
+void NavigationControl::setDrive(float val)
+{
+    float thrust = makeVoltage(val);
+    publishMotor("Forward", "Manual",thrust);
 
 }
 
-void NavigationControl::setStraf(int val)
+void NavigationControl::setTurn(float val)
 {
-
-}
-
-void NavigationControl::setDrive(int val)
-{
-
-}
-
-void NavigationControl::setTurn(int val)
-{
-
+    float thrust = makeVoltage(val);
+    publishMotor("Turn", "Manual",thrust);
 }
 
 void NavigationControl::run()
 {
-  ros::spin(); //change to a while loop with ros::spinOnce() and sleep
+    //if want to do something between spins
+    //change to a while loop with ros::spinOnce() and sleep    
+    ros::spin(); 
 }
 
 void NavigationControl::EnabledCallback(const Robosub::ModuleEnableMsg& msg) {
@@ -220,7 +248,7 @@ bool NavigationControl::moveToLine(int x, int y){
             thrust_y = 0; // We zeroed out in this direction
         }
     } else {
-        if(dir_y>0) // && FORWARDCAMERA
+        if(dir_y>0) //
             range = 30; //So we don't go up too fast
             thrust_y = (range*per_y+minT)*dir_y;
     }
@@ -230,7 +258,7 @@ bool NavigationControl::moveToLine(int x, int y){
 
 
     //Send the calculated speed to the motor
-    setStraf(thrust_x);
+    setStrafe(thrust_x);
     setDrive(thrust_y);
 
     return 0;
