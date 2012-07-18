@@ -6,9 +6,9 @@ bool isEnabled = false;
 
 int main(int argc, char **argv)
 {
-ros::init(argc, argv, "PathTask");
-	PathTask task;
-	ros::spin();
+  ros::init(argc, argv, "PathTask");
+  PathTask task;
+  ros::spin();
 
-	return 0;
+  return 0;
 }
