@@ -18,8 +18,8 @@ PathTask::PathTask()
    m_frames(0)
 {
    printf("setup\n");
-	fflush(NULL);
-	m_pathSubscriber = m_nodeHandle.subscribe("img_rec/paths", 10, &PathTask::pathCallback, this);
+   fflush(NULL);
+   m_pathSubscriber = m_nodeHandle.subscribe("img_rec/paths", 10, &PathTask::pathCallback, this);
    m_taskStateSubscriber = m_nodeHandle.subscribe("Module_Enable", 10, &PathTask::moduleEnableCallback, this);
    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Completion", 10);
@@ -40,20 +40,20 @@ PathTask::~PathTask()
  */
 void PathTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
 {
-	if (msg.Module == "PathTask")
-	{
-		if (msg.State == true)
-		{
-			printf("PathTask: enabled\n");
-			m_isEnabled = true;
-			m_frames = 0;
-		}
-		else
-		{
-			printf("PathTask: Disabled\n");
-			m_isEnabled = false;
-		}
-	}
+  if (msg.Module == "PathTask")
+  {
+    if (msg.State == true)
+    {
+      printf("PathTask: enabled\n");
+      m_isEnabled = true;
+      m_frames = 0;
+    }
+    else
+    {
+      printf("PathTask: Disabled\n");
+      m_isEnabled = false;
+    }
+  }
 }
 
 /**
@@ -119,17 +119,17 @@ void PathTask::pathCallback(const SubImageRecognition::ImgRecObject& msg)
  */
 void PathTask::reportSuccess(bool success)
 {
-	std_msgs::String msg;
-	msg.data = "PathTask";
-	if (success)
-	{
-		msg.data += " Success";
-	}
-	else
-	{
-	  msg.data = " Failure";
-	}
-	m_taskCompletePublisher.publish(msg);
+  std_msgs::String msg;
+  msg.data = "PathTask";
+  if (success)
+  {
+    msg.data += " Success";
+  }
+  else
+  {
+    msg.data = " Failure";
+  }
+  m_taskCompletePublisher.publish(msg);
 }
 
 /**
