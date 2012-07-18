@@ -472,7 +472,7 @@ float BuoysTask::getDistanceToBuoy(BuoyColors buoy)
   float distanceInFeet = -1.0f;
   const float buoySizeInches = 9.0f;
   const float pi = 3.14159265f;
-  const float fieldOfViewRadians = pi / 3.0;
+  const float fieldOfViewRadians = pi / 5.0;
   const float viewWidthPixels = 480;
 
   switch (buoy)
@@ -500,8 +500,9 @@ float BuoysTask::getDistanceToBuoy(BuoyColors buoy)
   if (pixelDiameter != 0.0f)
   {
       float theta = (pixelDiameter * fieldOfViewRadians) / (2.0 * viewWidthPixels);
-      printf("### Calculated theta: %f\n", theta * (pi/180.0));
-      distanceInFeet = (buoySizeInches / (2.0 * tan(theta)) / 12.0);
+      printf("### Calculated theta: %f\n", theta * (180.0 / pi));
+      distanceInFeet = ((buoySizeInches / (2.0 * tan(theta))) / 12.0);
+	  float distanceInInch = tan(pixelDiameter*pi/2880) * 4.25;
   }
 
   return distanceInFeet;
