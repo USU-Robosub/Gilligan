@@ -110,7 +110,7 @@ void NavigationControl::PointCallback(const Robosub::Point& msg)
         start_x = 0;
         start_y = 0;
 
-        setStraf(0);
+        setStrafe(0);
         setDive(0);
 
         return;
@@ -173,7 +173,7 @@ void NavigationControl::PointCallback(const Robosub::Point& msg)
     }
 
     //Send the calculated speed to the motor
-    setStraf(thrust_x);
+    setStrafe(thrust_x);
     setDive(thrust_y);
 
 }
@@ -191,7 +191,7 @@ bool NavigationControl::moveToLine(int x, int y){
         start_x = 0;
         start_y = 0;
 
-        setStraf(0);
+        setStrafe(0);
         setDrive(0);
 
         return 1; //Centered
