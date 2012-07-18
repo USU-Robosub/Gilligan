@@ -193,6 +193,7 @@ bool BuoysTask::performTask(void)
         usleep(100000);
         ros::spinOnce();
     }
+    return true;
 
 
     Robosub::HighLevelControl highLevelControlMsg;
