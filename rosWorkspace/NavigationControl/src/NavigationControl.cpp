@@ -167,9 +167,10 @@ void NavigationControl::PointCallback(const Robosub::Point& msg)
             thrust_y = 0; // We zeroed out in this direction
         }
     } else {
-        if(dir_y>0) // && FORWARDCAMERA
+        if(dir_y>0){ // && FORWARDCAMERA
             range = 30; //So we don't go up too fast
             thrust_y = (range*per_y+minT)*dir_y;
+		}
     }
 
     //Send the calculated speed to the motor
@@ -248,9 +249,10 @@ bool NavigationControl::moveToLine(int x, int y){
             thrust_y = 0; // We zeroed out in this direction
         }
     } else {
-        if(dir_y>0) //
+        if(dir_y>0){ //
             range = 30; //So we don't go up too fast
             thrust_y = (range*per_y+minT)*dir_y;
+		}
     }
 
     if (!thrust_x && !thrust_y)
