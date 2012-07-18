@@ -65,7 +65,7 @@ void PathTask::pathCallback(const SubImageRecognition::ImgRecObject& msg)
 {
   //TODO update to allow for multiple paths per frame
   //always choose the one in frame or the one closest to 0 degrees
-	if (m_isEnabled)
+	if (m_isEnabled && msg.id == 0)
 	{
 	  int hit = 0;
 
@@ -173,12 +173,19 @@ float PathTask::calculateDistanceFromCenter(float centerDir, float width)
  */
 float PathTask::getPixelsPerInch(float curWidthPixels, float expectedWidthInches)
 {
-  if (curWidthPixels > 0)
-  {
-    float cSqr = expectedWidthInches * expectedWidthInches;
-    float bSqr = (expectedWidthInches/2) * (expectedWidthInches/2);
-    float f = expectedWidthInches * sqrt(cSqr - bSqr);
-    return expectedWidthInches * (f/curWidthPixels);
-  }
-  return FLT_MAX; //infinit
+  float dist = getDistance(curWidthPixels, expectedWidthInches);
+  return curWidthPixels/dist;
+}
+
+/**
+ * @brief Calculate the distance to the object
+ *
+ * @param curObjSize The objects current size
+ * @param actualObjSize The objects expected size
+ *
+ * @return The distance
+ */
+float PathTask::getDistance(float curObjSize, float actualObjSize)
+{
+  return (actualObjSize/(2.0f*tan((curObjSize * 60.0f)/960.0f)));
 }

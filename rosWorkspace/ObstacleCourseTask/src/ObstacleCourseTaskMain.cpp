@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv)
 {
-  ObstacleCourseTask task();
-  ros::spin();
-  return 0;
+  ObstacleCourseTask task;
+  task.run();
+  return 1;
 }

@@ -1,0 +1,13 @@
+<Inherits>
+Normal
+<Setup>
+message /Module_Control string "PathTask" 1
+<TearDown>
+message /Control_Systems string "PathTask" 0
+message /High_Level_Control "Forward" "Manual" 0
+message /High_Level_Control "Depth" "Offset" 0
+message /High_Level_Control "Straf" "Manual" 0
+message /High_Level_Control "Turn" "Manual" 0
+message /High_Level_Control "Pitch" "Manual" 0
+<Trigger>
+/Path_Aligned bool = 1 triggers Complete
