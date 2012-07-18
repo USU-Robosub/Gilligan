@@ -125,7 +125,7 @@ void updateAttitude(const std_msgs::Float64MultiArray::ConstPtr msg) {
 
 	PitchOffset = PitchOffset + CurrentPitch - msg->data[1];
 	CurrentPitch = msg->data[1];
-	printf("Turn Message = %lf\n", msg->data[0]);
+//	printf("Turn Message = %lf\n", msg->data[0]);
 }
 
 void UpdateForwardVelocity() {
@@ -139,8 +139,8 @@ void UpdateStrafVelocity() {
 }
 
 int sanatize(int speed) {
-	if(abs(speed) < 45)
-		return 0;
+	while(abs(speed) < 60)
+		speed *= 1.2;
 	if(speed > 255)
 		return 255;
 	if(speed < -255)
@@ -167,8 +167,8 @@ int CalcTurn() {
 int CalcStraf() {
 	if(StrafMode == AUTOMATIC) {
 		StrafOffset -= StrafVelocity;
+		StrafSpeed = sanatize(StrafOffset / .5 * 255.0);
 	}
-	StrafSpeed = sanatize(StrafOffset / .5 * 255.0);
 	return StrafSpeed;
 }
 
@@ -214,8 +214,12 @@ void ManageTurnThrusters() {
 
 	UpdateStrafVelocity();
 
+	RearThrust = sanatize(RearThrust);
+	FrontThrust = sanatize(FrontThrust);
 	if(RearThrust != currentValueRear ||
 	   FrontThrust != currentValueFront) {
+		
+		printf("%d %d\n", RearThrust, FrontThrust);
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
 				0, 0, RearThrust, FrontThrust, 0, 0);
 		currentValueRear = RearThrust;
@@ -249,7 +253,7 @@ int main(int argc, char** argv) {
 	motorPub = &motorPublisher;
 	ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
 	ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
-	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 100, commandCallback);
+	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 1000, commandCallback);
 
 	while(ros::ok()) {
 		ManageForwardThrusters();

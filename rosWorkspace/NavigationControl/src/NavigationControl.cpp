@@ -1,40 +1,99 @@
 #include "ros/ros.h"
-#include "std_msgs/Float32.h"
-#include "subSim/motor.h"
-#include "Robosub/ModuleEnableMsg.h"
-#include "Robosub/Point.h"
-#include "Robosub/Line.h"
-
-#define OFF 0
-#define ON 1
-
-const float MAX_THRESHOLD = 0.05; //5%
-const float MIN_THRESHOLD = 0.01; //1%
-//bool OMODE = OFF;
-bool POINTMODE = OFF;
-bool LINEMODE = OFF;
-//bool Centered = false;
-bool Begun = false;
-bool OnLine = false;
-bool Rotating = false;
-
-float start_x = 0;
-float start_y = 0;
-float start_rot = 0;
+#include "NavigationControl.hpp"
+#include "Robosub/HighLevelControl.h"
 
 
-void mEnabledCallback(const Robosub::ModuleEnableMsg::ConstPtr& msg) {
-	if(msg->Module == "Center_on_Point"){
-		POINTMODE = msg->State;
-	} else if (msg->Module == "Center_on_Line"){
-	    LINEMODE = msg->State;
+NavigationControl::NavigationControl()
+ : m_nodeHandle(),
+   m_highLevelMotorPublisher()
+{
+  //bool OMODE = OFF;
+  POINTMODE = OFF;
+  LINEMODE = OFF;
+  //bool Centered = false;
+  Begun = false;
+  OnLine = false;
+  Rotating = false;
+
+  start_x = 0;
+  start_y = 0;
+  start_rot = 0;
+
+  m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
+  ros::Subscriber targetPoint = m_nodeHandle.subscribe("Center_On_Point", 1, &NavigationControl::PointCallback, this);
+  ros::Subscriber targetLine = m_nodeHandle.subscribe("Center_On_Line", 1, &NavigationControl::LineCallback, this);
+  ros::Subscriber enabled = m_nodeHandle.subscribe("Module_Enable", 1, &NavigationControl::EnabledCallback, this);
+}
+
+NavigationControl::~NavigationControl()
+{
+
+}
+
+/**
+* @brief Translates a percentage to a thrust unit
+*
+* @param percent Percent of the distance
+*/
+float NavigationControl::makeVoltage(float percent)
+{
+    //The smallest output is 60
+    //The largets output is 255
+    
+    //map from 100 to 255 and from 60 to 5 percent
+      
+    return (percent - 5) * (255-60) / (100-5) + 60;
+    //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+    
+}
+// Create a thrust for Diving
+// and send it to the motor
+void NavigationControl::setDive(float val)
+{   
+    
+    float thrust = makeVoltage(val);
+    publishMotor("Depth", "Manual",thrust);
+    
+}
+
+void NavigationControl::setStrafe(float val)
+{
+    float thrust = makeVoltage(val);
+    publishMotor("Straf", "Manual",thrust);
+}
+
+void NavigationControl::setDrive(float val)
+{
+    float thrust = makeVoltage(val);
+    publishMotor("Forward", "Manual",thrust);
+
+}
+
+void NavigationControl::setTurn(float val)
+{
+    float thrust = makeVoltage(val);
+    publishMotor("Turn", "Manual",thrust);
+}
+
+void NavigationControl::run()
+{
+    //if want to do something between spins
+    //change to a while loop with ros::spinOnce() and sleep    
+    ros::spin(); 
+}
+
+void NavigationControl::EnabledCallback(const Robosub::ModuleEnableMsg& msg) {
+	if(msg.Module == "NavigationControl")
+	{
+		//POINTMODE = msg.State;
+
 	}
 }
 
 
-void mPointCallback(const Robosub::Point::ConstPtr& msg) {
-	if(POINTMODE == OFF)
-		return;
+void NavigationControl::PointCallback(const Robosub::Point& msg)
+{
 		// The speed is created based on the difference between
         // the target point and the center
 
@@ -42,8 +101,8 @@ void mPointCallback(const Robosub::Point::ConstPtr& msg) {
     // save the target as the objective
 
     // Target points
-    int target_x = msg->x;
-    int target_y = msg->y;
+    int target_x = msg.x;
+    int target_y = msg.y;
 
     if (!target_x && !target_y ) {
 //        Centered = true;
@@ -59,8 +118,8 @@ void mPointCallback(const Robosub::Point::ConstPtr& msg) {
 
 
     if (!Begun){ // First assignment: create starting points
-        start_x = msg->x;
-        start_y = msg->y;
+        start_x = msg.x;
+        start_y = msg.y;
         Begun = true;
 //        Centered = false;
     }
@@ -119,7 +178,7 @@ void mPointCallback(const Robosub::Point::ConstPtr& msg) {
 
 }
 
-bool moveToLine(int x, int y){
+bool NavigationControl::moveToLine(int x, int y){
     //Returns 1 if on top of the line, 0 otherwise
 
     int target_x = x;
@@ -140,8 +199,8 @@ bool moveToLine(int x, int y){
 
 
     if (!Begun){ // First assignment: create starting points
-        start_x = msg->x;
-        start_y = msg->y;
+        start_x = x;
+        start_y = y;
         Begun = true;
 //        Centered = false;
     }
@@ -189,7 +248,7 @@ bool moveToLine(int x, int y){
             thrust_y = 0; // We zeroed out in this direction
         }
     } else {
-        if(dir_y>0) // && FORWARDCAMERA
+        if(dir_y>0) //
             range = 30; //So we don't go up too fast
             thrust_y = (range*per_y+minT)*dir_y;
     }
@@ -199,31 +258,31 @@ bool moveToLine(int x, int y){
 
 
     //Send the calculated speed to the motor
-    setStraf(thrust_x);
+    setStrafe(thrust_x);
     setDrive(thrust_y);
 
     return 0;
 
 }
 
-float sanitize(float rot){
+float NavigationControl::sanitize(float rot){
     //converts the given rotation to a number between 0-180
     if (rot>=180)
 	return rot-360;
     return rot;
 }
 
-void mLineCallback(const Robosub::Line::ConstPtr& msg) {
+void NavigationControl::LineCallback(const Robosub::Line msg) {
 	if(LINEMODE == OFF)
 		return;
 
-    OnLine = moveToLine(msg->x, msg->y);
+    OnLine = moveToLine(msg.x, msg.y);
     //Once it's on top of the line, rotate
     if (!OnLine){
         return; //keep rotating
     }
 
-    int target_rot = sanitize(msg->rotation);
+    int target_rot = sanitize(msg.rotation);
     if(!target_rot){
 	 start_rot = 0;
          Rotating = 0;
@@ -259,13 +318,19 @@ void mLineCallback(const Robosub::Line::ConstPtr& msg) {
 
 }
 
+/**
+ * @brief plubish to the high level motor controller topic
+ *
+ * @param direction The direction: Forward, Straf, Turn
+ * @param motion The motion type: Manual, Offset
+ * @param value The value
+ */
+void NavigationControl::publishMotor(std::string direction, std::string motion, float value)
+{
+  Robosub::HighLevelControl msg;
+  msg.Direction = direction;
+  msg.MotionType = motion;
+  msg.Value = value;
 
-int main(int argc, char** argv) {
-	ros::init(argc, argv, "NavCenterOnPoint");
-	ros::NodeHandle nh;
-	ros::Subscriber targetPoint = nh.subscribe("/Center_on_Point", 1, mPointCallback);
-	ros::Subscriber targetLine = nh.subscribe("/Center_on_Line", 1, mLineCallback);
-	ros::Subscriber enabled = nh.subscribe("/Module_Control", 1, mEnabledCallback);
-	ros::spin();
+  m_highLevelMotorPublisher.publish(msg);
 }
-

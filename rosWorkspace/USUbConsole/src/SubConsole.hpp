@@ -12,6 +12,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/UInt8.h"
+#include "std_msgs/UInt8MultiArray.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/Float64MultiArray.h"
@@ -51,6 +52,7 @@ private:
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
    ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
    ros::Publisher m_thresholdBoxPublisher;          //!< Publishes the Threshold_Box topic
+   ros::Publisher m_torpedoPublisher;               //!< Publishes the Torpedo_Launch topic
    ros::ServiceClient m_imageRecService;            //!< Publishes to the image recognition topic
    ros::ServiceClient m_listAlgorithmService;       //!< Publishes to the image recognition topic
    ros::Subscriber m_imuSubscriber;                 //!< Subscribes to the IMU_Attitude topic

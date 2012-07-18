@@ -27,11 +27,13 @@ class PathTask
     ros::Publisher m_highLevelMotorPublisher;
     ros::Publisher m_taskCompletePublisher;
     bool m_isEnabled;
-    int m_mode;
+    unsigned int m_frames;
 
 
     void reportSuccess(bool success);
     void publishMotor(std::string direction, std::string motion, float value);
+    float calculateDistanceFromCenter(float centerDir, float width);
+    float getPixelsPerInch(float curWidthPixels, float expectedWidthInches);
 };
 
 #endif // _PATH_TASK_HPP
