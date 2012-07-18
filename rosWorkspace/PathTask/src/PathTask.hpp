@@ -34,6 +34,7 @@ class PathTask
     void publishMotor(std::string direction, std::string motion, float value);
     float calculateDistanceFromCenter(float centerDir, float width);
     float getPixelsPerInch(float curWidthPixels, float expectedWidthInches);
+    float getDistance(float curObjSize, float actualObjSize);
 };
 
 #endif // _PATH_TASK_HPP
