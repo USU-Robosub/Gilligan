@@ -1,0 +1,2 @@
+<Triggers>
+/SubDepth Float < 2.0 triggers message Move Depth 2.0

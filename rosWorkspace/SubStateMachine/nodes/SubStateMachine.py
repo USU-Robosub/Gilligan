@@ -10,6 +10,8 @@ from std_msgs.msg import String
 from std_msgs.msg import Int32
 from std_msgs.msg import Float32
 from string import join
+from Robosub.msg import ModuleEnableMsg
+from Robosub.msg import HighLevelControl
 
 currentClasses = set()
 PublisherCache = {}
@@ -17,12 +19,13 @@ ListenerCache = {}
 gTimers = []
 epsilon = .1
 
+PublisherCache["Module_Enable"] = rospy.Publisher("Module_Enable", ModuleEnableMsg);
+
 class Timer:
 	def __init__(self, Class, ms, effect):
 		self.Class = Class
 		self.endTime = time() + float(ms)/1000.0
 		self.effect = effect
-
 
 def checkTimer(timer):
 	if timer.endTime < time():
@@ -160,8 +163,9 @@ def openClassFile(Class):
 def getPublisher(Class, Type):
 	global PublisherCache
 	try:
-		PublisherCache[Class] = rospy.Publisher(Class, Type)
-		rospy.sleep(.1)
+		if not Class in PublisherCache:
+			PublisherCache[Class] = rospy.Publisher(Class, Type)
+			rospy.sleep(1)
 		return PublisherCache[Class]
 	except:
 		pass
@@ -174,8 +178,17 @@ def SendMessage(fields):
 		pub = getPublisher(fields[0], Float32)
 		pub.publish(Float32(fields[2]))
 	elif fields[1] == 'int':
-		pub = rospy.Publisher(fields[0], Int32)
+		pub = getPublisher(fields[0], Int32)
 		pub.publish(Int32(fields[2]))
+	elif fields[1] == 'activate':
+		pub = getPublisher(fields[0], ModuleEnableMsg)
+		pub.publish(ModuleEnableMsg(Module=fields[2], State=True));
+	elif fields[1] == 'deactivate':
+		pub = getPublisher(fields[0], ModuleEnableMsg)
+		pub.publish(ModuleEnableMsg(Module=fields[2], State=False));
+	elif fields[1] == 'Move':
+		pub = getPublisher(fields[0], HighLevelControl)
+		pub.publish(HighLevelControl(Direction=fields[2], MotionType="Offset", Value=float(fields[3]))
 
 def DispatchMessages(Data):
 	Data = Data.strip()
