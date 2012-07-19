@@ -93,15 +93,15 @@ void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
         m_center.center_y = m_zeroth.center_y + msg.center_y;
         m_identifiedCenter = true;
 
-        if (m_center.center_x < -10.0f || m_center.center_x > 10.0f)
+        if (m_center.center_x < -10 || m_center.center_x > 10)
         {
-          printf("Turning by %f\n", m_center.center_x);
+          printf("Turning by %d\n", m_center.center_x);
           publishMotor("Turn", "Offset", m_center.center_x);
           //possibly turn off forward
         }
         else
         {
-          float straight = etDistance(msg.width, 3.0f)*1.75;
+          float straight = getDistance(msg.width, 3.0f)*1.75;
           printf("Forward by %f\n", straight);
           publishMotor("Forward", "Offset", straight);
         }
@@ -113,7 +113,7 @@ void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
 
 
 /**
- * @brief Calcualte the distance the center of the object is off from the center of the camera in inches
+ * @brief Calculate the distance the center of the object is off from the center of the camera in inches
  *
  * @param centerDir The current center direction
  * @param width The width of the object
