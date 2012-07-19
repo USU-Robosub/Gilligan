@@ -68,6 +68,7 @@ void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
       //then we see a section of the gate. Identify its position in the screen and move it out of screen (turn)
       float dir = 2.0f;
       dir *= msg.center_x > 0.0f ? 1.0f : -1.0f;
+      printf("Turning2 by %f\n", dir);
       publishMotor("Turn", "Offset", dir);
     }
     else
@@ -82,6 +83,7 @@ void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
         //dont have two, turn away
         float dir = 2.0f;
         dir *= msg.center_x > 0.0f ? 1.0f : -1.0f;
+        printf("Turning3 by %f\n", dir);
         publishMotor("Turn", "Offset", dir);
       }
       else if (msg.id != 0)
@@ -99,7 +101,9 @@ void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
         }
         else
         {
-          publishMotor("Forward", "Offset", getDistance(msg.width, 3.0f)*1.75);
+          float straight = etDistance(msg.width, 3.0f)*1.75;
+          printf("Forward by %f\n", straight);
+          publishMotor("Forward", "Offset", straight);
         }
       }
     }
