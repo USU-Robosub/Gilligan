@@ -42,15 +42,12 @@ const int CAMERA_FORWARD = 0;
 const int CAMERA_DOWNWARD = 1;
 
 const int ANALYSIS_RECTANGLE = 0;
-const int ANALYSIS_TORPEDO = 1;
 
 const int CONFIDENCE_RECTANGLE = 0;
 const int CONFIDENCE_CIRCLE = 1;
-const int CONFIDENCE_TORPEDO = 2;
 
 const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
-const int ANNOTATION_TORPEDO = 2;
 
 // DEFINITIONS
 
@@ -110,7 +107,7 @@ public:
 
 		// Retrieve persisted settings from parameter server
 		ros::NodeHandle nodeHandle;
-		nodeHandle.param<int>(buildParamName(PARAM_FLAGS), flags, FLAG_ENABLED);
+		nodeHandle.param<int>(buildParamName(PARAM_FLAGS), flags, 1);
 		nodeHandle.param<double>(buildParamName(PARAM_H_MAX), maxThreshold[0], _maxThreshold[0]);
 		nodeHandle.param<double>(buildParamName(PARAM_H_MIN), minThreshold[0], _minThreshold[0]);
 		nodeHandle.param<double>(buildParamName(PARAM_S_MAX), maxThreshold[1], _maxThreshold[1]);
@@ -156,11 +153,11 @@ public:
 		return alg;
 	}
 
-/*	void print() {
+	void print() {
 		printf("algorithm:{name: %s, flags: %i, hue: %f-%f, sat: %f-%f, val: %f-%f}\n",
 			name.c_str(), flags, minThreshold[0], maxThreshold[0],
 			minThreshold[1], maxThreshold[1], minThreshold[2], maxThreshold[2]);
-	}*/
+	}
 };
 
 class BlobAnalysis {
@@ -222,17 +219,6 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		"gate_distant",
-		CAMERA_FORWARD,
-		Scalar(0, 0, 0),
-		Scalar(250, 180, 60),
-		ANALYSIS_RECTANGLE,
-		2,
-		CONFIDENCE_RECTANGLE,
-		Scalar(2, 89, 143), // Brown
-		ANNOTATION_ROTATION
-	));
-	algorithms.push_back(Algorithm(
 		"buoys/red",
 		CAMERA_FORWARD,
 		Scalar(135, 0, 55),
@@ -277,28 +263,6 @@ void initAlgorithms() {
 		ANNOTATION_ROTATION
 	));
 	algorithms.push_back(Algorithm(
-		"torpedos/blue",
-		CAMERA_FORWARD,
-		Scalar(0, 0, 0), // XXX: Maybe put better defaults here?
-		Scalar(130, 245, 125),
-		ANALYSIS_TORPEDO,
-		1,
-		CONFIDENCE_TORPEDO,
-		Scalar(255, 0, 0), // Blue
-		ANNOTATION_TORPEDO
-	));
-	algorithms.push_back(Algorithm(
-		"torpedos/red",
-		CAMERA_FORWARD,
-		Scalar(135, 0, 55), // XXX: Maybe put better defaults here?
-		Scalar(255, 255, 100),
-		ANALYSIS_TORPEDO,
-		1,
-		CONFIDENCE_TORPEDO,
-		Scalar(0, 0, 255), // Red
-		ANNOTATION_TORPEDO
-	));
-	algorithms.push_back(Algorithm(
 		"paths",
 		CAMERA_DOWNWARD,
 		Scalar(0, 0, 0),
@@ -340,7 +304,7 @@ void reduceNoise(Mat& image) {
 	dilate(image, image, elementRect, point, 2);
 }
 
-Points findBlob(Mat& image, int i, int j, uint8_t testVal = 255) {
+Points findBlob(Mat& image, int i, int j) {
 	unsigned int index = 0;
 	Points blob;
 	Point point(j, i);
@@ -351,22 +315,22 @@ Points findBlob(Mat& image, int i, int j, uint8_t testVal = 255) {
 		i = point.y;
 		j = point.x;
 		if (i+SAMPLE_SIZE < image.rows
-				&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == testVal) {
+				&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == 255) {
 			blob.push_back(Point(j, i+SAMPLE_SIZE));
 			image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 127;
 		}
 		if (i-SAMPLE_SIZE >= 0
-				&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == testVal) {
+				&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == 255) {
 			blob.push_back(Point(j, i-SAMPLE_SIZE));
 			image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 127;
 		}
 		if (j+SAMPLE_SIZE < image.cols
-				&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == testVal) {
+				&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == 255) {
 			blob.push_back(Point(j+SAMPLE_SIZE, i));
 			image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 127;
 		}
 		if (j-SAMPLE_SIZE >= 0 &&
-				image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == testVal) {
+				image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == 255) {
 			blob.push_back(Point(j-SAMPLE_SIZE, i));
 			image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 127;
 		}
@@ -409,26 +373,21 @@ vector<Points> findBlobs(Mat& image,
 }
 
 vector<BlobAnalysis> analyzeBlob(Algorithm& algorithm,
-		Points& blob, Mat& threshold) {
+		Points& blob, Mat& image) {
 	vector<BlobAnalysis> analysisList;
 	RotatedRect rectangle;
 	switch (algorithm.analysisType) {
 	case ANALYSIS_RECTANGLE:
 		analysisList.push_back(BlobAnalysis(blob, minAreaRect(Mat(blob))));
 		break;
-	case ANALYSIS_TORPEDO:
-		BlobAnalysis analysis = BlobAnalysis(blob, minAreaRect(Mat(blob)));
-		// TODO: Use analysis and threshold to find big/small holes
-		break;
 	}
 	return analysisList;
 }
 
 float computeConfidence(Algorithm& algorithm, BlobAnalysis& a) {
-	// A return value of -1 indicates 'not yet implemented'
+	// A return value of -1 indicates 'divide by zero' error
 	// A return value of -2 indicates 'unknown confidence type' error
-	// A return value of -3 indicates 'divide by zero' error
-	int expectedPoints = -1;
+	int expectedPoints;
 	switch (algorithm.confidenceType) {
 	case CONFIDENCE_RECTANGLE:
 		expectedPoints = (a.width * a.height) / (SAMPLE_SIZE * SAMPLE_SIZE);
@@ -437,14 +396,11 @@ float computeConfidence(Algorithm& algorithm, BlobAnalysis& a) {
 		expectedPoints =
 				(M_PI * a.width * a.height) / (4 * SAMPLE_SIZE * SAMPLE_SIZE);
 		break;
-	case CONFIDENCE_TORPEDO:
-		// TODO
-		break;
 	default:
 		return -2; // Unknown confidence type
 	}
 	if (expectedPoints <= 0) {
-		return -3; // Divide by zero
+		return -1; // Divide by zero
 	} else {
 		float confidence = ((float) a.size) / ((float) expectedPoints);
 		if (confidence > 1) {
@@ -470,15 +426,6 @@ void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
 	case ANNOTATION_RADIUS:
 		r = (int) ((a.width + a.height) / 4.0);
 		circle(image, Point(a.center_x, a.center_y), r,
-				algorithm.annotationColor, 2, CV_AA);
-		break;
-	case ANNOTATION_TORPEDO:
-		r = (int) ((a.width + a.height) / 4.0);
-		line(image, Point(a.center_x - r, a.center_y),
-				Point(a.center_x + r, a.center_y),
-				algorithm.annotationColor, 2, CV_AA);
-		line(image, Point(a.center_x, a.center_y - r),
-				Point(a.center_x, a.center_y + r),
 				algorithm.annotationColor, 2, CV_AA);
 		break;
 	}
@@ -526,13 +473,13 @@ void genericCallback(
 			// Iterate through all blobs
 			for (unsigned int j = 0; j < blobs.size(); j++) {
 				vector<BlobAnalysis> analysisList =
-						analyzeBlob(algorithm, blobs[j], threshold);
+						analyzeBlob(algorithm, blobs[j], rotated.image);
 				// Iterate through all blob analysis objects
 				for (unsigned int k = 0; k < analysisList.size(); k++) {
 					BlobAnalysis analysis = analysisList[k];
 					// Publish information
 					SubImageRecognition::ImgRecObject msg;
-					msg.stamp = ros::Time::now();
+					// XXX: Does 'stamp' get initialized correctly by default?
 					msg.id = k;
 					msg.center_x = analysis.center_x - rotated.image.cols / 2;
 					msg.center_y = rotated.image.rows / 2 - analysis.center_y;

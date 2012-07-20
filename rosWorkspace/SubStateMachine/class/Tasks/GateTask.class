@@ -1,0 +1,7 @@
+
+<Inherits>
+CompRun
+<Setup>
+message /Module_Enable activate GateTask
+<TearDown>
+message /Module_Enable deactivate GateTask

@@ -1,0 +1,6 @@
+
+<Inherits>
+NonComp
+StopAllMotors
+<Triggers>
+/Motor_State int = 1 triggers transition StartComp

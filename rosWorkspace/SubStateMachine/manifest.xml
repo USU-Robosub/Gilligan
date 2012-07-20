@@ -1,0 +1,18 @@
+<package>
+  <description brief="SubStateMachine">
+
+     SubStateMachine
+
+  </description>
+  <author>Daniel</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubStateMachine</url>
+
+  <depend package="rospy"/>
+  <depend package="Robosub"/>
+  <depend package="SubImageRecognition"/>
+  <depend package="std_msgs"/>
+</package>
+
+

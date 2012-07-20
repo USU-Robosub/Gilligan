@@ -278,7 +278,7 @@ void MotorControllerHandler::CheckMotor() {
 	if(elsaped < MOTOR_PERIOD)
 		return;
 
-	bool needsSent = true;
+	bool needsSent = false;
 	int leftSetSpeed = leftSpeed;
 	int rightSetSpeed = rightSpeed;
 	if(leftSpeed != leftTargetSpeed) {

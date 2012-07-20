@@ -1,0 +1,7 @@
+
+<Inherits>
+ZigZagLine
+PathTask
+CompRun
+<Triggers>
+/Task_Completion string = "PathTask Success" triggers transition FindWreath

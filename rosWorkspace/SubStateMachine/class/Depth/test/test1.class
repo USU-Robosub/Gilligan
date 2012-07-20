@@ -1,0 +1,4 @@
+<Inherits>
+Surface
+<Triggers>
+/Sub_Depth float ~ 0.0 triggers transition test2

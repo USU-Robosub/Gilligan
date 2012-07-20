@@ -134,7 +134,7 @@ def Remove(Class):
 	RemoveTimers(Class)
 
 def Setup(Class):
-	print "Seting up " + Class
+	print "Setting up " + Class
 	File = openClassFile(Class)
 	sections = File.split('\n<')
 	for section in sections:
@@ -146,7 +146,6 @@ def Setup(Class):
 				DispatchMessages(Data)
 
 def TearDown(Class):
-	print "Tearing Down " + Class
 	File = openClassFile(Class)
 	sections = File.split('\n<')
 	for section in sections:

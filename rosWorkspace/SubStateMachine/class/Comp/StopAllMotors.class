@@ -1,0 +1,6 @@
+<Setup>
+message Move Forward 0
+message Move Depth 0
+message Move Turn 0
+message Move Straf 0
+message Move Pitch 0
