@@ -1,5 +1,0 @@
-<Inherits>
-<Setup>
-message /Control_Systems string "MaintainHeading on"
-<TearDown>
-message /Control_Systems string "MaintainHeading off"

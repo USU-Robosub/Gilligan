@@ -1,7 +1,0 @@
-
-<Setup>
-message /High_Level_Motion move Depth -3
-<Inherits>
-CompRun
-<Timers>
-After 5 s do transition StartMoving

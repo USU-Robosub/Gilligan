@@ -1,4 +1,0 @@
-<Inherits>
-PathTask
-<Triggers>
-/Rectangles /img_rec/paths any message triggers transistion PathTaskTest
