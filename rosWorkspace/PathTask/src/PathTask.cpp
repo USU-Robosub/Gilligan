@@ -27,6 +27,7 @@ PathTask::PathTask()
    m_pathDirSubscriber = m_nodeHandle.subscribe("Path_Direction", 10, &PathTask::pathDirectionCallback, this);
    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Completion", 10);
+   signal(SIGABRT,PathTask::signalCatcher);
 }
 
 /**
@@ -34,7 +35,9 @@ PathTask::PathTask()
  */
 PathTask::~PathTask()
 {
-
+  publishMotor("Straf", "Offset", 0.0);
+  publishMotor("Forward", "Offset", 0.0);
+  publishMotor("Turn", "Offset", 0.0);
 }
 
 /**
