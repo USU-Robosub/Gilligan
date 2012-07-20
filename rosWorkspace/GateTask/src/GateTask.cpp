@@ -2,6 +2,7 @@
 #include "Robosub/ModuleEnableMsg.h"
 #include "Robosub/Point.h"
 #include "std_msgs/String.h"
+#include "Positioning.hpp"
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
@@ -120,7 +121,7 @@ float GateTask::getPixelsPerInch(float curWidthPixels, float expectedWidthInches
  */
 float GateTask::getDistance(float curObjSize, float actualObjSize)
 {
-  return (actualObjSize/(2.0f*tan(((curObjSize * (M_PI/3.0))/960.0f))));
+  return (actualObjSize/(2.0f*tan(((curObjSize * (M_PI/4.0))/960.0f))));
 }
 
 /**

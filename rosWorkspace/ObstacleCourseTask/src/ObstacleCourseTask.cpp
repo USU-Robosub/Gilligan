@@ -35,7 +35,7 @@ ObstacleCourseTask::~ObstacleCourseTask()
 
 void ObstacleCourseTask::run(void)
 {
-  while (true)
+  while (ros::ok())
   {
     //do calculations
     m_distanceToObject = getDistance(m_hbar.height, 2.0f);
@@ -60,6 +60,7 @@ void ObstacleCourseTask::run(void)
     }
 
     ros::spinOnce();
+    usleep(10000);
   }
 }
 
@@ -91,22 +92,22 @@ void ObstacleCourseTask::obstacleCourseCallback(const SubImageRecognition::ImgRe
   if (m_isEnabled)
   {
     //identify the object
-    if (msg.width > msg.height) //horizontal bar
+    if ((msg.rotation > 45.0f && msg.rotation < 135.0f) || (msg.rotation < -45.0f && msg.rotation > -135.0f)) //horizontal bar
     {
       m_hbar = msg;
     }
-    else //vertical Bar
-    {
-      //determine which bar
-      if (msg.center_x > m_hbar.center_x) //right
-      {
-        m_vbarRight = msg;
-      }
-      else //left
-      {
-        m_vbarLeft = msg;
-      }
-    }
+//    else //vertical Bar
+//    {
+//      //determine which bar
+//      if (msg.center_x > m_hbar.center_x) //right
+//      {
+//        m_vbarRight = msg;
+//      }
+//      else //left
+//      {
+//        m_vbarLeft = msg;
+//      }
+//    }
 
 //    //we will receive multiple frames (3) for the 1 object. 2 vertical bars and 1 horizontal
 //    m_distanceToObject = computeDistanceToObject(msg.height, msg.width);
@@ -170,7 +171,7 @@ float ObstacleCourseTask::getPixelsPerInch(float curWidthPixels, float expectedW
  */
 float ObstacleCourseTask::getDistance(float curObjSize, float actualObjSize)
 {
-  return (actualObjSize/(2.0f*tan((curObjSize * 60.0f)/960.0f)));
+  return (actualObjSize/(2.0f*tan((curObjSize * (M_PI/4))/960.0f)));
 }
 
 /**
@@ -181,7 +182,7 @@ float ObstacleCourseTask::getDistance(float curObjSize, float actualObjSize)
 void ObstacleCourseTask::reportSuccess(bool success)
 {
   std_msgs::String msg;
-  msg.data = "PathTask";
+  msg.data = "ObstacleCourseTask";
   if (success)
   {
     msg.data += " Success";

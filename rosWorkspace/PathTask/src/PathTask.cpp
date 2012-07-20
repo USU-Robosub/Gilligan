@@ -1,6 +1,5 @@
 #include "PathTask.hpp"
 #include "Robosub/HighLevelControl.h"
-#include "std_msgs/String.h"
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
@@ -12,15 +11,20 @@ PathTask::PathTask()
  : m_nodeHandle(),
    m_pathSubscriber(),
    m_taskStateSubscriber(),
+   m_pathDirSubscriber(),
    m_highLevelMotorPublisher(),
    m_taskCompletePublisher(),
    m_isEnabled(false),
-   m_frames(0)
+   m_frames(0),
+   m_direction("left"),
+   m_msgList(),
+   m_lastId(-1)
 {
    printf("setup\n");
    fflush(NULL);
    m_pathSubscriber = m_nodeHandle.subscribe("img_rec/paths", 10, &PathTask::pathCallback, this);
    m_taskStateSubscriber = m_nodeHandle.subscribe("Module_Enable", 10, &PathTask::moduleEnableCallback, this);
+   m_pathDirSubscriber = m_nodeHandle.subscribe("Path_Direction", 10, &PathTask::pathDirectionCallback, this);
    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Completion", 10);
 }
@@ -47,6 +51,7 @@ void PathTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
       printf("PathTask: enabled\n");
       m_isEnabled = true;
       m_frames = 0;
+      m_msgList.clear();
     }
     else
     {
@@ -56,6 +61,11 @@ void PathTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
   }
 }
 
+void PathTask::pathDirectionCallback(const std_msgs::String& msg)
+{
+  m_direction = msg.data;
+}
+
 /**
  * @brief The path callback
  *
@@ -63,53 +73,157 @@ void PathTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
  */
 void PathTask::pathCallback(const SubImageRecognition::ImgRecObject& msg)
 {
-  //TODO update to allow for multiple paths per frame
-  //always choose the one in frame or the one closest to 0 degrees
-	if (m_isEnabled && msg.id == 0)
+	if (m_isEnabled)
 	{
-	  int hit = 0;
+	  if (msg.id == 0 && m_lastId != -1)
+	  {
+	    //find the correct target
+	    SubImageRecognition::ImgRecObject tmp = getMessage();
 
-	  //first get centered, then rotate, then recenter if needed
-	  float moveX = calculateDistanceFromCenter(msg.center_x, msg.width);
-	  float moveY = calculateDistanceFromCenter(msg.center_y, msg.width);
-    float turn = msg.rotation;
+#ifdef USE_MANUAL
+	    manualMode(msg);
+#else
+	    offsetMode(msg);
+#endif
+	    m_msgList.clear();
+	    m_msgList.push_back(msg);
+	  }
+	  else
+	  {
+	    m_msgList.push_back(msg);
+	  }
 
-    if (moveX > 10 || moveX < -10)
-    {
-      printf("Correcting straf by: %f\n", moveX);
-      publishMotor("Straf", "Offset", moveX/12); //inches to feet
-      hit++;
-    }
-
-    if (moveY > 10 || moveY < -10)
-    {
-      printf("Correcting forward by: %f\n", moveY);
-      publishMotor("Forward", "Offset", moveY/12);
-      hit++;
-    }
-
-    if (turn > 1 || turn < -1)
-    {
-      printf("Correcting turn by: %f\n", turn);
-      publishMotor("Turn", "Offset", turn);
-      hit++;
-    }
-
-    if (hit == 0)
-    {
-      m_frames++;
-    }
-    else
-    {
-
-    }
-
-    if (m_frames >= 10)
-    {
-      reportSuccess(true);
-      m_frames = 0;
-    }
+    m_lastId = msg.id;
 	}
+}
+
+void PathTask::manualMode(const SubImageRecognition::ImgRecObject& msg)
+{
+  int hit = 0;
+  float moveX = msg.center_x;
+  float moveY = msg.center_y;
+  float turn = msg.rotation;
+
+  if (moveX > 10 || moveX < -10)
+  {
+    printf("Correcting straf by: %f\n", moveX);
+    publishMotor("Straf", "Manual", moveX*2.0);
+    hit++;
+  }
+
+  if (moveY > 10 || moveY < -10)
+  {
+    printf("Correcting forward by: %f\n", moveY);
+    publishMotor("Forward", "Manual", moveY*2.0);
+    hit++;
+  }
+
+  if (turn > 1 || turn < -1)
+  {
+    printf("Correcting turn by: %f\n", turn);
+    publishMotor("Turn", "Manual", turn);
+    hit++;
+  }
+
+  if (hit == 0)
+  {
+    m_frames++;
+  }
+  else
+  {
+    m_frames = 0;
+  }
+
+  if (m_frames >= 10)
+  {
+    reportSuccess(true);
+    m_frames = 0;
+    m_isEnabled = false;
+  }
+}
+
+void PathTask::offsetMode(const SubImageRecognition::ImgRecObject& msg)
+{
+  int hit = 0;
+  float moveX = calculateDistanceFromCenter(msg.center_x, msg.width);
+  float moveY = calculateDistanceFromCenter(msg.center_y, msg.width);
+  float turn = msg.rotation;
+
+  if (moveX > 10 || moveX < -10)
+  {
+    printf("Correcting straf by: %f\n", moveX);
+    publishMotor("Straf", "Offset", moveX/12); //inches to feet
+    hit++;
+  }
+
+  if (moveY > 10 || moveY < -10)
+  {
+    printf("Correcting forward by: %f\n", moveY);
+    publishMotor("Forward", "Offset", moveY/12);
+    hit++;
+  }
+
+  if (turn > 1 || turn < -1)
+  {
+    printf("Correcting turn by: %f\n", turn);
+    publishMotor("Turn", "Offset", turn);
+    hit++;
+  }
+
+  if (hit == 0)
+  {
+    m_frames++;
+  }
+  else
+  {
+    m_frames = 0;
+  }
+
+  if (m_frames >= 10)
+  {
+    reportSuccess(true);
+    m_frames = 0;
+    m_isEnabled = false;
+  }
+}
+
+SubImageRecognition::ImgRecObject PathTask::getMessage()
+{
+  SubImageRecognition::ImgRecObject ret;
+
+  if (m_direction == "right")
+  {
+    int greatest = SHRT_MIN;
+    for (std::list<SubImageRecognition::ImgRecObject>::iterator it = m_msgList.begin(); it != m_msgList.end(); it++)
+    {
+      if (it->center_x > greatest)
+      {
+        greatest = it->center_x;
+        ret = *it;
+      }
+    }
+  }
+  else if (m_direction == "left")
+  {
+    int greatest = SHRT_MAX;
+    for (std::list<SubImageRecognition::ImgRecObject>::iterator it = m_msgList.begin(); it != m_msgList.end(); it++)
+    {
+      if (it->center_x < greatest)
+      {
+        greatest = it->center_x;
+        ret = *it;
+      }
+    }
+  }
+  else
+  {
+    if (m_msgList.size() > 0)
+    {
+      ret = m_msgList.front();
+    }
+  }
+
+  return ret;
 }
 
 /**
@@ -187,5 +301,5 @@ float PathTask::getPixelsPerInch(float curWidthPixels, float expectedWidthInches
  */
 float PathTask::getDistance(float curObjSize, float actualObjSize)
 {
-  return (actualObjSize/(2.0f*tan((curObjSize * 60.0f)/960.0f)));
+  return (actualObjSize/(2.0f*tan(curObjSize * (M_PI/4.0f)/960.0f))); //45 degrees
 }
