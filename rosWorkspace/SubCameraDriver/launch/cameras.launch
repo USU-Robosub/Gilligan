@@ -3,6 +3,6 @@
 		<param name="left/device" value="/dev/v4l/by-id/usb-046d_081b_1EEF6ED0-video-index0" />
 		<param name="right/device" value="/dev/v4l/by-id/usb-046d_081b_3F69ACE0-video-index0" />
 		<!-- <param name="right/device" value="/dev/v4l/by-id/usb-046d_0819_AACBE5A0-video-index0" /> -->
-		<param name="fps" value="5" />
+		<param name="fps" value="10" />
 	</node>
 </launch>
