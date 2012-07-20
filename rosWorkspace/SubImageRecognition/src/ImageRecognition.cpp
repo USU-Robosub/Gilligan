@@ -475,11 +475,12 @@ void genericCallback(
 				vector<BlobAnalysis> analysisList =
 						analyzeBlob(algorithm, blobs[j], rotated.image);
 				// Iterate through all blob analysis objects
+				ros::Time time = ros::Time::now();
 				for (unsigned int k = 0; k < analysisList.size(); k++) {
 					BlobAnalysis analysis = analysisList[k];
 					// Publish information
 					SubImageRecognition::ImgRecObject msg;
-					// XXX: Does 'stamp' get initialized correctly by default?
+					msg.stamp = time;
 					msg.id = k;
 					msg.center_x = analysis.center_x - rotated.image.cols / 2;
 					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
