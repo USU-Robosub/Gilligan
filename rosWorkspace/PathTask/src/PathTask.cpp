@@ -152,7 +152,7 @@ void PathTask::offsetMode(const SubImageRecognition::ImgRecObject& msg)
   if (moveX > 10 || moveX < -10)
   {
     printf("Correcting straf by: %f\n", moveX);
-    publishMotor("Straf", "Offset", moveX/12); //inches to feet
+    publishMotor("Straf", "Offset", moveX > 0 ? 1 : -1); //inches to feet
     hit++;
   }
   else
@@ -163,7 +163,7 @@ void PathTask::offsetMode(const SubImageRecognition::ImgRecObject& msg)
   if (moveY > 10 || moveY < -10)
   {
     printf("Correcting forward by: %f\n", moveY);
-    publishMotor("Forward", "Offset", moveY/12);
+    publishMotor("Forward", "Offset", moveY > 0 ? 1 : -1);
     hit++;
   }
   else
