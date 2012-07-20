@@ -2,6 +2,7 @@
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "Robosub/HighLevelControl.h"
+#include "Robosub/Point.h"
 #include "SubMotorController/MotorMessage.h"
 
 #include <string>
@@ -57,6 +58,13 @@ double StrafVelocity = 0;
 
 bool DepthInMotion = false;
 ros::Publisher* motorPub;
+
+void CenterOnPointCallback(Robosub::Point::ConstPtr msg) {
+	TurnMode = AUTOMATIC;
+	TurnOffset = msg->x * 60 / 1640;
+	DepthMode = AUTOMATIC;
+	DepthOffset = -msg->y / 80.0;
+}
 
 void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 	if(msg->Direction == "Forward" && msg->MotionType == "Offset") {
@@ -139,8 +147,10 @@ void UpdateStrafVelocity() {
 }
 
 int sanatize(int speed) {
-	while(abs(speed) < 60)
-		speed *= 1.2;
+	if(speed > 0 && speed < 60)
+		speed = 40;
+	else if (speed < 0 && speed > -60)
+		speed = -40;
 	if(speed > 255)
 		return 255;
 	if(speed < -255)
@@ -159,7 +169,8 @@ int CalcDepth() {
 
 int CalcTurn() {
 	if(TurnMode == AUTOMATIC) {
-		TurnSpeed = sanatize(TurnOffset / 8.0 * 255)/4;
+		TurnSpeed = sanatize(TurnOffset / 8.0 * 255)/2;
+		printf("Offset = %f Speed = %f\n", TurnOffset, TurnSpeed);
 	}
 	return TurnSpeed;
 }
@@ -219,7 +230,6 @@ void ManageTurnThrusters() {
 	if(RearThrust != currentValueRear ||
 	   FrontThrust != currentValueFront) {
 		
-		printf("%d %d\n", RearThrust, FrontThrust);
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
 				0, 0, RearThrust, FrontThrust, 0, 0);
 		currentValueRear = RearThrust;
@@ -237,8 +247,9 @@ void ManageDepthThrusters() {
 	int FrontThrust = DepthThrust + PitchThrust;
 	int RearThrust = DepthThrust - PitchThrust;
 
-	if(RearThrust != currentValueRear ||
-	   FrontThrust != currentValueFront) {
+	if(true || RearThrust != currentValueRear ||
+			FrontThrust != currentValueFront) {
+		printf("Depth %d %d\n", RearThrust, FrontThrust);
 		sendMotorMessage(REAR_DEPTH_BIT | FRONT_DEPTH_BIT,
 				0, 0, 0, 0, RearThrust, FrontThrust);
 		currentValueRear = RearThrust;
@@ -253,7 +264,8 @@ int main(int argc, char** argv) {
 	motorPub = &motorPublisher;
 	ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
 	ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
-	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 1000, commandCallback);
+	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 10, commandCallback);
+	ros::Subscriber PointSub = nh.subscribe("Center_On_Point", 10, CenterOnPointCallback);
 
 	while(ros::ok()) {
 		ManageForwardThrusters();
