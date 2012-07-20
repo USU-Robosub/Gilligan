@@ -80,11 +80,8 @@ void PathTask::pathCallback(const SubImageRecognition::ImgRecObject& msg)
 	    //find the correct target
 	    SubImageRecognition::ImgRecObject tmp = getMessage();
 
-#ifdef USE_MANUAL
 	    manualMode(msg);
-#else
-	    offsetMode(msg);
-#endif
+	    //offsetMode(msg);
 	    m_msgList.clear();
 	    m_msgList.push_back(msg);
 	  }
@@ -110,6 +107,10 @@ void PathTask::manualMode(const SubImageRecognition::ImgRecObject& msg)
     publishMotor("Straf", "Manual", moveX*2.0);
     hit++;
   }
+  else
+  {
+    publishMotor("Straf", "Manual", 0.0);
+  }
 
   if (moveY > 10 || moveY < -10)
   {
@@ -117,12 +118,20 @@ void PathTask::manualMode(const SubImageRecognition::ImgRecObject& msg)
     publishMotor("Forward", "Manual", moveY*2.0);
     hit++;
   }
+  else
+  {
+    publishMotor("Forward", "Manual", 0.0);
+  }
 
   if (turn > 1 || turn < -1)
   {
     printf("Correcting turn by: %f\n", turn);
     publishMotor("Turn", "Manual", turn);
     hit++;
+  }
+  else
+  {
+    publishMotor("Turn", "Manual", 0.0);
   }
 
   if (hit == 0)
