@@ -239,7 +239,7 @@ void launchTorpedo(byte torpedo)
   if (torpedo < numberOfTorpedos)
   {
     digitalWrite(torpedoLeftPin + torpedo, HIGH);
-    delay(1000);
+    delay(500);
     digitalWrite(torpedoLeftPin + torpedo, LOW);
   }
 }
