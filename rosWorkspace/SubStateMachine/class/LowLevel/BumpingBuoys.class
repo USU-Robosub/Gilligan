@@ -1,0 +1,5 @@
+
+<Inherits>
+BuoyTask
+<Triggers>
+/Task_Completion string = "BuoyTask Success" triggers transition Find2Path

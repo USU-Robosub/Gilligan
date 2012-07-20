@@ -1,6 +1,0 @@
-<Inherits>
-CompRun
-<Setup>
-message /High_Level_Control move Forward 20.0
-<Timers>
-After 5 s transistion PathTask
