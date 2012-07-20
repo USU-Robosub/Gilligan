@@ -81,6 +81,7 @@ void BuoysTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
             printf("BuoysTask: Enabled\n");
             m_isEnabled = true;
 
+            // Perform task
             status = performTask();
 
             // Signal task complete on topic with task finish status
@@ -184,30 +185,18 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 
 bool BuoysTask::performTask(void)
 {
-    while (ros::ok())
-    {
-        float distance = getDistanceToBuoy(YELLOW);
-
-        printf("Distance to green buoy: %f ft\n", distance);
-
-        usleep(100000);
-        ros::spinOnce();
-    }
-    return true;
-
-
     Robosub::HighLevelControl highLevelControlMsg;
     int retries = 0;
 
     printf("BuoysTask: Driving Forward to find buoys...\n");
+    highLevelControlMsg.Direction = "Forward";
+    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.Value = 2.0f;
 
-    // 1. Find the bouys - keep driving forward - Get at least 10 samples of a buoy before looking for desired buoy
+    // 1. Find the red bouy - keep driving forward - Get at least 10 samples of buoy before deciding it has been seen
     retries = 200;  // 20 seconds-ish timeout
-    while ((m_redBuoySamples.size() <= 10) && (m_greenBuoySamples.size() <= 10) && (m_yellowBuoySamples.size() <= 10) && (retries > 0))
+    while ((m_redBuoySamples.size() <= 10) && (retries > 0))
     {
-        highLevelControlMsg.Direction = "Forward";
-        highLevelControlMsg.MotionType = "Offset";
-        highLevelControlMsg.Value = 2.0f;
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
         ros::spinOnce();
@@ -217,59 +206,42 @@ bool BuoysTask::performTask(void)
 
     if (retries == 0)
     {
-        printf("BuoyTask: Could not identiy any buoys while trying to initially find buoys\n");
+        printf("BuoyTask: Failed to identiy any buoys while trying to initially locate them/n");
         return false;
     }
 
-    // Determine distance to buoys, make sure we are sufficiently close to identify all of the other buoys
+    printf("BuoysTask: Centering on red buoy to make sure we are heading the right direction\n");
+
+    // Move closer to buoys while centering on the red buoy
+    float distanceToRed = getDistanceToBuoy(RED);
+    retries = 40;
+    while ((retries > 0) && ((distanceToRed > 7.0f) || (distanceToRed == -1.0f)))
+    {
+        centerOnBuoy(RED);
+        m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
+        ros::spinOnce();
+        usleep(100000);
+        retries--;
+
+        distanceToRed = getDistanceToBuoy(RED);
+    }
+
+    // Stop moving forward
     highLevelControlMsg.Direction = "Forward";
     highLevelControlMsg.MotionType = "Offset";
     highLevelControlMsg.Value = 0.0f;
     m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
-    // Decide which buoy we are seeing best
-    BuoyColors bestSeenBuoy = GREEN;
-    if ((m_redBuoySamples.size() > m_greenBuoySamples.size()) && (m_redBuoySamples.size() > m_yellowBuoySamples.size()))
+    printf("BuoysTask: Hopefully at good distance, attempting to locate and center on first buoy to bump\n");
+    // Let a second or so of messages come in
+    retries = 10;
+    while (retries > 0)
     {
-        bestSeenBuoy = RED;
-    }
-    else if ((m_greenBuoySamples.size() > m_redBuoySamples.size()) && (m_greenBuoySamples.size() > m_yellowBuoySamples.size()))
-    {
-        bestSeenBuoy = GREEN;
-    }
-    else if ((m_yellowBuoySamples.size() > m_redBuoySamples.size()) && (m_yellowBuoySamples.size() > m_greenBuoySamples.size()))
-    {
-        bestSeenBuoy = YELLOW;
-    }
-
-    float distance = getDistanceToBuoy(bestSeenBuoy);
-    printf("BuoysTask: Current distance to %i buoy: %f\n", bestSeenBuoy, distance);
-
-    // Move to optimal range of 9 feet to buoys
-    highLevelControlMsg.Direction = "Forward";
-    highLevelControlMsg.MotionType = "Offset";
-
-    distance = getDistanceToBuoy(bestSeenBuoy);
-    while (distance < 8.0f || distance > 10.0f)
-    {
-        if (distance <= 9.0f)
-        {
-            highLevelControlMsg.Value = -2.0f;
-        }
-        else
-        {
-            highLevelControlMsg.Value = 2.0f;
-        }
-
-        m_highLevelMotorPublisher.publish(highLevelControlMsg);
         ros::spinOnce();
         usleep(100000);
         retries--;
-
-        distance = getDistanceToBuoy(bestSeenBuoy);
     }
-
-    printf("BuoysTask: Should be at ideal-ish distance, attempting to locate and center on first buoy to bump\n");
 
     if (!isBuoyVisible(m_firstToBump))
     {
@@ -293,10 +265,10 @@ bool BuoysTask::performTask(void)
         highLevelControlMsg.Value = -2.0f;
         printf("BuoysTask: Backing off to reposition for next buoy bump\n");
 
-        while (getDistanceToBuoy(m_firstToBump) <= 9.0f)
+        for (int loopDelayCount = 75; loopDelayCount > 0; loopDelayCount--)
         {
             m_highLevelMotorPublisher.publish(highLevelControlMsg);
-            centerOnBuoy(m_firstToBump);
+
             usleep(100000);
             ros::spinOnce();
         }
@@ -307,7 +279,7 @@ bool BuoysTask::performTask(void)
         {
             // Rotate a bit each direction and try to see buoy
             printf("BuoysTask: Second buoy is not visible, looking around a bit...\n");
-            searchBuoys(m_firstToBump);
+            searchBuoys(m_secondToBump);
         }
 
         printf("BuoysTask: Centering on point to bump second buoy\n");
@@ -333,7 +305,7 @@ bool BuoysTask::performTask(void)
             printf("BuoysTask: Rising above buoys\n");
             highLevelControlMsg.Direction = "Depth";
             highLevelControlMsg.MotionType = "Offset";
-            highLevelControlMsg.Value = -3.0f;
+            highLevelControlMsg.Value = -2.0f;
             m_highLevelMotorPublisher.publish(highLevelControlMsg);
             ros::spinOnce();
 
@@ -343,17 +315,17 @@ bool BuoysTask::performTask(void)
             printf("BuoysTask: Moving past buoys\n");
             highLevelControlMsg.Direction = "Forward";
             highLevelControlMsg.MotionType = "Offset";
-            highLevelControlMsg.Value = 15.0f;
+            highLevelControlMsg.Value = 7.0f;
             m_highLevelMotorPublisher.publish(highLevelControlMsg);
             ros::spinOnce();
 
-            sleep(10);
+            sleep(5);
 
             // 10. Dive back to nominal depth
             printf("BuoysTask: Returning to previous depth\n");
             highLevelControlMsg.Direction = "Depth";
             highLevelControlMsg.MotionType = "Offset";
-            highLevelControlMsg.Value = 3.0f;
+            highLevelControlMsg.Value = 2.0f;
             m_highLevelMotorPublisher.publish(highLevelControlMsg);
             ros::spinOnce();
 
@@ -378,14 +350,15 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
 {
     Robosub::Point pointMsg;
     bool isCentered = false;
+    int retries = 50;
 
-    while (!isCentered)
+    while (!isCentered && (retries > 0))
     {
         bool shouldSendCenterMsg = false;
         switch (color)
         {
             case RED:
-                if (m_redBuoySamples.size() > 5)
+                if (m_redBuoySamples.size() > 2)
                 {
                     pointMsg.x = m_redBuoySamples.back().centerX;
                     pointMsg.y = m_redBuoySamples.back().centerY;
@@ -394,7 +367,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
                 break;
 
             case GREEN:
-                if (m_greenBuoySamples.size () > 5)
+                if (m_greenBuoySamples.size () > 2)
                 {
                     pointMsg.x = m_greenBuoySamples.back().centerX;
                     pointMsg.y = m_greenBuoySamples.back().centerY;
@@ -403,7 +376,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
                 break;
 
             case YELLOW:
-                if (m_yellowBuoySamples.size() > 5)
+                if (m_yellowBuoySamples.size() > 2)
                 {
                     pointMsg.x = m_yellowBuoySamples.back().centerX;
                     pointMsg.y = m_yellowBuoySamples.back().centerY;
@@ -418,12 +391,17 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
 
             if ((pointMsg.x <= 20) && (pointMsg.x >= -20) && (pointMsg.y <= 20) && (pointMsg.y >= -20))
             {
+                pointMsg.x = 0;
+                pointMsg.y = 0;
+                m_centerOnPointPublisher.publish(pointMsg);
+
                 isCentered = true;
             }
         }
 
         ros::spinOnce();
         usleep(100000);
+        retries--;
     }
 
     clearPastSamples();
@@ -437,26 +415,18 @@ void BuoysTask::bumpBuoy(BuoyColors color)
     highLevelControlMsg.Direction = "Forward";
     highLevelControlMsg.MotionType = "Offset";
     highLevelControlMsg.Value = 2.0f;
-    m_highLevelMotorPublisher.publish(highLevelControlMsg);
-    while (getDistanceToBuoy(color) >= 1.5)
+
+    for (int loopDelayCount = 50; loopDelayCount > 0; loopDelayCount--)
     {
-        // Drive forward for a bit at half thrust
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
         centerOnBuoy(color);
 
-        ros::spinOnce();
-    }
-
-    highLevelControlMsg.Value = 5.0f;
-    m_highLevelMotorPublisher.publish(highLevelControlMsg);
-
-    // Give 5 seconds to allow bump to occur
-    for (int loopDelayCount = 50; loopDelayCount > 0; loopDelayCount--)
-    {
-        centerOnBuoy(color);
         usleep(100000);
         ros::spinOnce();
     }
+
+    highLevelControlMsg.Value = 0.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
 }
 
 /**
@@ -472,7 +442,7 @@ float BuoysTask::getDistanceToBuoy(BuoyColors buoy)
   float distanceInFeet = -1.0f;
   const float buoySizeInches = 9.0f;
   const float pi = 3.14159265f;
-  const float fieldOfViewRadians = pi / 5.0;
+  const float fieldOfViewRadians = pi / 4.0;
   const float viewWidthPixels = 480;
 
   switch (buoy)
@@ -500,9 +470,7 @@ float BuoysTask::getDistanceToBuoy(BuoyColors buoy)
   if (pixelDiameter != 0.0f)
   {
       float theta = (pixelDiameter * fieldOfViewRadians) / (2.0 * viewWidthPixels);
-      printf("### Calculated theta: %f\n", theta * (180.0 / pi));
       distanceInFeet = ((buoySizeInches / (2.0 * tan(theta))) / 12.0);
-	  float distanceInInch = tan(pixelDiameter*pi/2880) * 4.25;
   }
 
   return distanceInFeet;
@@ -521,19 +489,19 @@ bool BuoysTask::isBuoyVisible(BuoyColors buoy)
     switch (buoy)
     {
         case RED:
-          if (m_redBuoySamples.size() >= 5)
+          if (m_redBuoySamples.size() >= 3)
           {
             isVisible = true;
           }
           break;
         case GREEN:
-          if (m_greenBuoySamples.size() >= 5)
+          if (m_greenBuoySamples.size() >= 3)
           {
             isVisible = true;
           }
           break;
         case YELLOW:
-          if (m_yellowBuoySamples.size() >= 5)
+          if (m_yellowBuoySamples.size() >= 3)
           {
             isVisible = true;
           }
@@ -549,8 +517,8 @@ void BuoysTask::searchBuoys(BuoyColors buoy)
     highLevelControlMsg.Direction = "Turn";
     highLevelControlMsg.MotionType = "Offset";
 
-    // Try rotating left 20 degrees, check to see if buoy is in view
-    highLevelControlMsg.Value = -20.0f;
+    // Try rotating left 25 degrees, check to see if buoy is in view
+    highLevelControlMsg.Value = -25.0f;
     m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
     int retries = 50;
@@ -561,18 +529,32 @@ void BuoysTask::searchBuoys(BuoyColors buoy)
         ros::spinOnce();
     }
 
-    // If not, try rotating right 40 degrees and see if it comes into view
-    if (!isBuoyVisible(buoy))
+
+    if (isBuoyVisible(buoy))
     {
-        highLevelControlMsg.Value = 40.0f;
+        // Make sure we stop rotating
+        highLevelControlMsg.Value = 0.0f;
+        m_highLevelMotorPublisher.publish(highLevelControlMsg);
+    }
+    else
+    {
+        // If not, try rotating right 50 degrees and see if it comes into view
+        highLevelControlMsg.Value = 50.0f;
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
-        retries = 50;
+        retries = 75;
         while (!isBuoyVisible(buoy) && (retries > 0))
         {
           usleep(100000);
           retries--;
           ros::spinOnce();
+        }
+
+        if (isBuoyVisible(buoy))
+        {
+            // Make sure we stop rotating
+            highLevelControlMsg.Value = 0.0f;
+            m_highLevelMotorPublisher.publish(highLevelControlMsg);
         }
     }
 }

@@ -72,12 +72,19 @@ void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
 
     if ((x < -10.0f || x > 10.0f) &&  (leftMost > -230.0f && rightMost < 230.0f)) //if we are too close to the edge, just drive straight
     {
-      publishMotor("Straf", "Offset", x/12.0f);
+      printf("Strafing by %f\n", x/12.0f);
+	publishMotor("Straf", "Offset", x/12.0f);
     }
 
     if (leftMost > -230.0 && rightMost < 230.0)
     {
+	printf("Forward by %f\n", dist + 4);
       publishMotor("Forward", "Offset", dist + 4);
+    }
+    else
+    {
+      printf("Disabling\n");
+      reportSuccess(true);
     }
   }
 }
@@ -139,4 +146,25 @@ void GateTask::publishMotor(std::string direction, std::string motion, float val
   msg.Value = value;
 
   m_highLevelMotorPublisher.publish(msg);
+}
+
+
+/**
+ * @brief report the success or failure of the module
+ *
+ * @param success The success or failure
+ */
+void GateTask::reportSuccess(bool success)
+{
+  std_msgs::String msg;
+  msg.data = "PathTask";
+  if (success)
+  {
+    msg.data += " Success";
+  }
+  else
+  {
+    msg.data = " Failure";
+  }
+  m_taskCompletePublisher.publish(msg);
 }
