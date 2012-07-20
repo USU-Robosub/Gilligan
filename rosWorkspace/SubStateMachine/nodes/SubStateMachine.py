@@ -125,6 +125,7 @@ def Remove(Class):
 	RemoveTimers(Class)
 
 def Setup(Class):
+	print "Seting up " + Class
 	File = openClassFile(Class)
 	sections = File.split('<')
 	for section in sections:
@@ -136,6 +137,7 @@ def Setup(Class):
 				DispatchMessages(Data)
 
 def TearDown(Class):
+	print "Tearing Down " + Class
 	File = openClassFile(Class)
 	sections = File.split('<')
 	for section in sections:
@@ -188,7 +190,7 @@ def SendMessage(fields):
 		pub.publish(ModuleEnableMsg(Module=fields[2], State=False));
 	elif fields[1] == 'Move':
 		pub = getPublisher(fields[0], HighLevelControl)
-		pub.publish(HighLevelControl(Direction=fields[2], MotionType="Offset", Value=float(fields[3]))
+		pub.publish(HighLevelControl(Direction=fields[2], MotionType="Offset", Value=float(fields[3])))
 
 def DispatchMessages(Data):
 	Data = Data.strip()
