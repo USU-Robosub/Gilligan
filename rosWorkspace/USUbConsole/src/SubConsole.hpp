@@ -12,7 +12,6 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/UInt8.h"
-#include "std_msgs/UInt8MultiArray.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/Float64MultiArray.h"
@@ -82,6 +81,7 @@ private:
    AttitudeIndicator* m_pPitchIndicator;     //!< Qwt attitude indicator used for pitch
    AttitudeIndicator* m_pRollIndicator;      //!< Qwt attitude indicator used for roll
    ClickableLabel* m_pImageRecBoxLabel;
+   ClickableLabel* m_pImageRecDownBoxLabel;
 
    std::vector<SubImageRecognition::ImgRecAlgorithm> m_algorithmSettings;
 
@@ -115,6 +115,7 @@ private slots:
    void enableViewThresholds(void);
    void disableViewThresholds(void);
    void imageRecThresholdBoxDrawn(void);
+   void imageRecDownThresholdBoxDrawn(void);
 };
 
 #endif // SUBCONSOLE_HPP

@@ -110,7 +110,7 @@ void NavigationControl::PointCallback(const Robosub::Point& msg)
         start_x = 0;
         start_y = 0;
 
-        setStraf(0);
+        setStrafe(0);
         setDive(0);
 
         return;
@@ -132,8 +132,8 @@ void NavigationControl::PointCallback(const Robosub::Point& msg)
 
     // Calculate the percentage (OR SIMPLY USE ERROR??)
 
-    float per_x = (target_x/start_x);
-    float per_y = (target_y/start_y);
+    float per_x = (target_x/240); //start_x);
+    float per_y = (target_y/320); //start_y);
 
     //  Control Process (calculate the right thrust)
     //  Use less than 100% based on how big the number is.
@@ -167,13 +167,14 @@ void NavigationControl::PointCallback(const Robosub::Point& msg)
             thrust_y = 0; // We zeroed out in this direction
         }
     } else {
-        if(dir_y>0) // && FORWARDCAMERA
+        if(dir_y>0){ // && FORWARDCAMERA
             range = 30; //So we don't go up too fast
             thrust_y = (range*per_y+minT)*dir_y;
+		}
     }
 
     //Send the calculated speed to the motor
-    setStraf(thrust_x);
+    setStrafe(thrust_x);
     setDive(thrust_y);
 
 }
@@ -191,7 +192,7 @@ bool NavigationControl::moveToLine(int x, int y){
         start_x = 0;
         start_y = 0;
 
-        setStraf(0);
+        setStrafe(0);
         setDrive(0);
 
         return 1; //Centered
@@ -213,8 +214,8 @@ bool NavigationControl::moveToLine(int x, int y){
 
     // Calculate the percentage (OR SIMPLY USE ERROR??)
 
-    float per_x = (target_x/start_x);
-    float per_y = (target_y/start_y);
+    float per_x = (target_x/240);//start_x);
+    float per_y = (target_y/320);//start_y);
 
     //  Control Process (calculate the right thrust)
     //  Use less than 100% based on how big the number is.
@@ -248,9 +249,10 @@ bool NavigationControl::moveToLine(int x, int y){
             thrust_y = 0; // We zeroed out in this direction
         }
     } else {
-        if(dir_y>0) //
+        if(dir_y>0){ //
             range = 30; //So we don't go up too fast
             thrust_y = (range*per_y+minT)*dir_y;
+		}
     }
 
     if (!thrust_x && !thrust_y)
@@ -293,7 +295,7 @@ void NavigationControl::LineCallback(const Robosub::Line msg) {
         start_rot = target_rot;
     }
 
-    float per_rot = (target_rot/start_rot);
+    float per_rot = (target_rot/180);//start_rot);
 
 
     //This needs to be implemented better (any ideas?)

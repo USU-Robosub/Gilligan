@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QDebug>
+#include <QDateTime>
 #include <iostream>
 #include <math.h>
 #include "qwt/qwt_dial_needle.h"
@@ -57,7 +58,8 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pCompass(NULL),
      m_pPitchIndicator(NULL),
      m_pRollIndicator(NULL),
-     m_pImageRecBoxLabel(NULL)
+     m_pImageRecBoxLabel(NULL),
+     m_pImageRecDownBoxLabel(NULL)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -88,7 +90,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_thresholdBoxPublisher = m_nodeHandle.advertise<SubImageRecognition::ImgRecThreshold>("Threshold_Box", 100);
    m_imageRecService = m_nodeHandle.serviceClient<SubImageRecognition::UpdateAlgorithm>("img_rec/update_algorithm");
    m_listAlgorithmService = m_nodeHandle.serviceClient<SubImageRecognition::ListAlgorithms>("img_rec/list_algorithms");
-   m_torpedoPublisher = m_nodeHandle.advertise<std_msgs::UInt8MultiArray>("Torpedo_Launch", 10);
+   m_torpedoPublisher = m_nodeHandle.advertise<std_msgs::UInt8>("Torpedo_Launch", 10);
 
    m_imuSubscriber = m_nodeHandle.subscribe("IMU_Attitude", 100, &SubConsole::imuDataCallback, this);
    m_motorControllerTempSubscriber = m_nodeHandle.subscribe("Controller_Box_Temp", 100, &SubConsole::motorControllerTempCallback, this);
@@ -119,6 +121,11 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pImageRecBoxLabel->resize(478, 638);
    m_pImageRecBoxLabel->move(1, 1);
    connect(m_pImageRecBoxLabel, SIGNAL(clicked()), this, SLOT(imageRecThresholdBoxDrawn()));
+
+   m_pImageRecDownBoxLabel = new ClickableLabel(m_pUi->downwardCameraImage);
+   m_pImageRecDownBoxLabel->resize(478, 638);
+   m_pImageRecDownBoxLabel->move(1, 1);
+   connect(m_pImageRecDownBoxLabel, SIGNAL(clicked()), this, SLOT(imageRecDownThresholdBoxDrawn()));
 }
 
 /**
@@ -176,9 +183,8 @@ void SubConsole::readJoystickInput(void)
 
    if (m_pJoystick->getButton(2))
    {
-       std_msgs::UInt8MultiArray torpedoMessage;
-       torpedoMessage.data.push_back(0);
-       torpedoMessage.data.push_back(5);
+       std_msgs::UInt8 torpedoMessage;
+       torpedoMessage.data = 0;
 
        m_torpedoPublisher.publish(torpedoMessage);
 
@@ -187,9 +193,8 @@ void SubConsole::readJoystickInput(void)
    }
    else if (m_pJoystick->getButton(3))
    {
-       std_msgs::UInt8MultiArray torpedoMessage;
-       torpedoMessage.data.push_back(0);
-       torpedoMessage.data.push_back(5);
+       std_msgs::UInt8 torpedoMessage;
+       torpedoMessage.data = 1;
 
        m_torpedoPublisher.publish(torpedoMessage);
 
@@ -407,7 +412,10 @@ void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::Const
 
  void SubConsole::errorLogCallback(const std_msgs::String::ConstPtr& msg)
  {
-     m_pUi->errorLogTextEdit->appendPlainText(QString::fromStdString(msg->data));
+     QDate date = QDate::currentDate();
+     QString dateString = date.toString();
+
+     m_pUi->errorLogTextEdit->appendPlainText(dateString + QString::fromStdString(msg->data));
  }
 
 /**
@@ -504,12 +512,15 @@ void SubConsole::toggleBoxThresholding(void)
     {
         m_pUi->toggleBoxThresholdButton->setText("Disable Box Thresholding");
         m_pImageRecBoxLabel->rectangleDrawState(true);
+        m_pImageRecDownBoxLabel->rectangleDrawState(true);
     }
     else
     {
         m_pUi->toggleBoxThresholdButton->setText("Enable Box Thresholding");
         m_pImageRecBoxLabel->rectangleDrawState(false);
+        m_pImageRecDownBoxLabel->rectangleDrawState(false);
         m_pImageRecBoxLabel->clearRectangle();
+        m_pImageRecDownBoxLabel->clearRectangle();
     }
 }
 
@@ -594,6 +605,22 @@ void SubConsole::imageRecThresholdBoxDrawn(void)
     thresholdMsg.y1 = m_pImageRecBoxLabel->getY1();
     thresholdMsg.x2 = m_pImageRecBoxLabel->getX2();
     thresholdMsg.y2 = m_pImageRecBoxLabel->getY2();
+
+    if(thresholdMsg.name != "")
+    {
+        m_thresholdBoxPublisher.publish(thresholdMsg);
+    }
+}
+
+void SubConsole::imageRecDownThresholdBoxDrawn(void)
+{
+    SubImageRecognition::ImgRecThreshold thresholdMsg;
+
+    thresholdMsg.name = getSelectedAlgorithm();
+    thresholdMsg.x1 = m_pImageRecDownBoxLabel->getX1();
+    thresholdMsg.y1 = m_pImageRecDownBoxLabel->getY1();
+    thresholdMsg.x2 = m_pImageRecDownBoxLabel->getX2();
+    thresholdMsg.y2 = m_pImageRecDownBoxLabel->getY2();
 
     if(thresholdMsg.name != "")
     {

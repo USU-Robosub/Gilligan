@@ -1,76 +1,170 @@
-#include "ros/ros.h"
-#include "GateTask/Toggle.h"
-#include "SubImageRecognition/ImgRecObject.h"
-#include <ctime>
-#include <string>
-#include <list>
+#include "GateTask.hpp"
+#include "Robosub/ModuleEnableMsg.h"
+#include "Robosub/Point.h"
+#include "std_msgs/String.h"
+#include "Positioning.hpp"
+#include <stdio.h>
+#include <math.h>
+#include <float.h>
 
-using namespace std;
-
-bool toggleCallback(GateTask::Toggle::Request &req, GateTask::Toggle::Response &res);
-void imgRecCallback(const SubImageRecognition::ImgRecObject &msg);
-
-const int MAX_NUM_MSG = 10;
-const float MIN_CONFIDENCE = 0.4;
-//This is the min number of pixels we look for on the top crossbar before diving to allow a center pass through the gate 
-const int HEIGHT_DIVE = 100; 
-
-bool isEnabled = false;
-
-//vectors to store multiple callbacks
-list<SubImageRecognition::ImgRecObject> listOfMsgs;
-int main(int argc, char **argv)
+GateTask::GateTask()
+ : m_nodeHandle(),
+   m_gateSubscriber(),
+   m_taskStateSubscriber(),
+   m_centerPointPublisher(),
+   m_taskCompletePublisher(),
+   m_highLevelMotorPublisher(),
+   m_isEnabled(false),
+   m_identifiedCenter(false),
+   m_haveBothLegs(false),
+   m_center(),
+   m_zeroth(),
+   m_lastId(-1)
 {
-	ros::init(argc, argv, "GateTask");
-
-	ros::NodeHandle n;
-	ros::ServiceServer service = n.advertiseService("toggleGateServ", toggleCallback);
-	ros::Subscriber subscriber = n.subscribe("image_recognition/forward/gate", 10, imgRecCallback);
-	ros::spin();
-	
-	return 0;
+  m_gateSubscriber = m_nodeHandle.subscribe("img_rec/gate", 10, &GateTask::gateCallback, this);
+  m_taskStateSubscriber = m_nodeHandle.subscribe("Module_Enable", 10, &GateTask::moduleEnableCallback, this);
+  m_centerPointPublisher = m_nodeHandle.advertise<Robosub::Point>("Center_On_Point", 10);
+  m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Completion", 10);
+  m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
 }
 
-bool toggleCallback(GateTask::Toggle::Request &req, GateTask::Toggle::Response &res)
+GateTask::~GateTask()
 {
-	isEnabled = (req.enabled != 0);
-	res.result = (int) isEnabled;
-	return true;
+
 }
 
-/*
-The info from the callback will return a horizontal rectangle that should represent the top crossbar
-This task will keep the last 10 msg's in memory, and will only look at messages greater than the specified 
-MIN_CONFIDENCE (currently 0.4)
-*/
-void imgRecCallback(const SubImageRecognition::ImgRecObject &msg)
+
+void GateTask::run()
 {
-	if (isEnabled) 
-	{
-		//Only want to add the info to the list if the confidence is above the min requirement
-		if(msg.confidence > MIN_CONFIDENCE)
-		{
-			listOfMsgs.push_front(msg);
-			//Once max size is surpassed, pop the last element in the list
-			if(listOfMsgs.size() > MAX_NUM_MSG)
-				listOfMsgs.pop_back();
-			
-			int newX = 0;
-			int newY = 220;
-			
-			//Keep center_x == 0 to keep the submarine in the middle area of the gate
-			
-			
-			//Keep center_y == 220 to keep the submarine below the top crossbar
-			//center_y == 220 will put the center of the crossbar 100px from the top 
-			
-			//If height of rectangle is above a certain threshold (HEIGHT_DIVE), we want to dive about 1.5 - 2 feet and keep true (BBT FTW)
-			//we do this because we know that we are close enough to the gate that we can lose sight of the gate and still pass through.
-			
-			// TODO: Get/validate info from image recognition
-			
-			// TODO: Optionally send request to NavigationControl
-		}
-	}
+  while (ros::ok())
+  {
+    ros::spin();
+  }
 }
 
+void GateTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
+{
+  if (msg.Module == "GateTask")
+  {
+    if (msg.State == true)
+    {
+      printf("GateTask: enabled\n");
+      m_isEnabled = true;
+      m_identifiedCenter = m_haveBothLegs = false;
+    }
+    else
+    {
+      printf("GateTask: Disabled\n");
+      m_isEnabled = false;
+    }
+  }
+}
+
+void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
+{
+  if (m_isEnabled && msg.id == 0)
+  {
+    float pixPerInch = getPixelsPerInch(msg.width, 3.0f);
+    float dist = getDistance(msg.width, 3.0f);
+    float x = (msg.center_x / pixPerInch) + 36.0f; //add a 3 feet
+    float leftMost = msg.center_x - (msg.width/2.0f);
+    float rightMost = msg.center_x + (msg.width/2.0f);
+
+    if ((x < -10.0f || x > 10.0f) &&  (leftMost > -230.0f && rightMost < 230.0f)) //if we are too close to the edge, just drive straight
+    {
+      printf("Strafing by %f\n", x/12.0f);
+	publishMotor("Straf", "Offset", x/12.0f);
+    }
+
+    if (leftMost > -230.0 && rightMost < 230.0)
+    {
+	printf("Forward by %f\n", dist + 4);
+      publishMotor("Forward", "Offset", dist + 4);
+    }
+    else
+    {
+      printf("Disabling\n");
+      reportSuccess(true);
+    }
+  }
+}
+
+
+/**
+ * @brief Calculate the distance the center of the object is off from the center of the camera in inches
+ *
+ * @param centerDir The current center direction
+ * @param width The width of the object
+ *
+ * @return The distance in inches
+ */
+float GateTask::calculateDistanceFromCenter(float centerDir, float width)
+{
+  float pxlPerInch = getPixelsPerInch(width, 3.0f);
+  return centerDir * pxlPerInch;
+}
+
+/**
+ * @brief Get the number of pixels per inch
+ *
+ * @param curWidthPixels The current width of a known object in pixels
+ * @param expectedWidthInches The expected with of an object in inches
+ *
+ * @return The number of pixels per inch if everything goes well, or float_max if inputs were unacceptable
+ */
+float GateTask::getPixelsPerInch(float curWidthPixels, float expectedWidthInches)
+{
+  float dist = getDistance(curWidthPixels, expectedWidthInches);
+  return curWidthPixels/dist;
+}
+
+/**
+ * @brief Calculate the distance to the object
+ *
+ * @param curObjSize The objects current size
+ * @param actualObjSize The objects expected size
+ *
+ * @return The distance
+ */
+float GateTask::getDistance(float curObjSize, float actualObjSize)
+{
+  return (actualObjSize/(2.0f*tan(((curObjSize * (M_PI/4.0))/960.0f))));
+}
+
+/**
+ * @brief plubish to the high level motor controller topic
+ *
+ * @param direction The direction: Forward, Straf, Turn
+ * @param motion The motion type: Manual, Offset
+ * @param value The value
+ */
+void GateTask::publishMotor(std::string direction, std::string motion, float value)
+{
+  Robosub::HighLevelControl msg;
+  msg.Direction = direction;
+  msg.MotionType = motion;
+  msg.Value = value;
+
+  m_highLevelMotorPublisher.publish(msg);
+}
+
+
+/**
+ * @brief report the success or failure of the module
+ *
+ * @param success The success or failure
+ */
+void GateTask::reportSuccess(bool success)
+{
+  std_msgs::String msg;
+  msg.data = "PathTask";
+  if (success)
+  {
+    msg.data += " Success";
+  }
+  else
+  {
+    msg.data = " Failure";
+  }
+  m_taskCompletePublisher.publish(msg);
+}

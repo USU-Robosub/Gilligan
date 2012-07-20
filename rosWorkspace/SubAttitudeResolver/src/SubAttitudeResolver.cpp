@@ -99,7 +99,7 @@ void SubAttitudeResolver::run()
 
     calculateGyroBias();
     calculateExpectedAccel();
-    calculateExpectedMag();
+    //calculateExpectedMag();
 
     while(ros::ok())
     {
@@ -223,7 +223,7 @@ void SubAttitudeResolver::calculateGyroBias(void)
     double sumY = 0.0;
     double sumZ = 0.0;
 
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < 500; i++)
     {
         sampleGyro(&rawX, &rawY, &rawZ);
 
@@ -234,9 +234,9 @@ void SubAttitudeResolver::calculateGyroBias(void)
         sumZ += rawZ;
     }
 
-    m_biasX = sumX / 64.0;
-    m_biasY = sumY / 64.0;
-    m_biasZ = sumZ / 64.0;
+    m_biasX = sumX / 500.0;
+    m_biasY = sumY / 500.0;
+    m_biasZ = sumZ / 500.0;
 
     printf("SubAttitudeResolver: Calculated Gyro Bias x: %lf, y: %lf, z: %lf\n", m_biasX, m_biasY, m_biasZ);
     fflush(NULL);
@@ -254,7 +254,7 @@ void SubAttitudeResolver::calculateExpectedAccel(void)
     double sumY = 0.0;
     double sumZ = 0.0;
 
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < 100; i++)
     {
         sampleAccel(&rawX, &rawY, &rawZ);
 
@@ -267,9 +267,9 @@ void SubAttitudeResolver::calculateExpectedAccel(void)
         usleep(1000);
     }
 
-    m_expectedAccel[0] = sumX / 64.0;
-    m_expectedAccel[1] = sumY / 64.0;
-    m_expectedAccel[2] = sumZ / 64.0;
+    m_expectedAccel[0] = sumX / 100.0;
+    m_expectedAccel[1] = sumY / 100.0;
+    m_expectedAccel[2] = sumZ / 100.0;
 
     printf("SubAttitudeResolver: Calculated Expected Accel x: %lf, y: %lf, z: %lf\n", m_expectedAccel[0], m_expectedAccel[1], m_expectedAccel[2]);
     fflush(NULL);

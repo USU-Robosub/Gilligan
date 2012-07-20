@@ -36,7 +36,7 @@ class NavigationControl
 
     float makeVoltage(float percent);
     void setDive(float val);
-    void setStraf(float val);
+    void setStrafe(float val);
     void setDrive(float val);
     void setTurn(float val);
     bool moveToLine(int x, int y);
