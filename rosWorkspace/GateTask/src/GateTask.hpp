@@ -32,4 +32,6 @@ class GateTask
     float calculateDistanceFromCenter(float centerDir, float width);
     float getPixelsPerInch(float curWidthPixels, float expectedWidthInches);
     float getDistance(float curObjSize, float actualObjSize);
+    void reportSuccess(bool success);
+
 };

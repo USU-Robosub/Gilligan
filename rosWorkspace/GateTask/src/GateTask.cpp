@@ -61,53 +61,30 @@ void GateTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
 
 void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
 {
-  if (m_isEnabled)
+  if (m_isEnabled && msg.id == 0)
   {
-    if (m_identifiedCenter && m_lastId == msg.id)
+    float pixPerInch = getPixelsPerInch(msg.width, 3.0f);
+    float dist = getDistance(msg.width, 3.0f);
+    float x = (msg.center_x / pixPerInch) + 36.0f; //add a 3 feet
+    float leftMost = msg.center_x - (msg.width/2.0f);
+    float rightMost = msg.center_x + (msg.width/2.0f);
+
+    if ((x < -10.0f || x > 10.0f) &&  (leftMost > -230.0f && rightMost < 230.0f)) //if we are too close to the edge, just drive straight
     {
-      //then we see a section of the gate. Identify its position in the screen and move it out of screen (turn)
-      float dir = 2.0f;
-      dir *= msg.center_x > 0.0f ? 1.0f : -1.0f;
-      printf("Turning2 by %f\n", dir);
-      publishMotor("Turn", "Offset", dir);
+      printf("Strafing by %f\n", x/12.0f);
+	publishMotor("Straf", "Offset", x/12.0f);
+    }
+
+    if (leftMost > -230.0 && rightMost < 230.0)
+    {
+	printf("Forward by %f\n", dist + 4);
+      publishMotor("Forward", "Offset", dist + 4);
     }
     else
     {
-      if (msg.id == 0)
-      {
-        m_zeroth = msg;
-      }
-
-      if (m_lastId == msg.id)
-      {
-        //dont have two, turn away
-        float dir = 2.0f;
-        dir *= msg.center_x > 0.0f ? 1.0f : -1.0f;
-        printf("Turning3 by %f\n", dir);
-        publishMotor("Turn", "Offset", dir);
-      }
-      else if (msg.id != 0)
-      {
-        //have both, calculate center
-        m_center.center_x = (m_zeroth.center_x + msg.center_x)/2;
-        m_center.center_y = m_zeroth.center_y + msg.center_y;
-        m_identifiedCenter = true;
-
-        if (m_center.center_x < -10 || m_center.center_x > 10)
-        {
-          printf("Turning by %d\n", m_center.center_x);
-          publishMotor("Turn", "Offset", m_center.center_x);
-          //possibly turn off forward
-        }
-        else
-        {
-          float straight = getDistance(msg.width, 3.0f)*1.75;
-          printf("Forward by %f\n", straight);
-          publishMotor("Forward", "Offset", straight);
-        }
-      }
+      printf("Disabling\n");
+      reportSuccess(true);
     }
-    m_lastId = msg.id;
   }
 }
 
@@ -168,4 +145,25 @@ void GateTask::publishMotor(std::string direction, std::string motion, float val
   msg.Value = value;
 
   m_highLevelMotorPublisher.publish(msg);
+}
+
+
+/**
+ * @brief report the success or failure of the module
+ *
+ * @param success The success or failure
+ */
+void GateTask::reportSuccess(bool success)
+{
+  std_msgs::String msg;
+  msg.data = "PathTask";
+  if (success)
+  {
+    msg.data += " Success";
+  }
+  else
+  {
+    msg.data = " Failure";
+  }
+  m_taskCompletePublisher.publish(msg);
 }
