@@ -96,30 +96,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named GateClient
+# Target rules for targets named GateTask
 
 # Build rule for target.
-GateClient: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 GateClient
-.PHONY : GateClient
+GateTask: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 GateTask
+.PHONY : GateTask
 
 # fast build rule for target.
-GateClient/fast:
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/build
-.PHONY : GateClient/fast
-
-#=============================================================================
-# Target rules for targets named GateServer
-
-# Build rule for target.
-GateServer: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 GateServer
-.PHONY : GateServer
-
-# fast build rule for target.
-GateServer/fast:
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/build
-.PHONY : GateServer/fast
+GateTask/fast:
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/build
+.PHONY : GateTask/fast
 
 #=============================================================================
 # Target rules for targets named ROSBUILD_genmsg_cpp
@@ -344,33 +331,33 @@ tests/fast:
 
 # target to build an object file
 src/GateTask.o:
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/src/GateTask.o
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/src/GateTask.o
 .PHONY : src/GateTask.o
 
 # target to preprocess a source file
 src/GateTask.i:
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/src/GateTask.i
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/src/GateTask.i
 .PHONY : src/GateTask.i
 
 # target to generate assembly for a file
 src/GateTask.s:
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/src/GateTask.s
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/src/GateTask.s
 .PHONY : src/GateTask.s
 
 # target to build an object file
-src/TestGateClient.o:
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/src/TestGateClient.o
-.PHONY : src/TestGateClient.o
+src/GateTaskMain.o:
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/src/GateTaskMain.o
+.PHONY : src/GateTaskMain.o
 
 # target to preprocess a source file
-src/TestGateClient.i:
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/src/TestGateClient.i
-.PHONY : src/TestGateClient.i
+src/GateTaskMain.i:
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/src/GateTaskMain.i
+.PHONY : src/GateTaskMain.i
 
 # target to generate assembly for a file
-src/TestGateClient.s:
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/src/TestGateClient.s
-.PHONY : src/TestGateClient.s
+src/GateTaskMain.s:
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/src/GateTaskMain.s
+.PHONY : src/GateTaskMain.s
 
 # Help Target
 help:
@@ -378,8 +365,7 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... GateClient"
-	@echo "... GateServer"
+	@echo "... GateTask"
 	@echo "... ROSBUILD_genmsg_cpp"
 	@echo "... ROSBUILD_genmsg_lisp"
 	@echo "... ROSBUILD_gensrv_cpp"
@@ -402,9 +388,9 @@ help:
 	@echo "... src/GateTask.o"
 	@echo "... src/GateTask.i"
 	@echo "... src/GateTask.s"
-	@echo "... src/TestGateClient.o"
-	@echo "... src/TestGateClient.i"
-	@echo "... src/TestGateClient.s"
+	@echo "... src/GateTaskMain.o"
+	@echo "... src/GateTaskMain.i"
+	@echo "... src/GateTaskMain.s"
 .PHONY : help
 
 

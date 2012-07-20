@@ -1,5 +1,4 @@
-/opt/robosub/rosWorkspace/GateTask/build/CMakeFiles/GateClient.dir
-/opt/robosub/rosWorkspace/GateTask/build/CMakeFiles/GateServer.dir
+/opt/robosub/rosWorkspace/GateTask/build/CMakeFiles/GateTask.dir
 /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles/ROSBUILD_genmsg_cpp.dir
 /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles/ROSBUILD_genmsg_lisp.dir
 /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles/ROSBUILD_gensrv_cpp.dir

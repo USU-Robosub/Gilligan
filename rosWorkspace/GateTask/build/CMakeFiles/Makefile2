@@ -50,73 +50,38 @@ CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/GateTask
 CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/GateTask/build
 
 #=============================================================================
-# Target rules for target CMakeFiles/GateClient.dir
+# Target rules for target CMakeFiles/GateTask.dir
 
 # All Build rule for target.
-CMakeFiles/GateClient.dir/all: CMakeFiles/rosbuild_precompile.dir/all
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/depend
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles  1
-	@echo "Built target GateClient"
-.PHONY : CMakeFiles/GateClient.dir/all
+CMakeFiles/GateTask.dir/all: CMakeFiles/rosbuild_precompile.dir/all
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/depend
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/build
+	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles  1 2
+	@echo "Built target GateTask"
+.PHONY : CMakeFiles/GateTask.dir/all
 
 # Include target in all.
-all: CMakeFiles/GateClient.dir/all
+all: CMakeFiles/GateTask.dir/all
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/GateClient.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles 5
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/GateClient.dir/all
+CMakeFiles/GateTask.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles 6
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/GateTask.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles 0
-.PHONY : CMakeFiles/GateClient.dir/rule
+.PHONY : CMakeFiles/GateTask.dir/rule
 
 # Convenience name for target.
-GateClient: CMakeFiles/GateClient.dir/rule
-.PHONY : GateClient
+GateTask: CMakeFiles/GateTask.dir/rule
+.PHONY : GateTask
 
 # clean rule for target.
-CMakeFiles/GateClient.dir/clean:
-	$(MAKE) -f CMakeFiles/GateClient.dir/build.make CMakeFiles/GateClient.dir/clean
-.PHONY : CMakeFiles/GateClient.dir/clean
+CMakeFiles/GateTask.dir/clean:
+	$(MAKE) -f CMakeFiles/GateTask.dir/build.make CMakeFiles/GateTask.dir/clean
+.PHONY : CMakeFiles/GateTask.dir/clean
 
 # clean rule for target.
-clean: CMakeFiles/GateClient.dir/clean
-.PHONY : clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/GateServer.dir
-
-# All Build rule for target.
-CMakeFiles/GateServer.dir/all: CMakeFiles/rosbuild_precompile.dir/all
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/depend
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles  2
-	@echo "Built target GateServer"
-.PHONY : CMakeFiles/GateServer.dir/all
-
-# Include target in all.
-all: CMakeFiles/GateServer.dir/all
-.PHONY : all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/GateServer.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles 5
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/GateServer.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/GateTask/build/CMakeFiles 0
-.PHONY : CMakeFiles/GateServer.dir/rule
-
-# Convenience name for target.
-GateServer: CMakeFiles/GateServer.dir/rule
-.PHONY : GateServer
-
-# clean rule for target.
-CMakeFiles/GateServer.dir/clean:
-	$(MAKE) -f CMakeFiles/GateServer.dir/build.make CMakeFiles/GateServer.dir/clean
-.PHONY : CMakeFiles/GateServer.dir/clean
-
-# clean rule for target.
-clean: CMakeFiles/GateServer.dir/clean
+clean: CMakeFiles/GateTask.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -435,8 +400,8 @@ clean: CMakeFiles/rospack_genmsg_libexe.dir/clean
 # Target rules for target CMakeFiles/rospack_gensrv.dir
 
 # All Build rule for target.
-CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_lisp.dir/all
 CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_py.dir/all
+CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_lisp.dir/all
 CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_cpp.dir/all
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/build

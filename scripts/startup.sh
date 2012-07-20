@@ -21,7 +21,7 @@ rosrun SubAttitudeResolver SubAttitudeResolver /dev/controller_Imu &
 rosrun SubMotorController SubMotorController &
 
 # Start the high level contorl
-#rosrun SubMotorController SubHighLevelMotorController &
+rosrun SubMotorController SubHighLevelMotorController &
 
 # Start the moboTemp module
 rosrun moboTemp moboTemp &
@@ -30,7 +30,7 @@ rosrun moboTemp moboTemp &
 rosrun SubTranslators DepthTranslator &
 
 # Simple Depth Controller maintains a target depth
-rosrun subSim simpleDepth &
+#rosrun subSim simpleDepth &
 
 # Simple Heading Controller maintains a target heading
 #rosrun subSim simpleHeading &

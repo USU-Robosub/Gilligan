@@ -1,5 +1,8 @@
+
 <Inherits>
 NonComp
 StopAllMotors
-<Trigger>
-/Motor_State int = 1 transistion CompStart
+<TearDown>
+message /High_Level_Control move Depth 0
+<Triggers>
+/Motor_State int8 = 1 triggers transition CompStart

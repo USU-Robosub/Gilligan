@@ -1,6 +1,4 @@
 <Inherits>
-MaintainHeading
-ScanPath
-DriveForward
+PathTask
 <Triggers>
-/Rectangles /ImageProcMessage any message triggers transistion Complete
+/Rectangles /img_rec/paths any message triggers transistion PathTaskTest

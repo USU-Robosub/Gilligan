@@ -36,10 +36,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver
+CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubAttitudeResolver
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver
+CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubAttitudeResolver
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -66,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver/CMakeFiles /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubAttitudeResolver/CMakeFiles /opt/robosub/rosWorkspace/SubAttitudeResolver/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/bryhansen/ros_workspace/robosub/rosWorkspace/SubAttitudeResolver/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubAttitudeResolver/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

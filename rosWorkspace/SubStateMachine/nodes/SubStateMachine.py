@@ -7,11 +7,13 @@ from time import time
 import inspect
 import glob
 from std_msgs.msg import String
+from std_msgs.msg import UInt8
 from std_msgs.msg import Int32
 from std_msgs.msg import Float32
 from string import join
 from Robosub.msg import ModuleEnableMsg
 from Robosub.msg import HighLevelControl
+from SubImageRecognition.msg import ImgRecObject
 
 currentClasses = set()
 PublisherCache = {}
@@ -25,13 +27,14 @@ class Timer:
 	def __init__(self, Class, ms, effect):
 		self.Class = Class
 		self.endTime = time() + float(ms)/1000.0
+		print "Will go of at " + str(self.endTime) + " current = " + str(time())
 		self.effect = effect
 
 def checkTimer(timer):
 	if timer.endTime < time():
 		timer.effect.Execute(0);
-		return False;
-	return True;
+		return True;
+	return False;
 
 class Effect:
 	def __init__(self, etype, args):
@@ -53,6 +56,7 @@ class Effect:
 
 class Trigger:
 	def __init__(self, Class, topic, ttype, op, value, effect):
+		print "Adding trigger on " + topic 
 		self.mClassName = Class
 		self.mTopic = topic
 		self.mType = ttype
@@ -61,13 +65,16 @@ class Trigger:
 			self.mValue = int(value)
 		elif(self.mType == 'float'):
 			self.mValue = float(value)
+		elif(self.mType == 'img'):
+			self.mValue = ImgRecObject()
 		else:
 			self.mValue = value
 
 		self.mEffect = effect
 
 	def Check(self, message):
-		if self.mOp == '=' and message.data == self.mValue:
+		print str(self.mValue) + ' ' + self.mOp + ' ' + str(message.data)
+		if self.mOp == '=' and str(message.data) == str(self.mValue):
 			self.mEffect.Execute(message)
 		elif self.mOp == '<' and message.data < self.mValue:
 			self.mEffect.Execute(message)
@@ -84,6 +91,8 @@ class TopicListener:
 	def __init__(self, Topic, Type):
 		if Type == 'int':
 			self.Listener = rospy.Subscriber(Topic, Int32, self.callback)
+		elif Type == 'int8':
+			self.Listener = rospy.Subscriber(Topic, UInt8, self.callback)
 		elif Type == 'float':
 			self.Listener = rospy.Subscriber(Topic, Float32, self.callback)
 		elif Type == 'string':
@@ -125,19 +134,20 @@ def Remove(Class):
 	RemoveTimers(Class)
 
 def Setup(Class):
+	print "Setting up " + Class
 	File = openClassFile(Class)
-	sections = File.split('<')
+	sections = File.split('\n<')
 	for section in sections:
 		temp = section.split('>')
 		if(len(temp) == 2):
 			Type = temp[0]
 			Data = temp[1]
-			if Type == "Setup":
+			if Type == "Setup" and Data != '':
 				DispatchMessages(Data)
 
 def TearDown(Class):
 	File = openClassFile(Class)
-	sections = File.split('<')
+	sections = File.split('\n<')
 	for section in sections:
 		temp = section.split('>')
 		if(len(temp) == 2):
@@ -157,7 +167,7 @@ def openClassFile(Class):
 				if Name == Class:
 					return open(root + '/' + File).read()
 	print "Could not open class \"" + Class + "\""
-	return 0
+	return ""
 
 
 def getPublisher(Class, Type):
@@ -186,9 +196,9 @@ def SendMessage(fields):
 	elif fields[1] == 'deactivate':
 		pub = getPublisher(fields[0], ModuleEnableMsg)
 		pub.publish(ModuleEnableMsg(Module=fields[2], State=False));
-	elif fields[1] == 'Move':
+	elif fields[1] == 'move':
 		pub = getPublisher(fields[0], HighLevelControl)
-		pub.publish(HighLevelControl(Direction=fields[2], MotionType="Offset", Value=float(fields[3]))
+		pub.publish(HighLevelControl(Direction=fields[2], MotionType="Offset", Value=float(fields[3])))
 
 def DispatchMessages(Data):
 	Data = Data.strip()
@@ -205,12 +215,13 @@ def getAllClasses(Class):
 def getAllClassesHelper(Class, used):
 	used = used.union([Class])
 	File = openClassFile(Class)
-	sections = File.split('<')
+	sections = File.split('\n<')
 	for section in sections:
 		temp = section.split('>')
 		if(len(temp) == 2):
-			Type = temp[0]
+			Type = temp[0].strip()
 			Data = temp[1]
+			print "Found section " + Type
 			if Type == "Inherits":
 				Data = Data.split()
 				for thing in Data:
@@ -218,7 +229,6 @@ def getAllClassesHelper(Class, used):
 						pass
 					else:
 						used = getAllClassesHelper(thing, used)
-				return used
 	return used
 
 
@@ -226,7 +236,7 @@ def getAllClassesHelper(Class, used):
 #	After <ms> milliseconds do <action> <arg1> ...
 
 def addTimer(Class, timer):
-	global gTimer;
+	global gTimers;
 	if timer.strip() == '':
 		return
 	fields = timer.split()
@@ -259,8 +269,9 @@ def addTimer(Class, timer):
 	gTimers.append(timer)
 
 def AddTimers(Class):
+	global gTimers
 	File = openClassFile(Class)
-	sections = File.split('<')
+	sections = File.split('\n<')
 	for section in sections:
 		temp = section.split('>')
 		if(len(temp) == 2):
@@ -275,7 +286,6 @@ def AddTimers(Class):
 def RemoveTimers(Class):
 	global gTimers;
 	gTimers = filter(lambda x: x.Class != Class, gTimers);
-				
 #Trigger Format:
 #   <Channel> <Message_Type> <op> <value> triggers <action> <arg1> ...
 # Supported Message_Types:
@@ -320,7 +330,7 @@ def AddTrigger(Class, trigger):
 
 def AddTriggers(Class):
 	File = openClassFile(Class)
-	sections = File.split('<')
+	sections = File.split('\n<')
 	for section in sections:
 		temp = section.split('>')
 		if(len(temp) == 2):
@@ -342,9 +352,13 @@ def RemoveTriggers(Class):
 
 def checkTimers():
 	global gTimers;
-	gTimers = filter(checkTimer, gTimers);
+	KilledTimers = filter(checkTimer, gTimers);
+	for timer in KilledTimers:
+		if timer in gTimers:
+			gTimers.remove(timer);
 
 def main():
+	global gTimers
 	rospy.init_node('StateMachine')
 	ChangeState("StateChanger")
 	rate = rospy.Rate(20);

@@ -1,3 +1,6 @@
-<Inherits>
+
+Inherits>
+Reset
 DontSink
 Hydrophobic
+StateChanger

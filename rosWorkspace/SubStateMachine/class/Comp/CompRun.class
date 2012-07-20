@@ -1,3 +1,6 @@
+
 <Inherits>
-Safety
 StayUnder
+Safety
+<Timers>
+After 5 s do transition GateTask
