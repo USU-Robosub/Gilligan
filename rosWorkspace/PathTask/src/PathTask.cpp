@@ -104,7 +104,7 @@ void PathTask::manualMode(const SubImageRecognition::ImgRecObject& msg)
   if (moveX > 10 || moveX < -10)
   {
     printf("Correcting straf by: %f\n", moveX);
-    publishMotor("Straf", "Manual", moveX*2.0);
+    publishMotor("Straf", "Manual", moveX);
     hit++;
   }
   else
