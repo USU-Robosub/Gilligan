@@ -189,6 +189,7 @@ bool BuoysTask::performTask(void)
     Robosub::HighLevelControl highLevelControlMsg;
     int retries = 0;
     bool isCentered = false;
+    bool taskSuccessful = false;
 
     printf("BuoysTask: Driving Forward to find buoys...\n");
     highLevelControlMsg.Direction = "Forward";
@@ -320,49 +321,59 @@ bool BuoysTask::performTask(void)
 
             sleep(5);
 
-            // 8. Rise above buoys
-            printf("BuoysTask: Rising above buoys\n");
-            highLevelControlMsg.Direction = "Depth";
-            highLevelControlMsg.MotionType = "Offset";
-            highLevelControlMsg.Value = -2.0f;
-            m_highLevelMotorPublisher.publish(highLevelControlMsg);
-            ros::spinOnce();
-
-            sleep(5);
-
-            // 9. Move past buoys safely
-            printf("BuoysTask: Moving past buoys\n");
-            highLevelControlMsg.Direction = "Forward";
-            highLevelControlMsg.MotionType = "Offset";
-            highLevelControlMsg.Value = 7.0f;
-            m_highLevelMotorPublisher.publish(highLevelControlMsg);
-            ros::spinOnce();
-
-            sleep(5);
-
-            // 10. Dive back to nominal depth
-            printf("BuoysTask: Returning to previous depth\n");
-            highLevelControlMsg.Direction = "Depth";
-            highLevelControlMsg.MotionType = "Offset";
-            highLevelControlMsg.Value = 2.0f;
-            m_highLevelMotorPublisher.publish(highLevelControlMsg);
-            ros::spinOnce();
-
-            sleep(5);
-
-            return true;
+            taskSuccessful = true;
         }
         else
         {
-            printf("BuoysTask: Failed to center on second buoy\n");
-            return false;
+            printf("BuoysTask: Failed to center on second buoy, driving past buoys\n");
+            taskSuccessful = false;
+
+            highLevelControlMsg.Direction = "Forward";
+            highLevelControlMsg.MotionType = "Offset";
+            highLevelControlMsg.Value = 5.0f;
+            m_highLevelMotorPublisher.publish(highLevelControlMsg);
+            ros::spinOnce();
+
+            sleep(5);
         }
+
+        // 8. Rise above buoys
+        printf("BuoysTask: Rising above buoys\n");
+        highLevelControlMsg.Direction = "Depth";
+        highLevelControlMsg.MotionType = "Offset";
+        highLevelControlMsg.Value = -2.0f;
+        m_highLevelMotorPublisher.publish(highLevelControlMsg);
+        ros::spinOnce();
+
+        sleep(5);
+
+        // 9. Move past buoys safely
+        printf("BuoysTask: Moving past buoys\n");
+        highLevelControlMsg.Direction = "Forward";
+        highLevelControlMsg.MotionType = "Offset";
+        highLevelControlMsg.Value = 7.0f;
+        m_highLevelMotorPublisher.publish(highLevelControlMsg);
+        ros::spinOnce();
+
+        sleep(5);
+
+        // 10. Dive back to nominal depth
+        printf("BuoysTask: Returning to previous depth\n");
+        highLevelControlMsg.Direction = "Depth";
+        highLevelControlMsg.MotionType = "Offset";
+        highLevelControlMsg.Value = 2.0f;
+        m_highLevelMotorPublisher.publish(highLevelControlMsg);
+        ros::spinOnce();
+
+        sleep(5);
     }
     else
     {
         printf("BuoysTask: Failed to center on first buoy, giving up\n");
-        return false;
+        taskSuccessful = false;
     }
+
+    return taskSuccessful;
 }
 
 bool BuoysTask::centerOnBuoy(BuoyColors color)
