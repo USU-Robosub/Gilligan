@@ -1,6 +1,7 @@
 
+<Setup>
+message /High_Level_Motion move Forward 100
 <Inherits>
-ZigZagLine
 PathTask
 CompRun
 <Triggers>

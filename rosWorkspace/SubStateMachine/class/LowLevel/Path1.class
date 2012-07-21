@@ -2,4 +2,6 @@
 <Inherits>
 PathTask
 <Triggers>
-/Task_Completion string = "PathTask Success" triggers transition BumpingBuoys
+/Task_Completion string any message triggers transition BumpingBuoys
+<Timers>
+After 15 s do transition BumpingBuoys

@@ -1,0 +1,4 @@
+<Inherits>
+ObsticleDepth
+<Triggers>
+/Sub_Depth float ~ 5.0 triggers transition test1
