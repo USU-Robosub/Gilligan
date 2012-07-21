@@ -435,8 +435,10 @@ void BuoysTask::bumpBuoy(BuoyColors color)
     highLevelControlMsg.MotionType = "Offset";
     highLevelControlMsg.Value = 2.0f;
 
-    for (int loopDelayCount = 50; loopDelayCount > 0; loopDelayCount--)
+    for (int loopDelayCount = 0; loopDelayCount < 50; loopDelayCount++)
     {
+        printf("### Bump Buoy iteration %i\n", loopDelayCount);
+
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
         centerOnBuoy(color);
 
