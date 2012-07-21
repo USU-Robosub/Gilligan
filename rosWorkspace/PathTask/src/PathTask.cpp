@@ -27,7 +27,6 @@ PathTask::PathTask()
    m_pathDirSubscriber = m_nodeHandle.subscribe("Path_Direction", 10, &PathTask::pathDirectionCallback, this);
    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Completion", 10);
-   signal(SIGABRT,PathTask::signalCatcher);
 }
 
 /**
@@ -104,7 +103,7 @@ void PathTask::manualMode(const SubImageRecognition::ImgRecObject& msg)
   float moveY = msg.center_y;
   float turn = msg.rotation;
 
-  if (moveX > 10 || moveX < -10)
+  if (moveX > 25 || moveX < -25)
   {
     printf("Correcting straf by: %f\n", moveX);
     publishMotor("Straf", "Manual", moveX);
@@ -115,7 +114,7 @@ void PathTask::manualMode(const SubImageRecognition::ImgRecObject& msg)
     publishMotor("Straf", "Manual", 0.0);
   }
 
-  if (moveY > 10 || moveY < -10)
+  if (moveY > 25 || moveY < -25)
   {
     printf("Correcting forward by: %f\n", moveY);
     publishMotor("Forward", "Manual", moveY*2.0);
