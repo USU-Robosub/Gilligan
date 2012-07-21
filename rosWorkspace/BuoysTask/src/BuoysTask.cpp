@@ -187,6 +187,7 @@ bool BuoysTask::performTask(void)
 {
     Robosub::HighLevelControl highLevelControlMsg;
     int retries = 0;
+    bool isCentered = false;
 
     printf("BuoysTask: Driving Forward to find buoys...\n");
     highLevelControlMsg.Direction = "Forward";
@@ -251,7 +252,15 @@ bool BuoysTask::performTask(void)
 
     // 2. Identify first buoy to bump and center on point
     printf("BuoysTask: Centering on point to bump first buoy\n");
-    if (centerOnBuoy(m_firstToBump))
+    retries = 20;
+    while (!isCentered && (retries > 0))
+    {
+        isCentered = centerOnBuoy(m_firstToBump);
+        usleep(100000);
+        retries--;
+    }
+
+    if (isCentered)
     {
         // 3. Bump buoy by driving forward and continuing to center on point
         printf("BuoysTask: Driving Forward to bump first buoy\n");
@@ -283,7 +292,16 @@ bool BuoysTask::performTask(void)
         }
 
         printf("BuoysTask: Centering on point to bump second buoy\n");
-        if (centerOnBuoy(m_secondToBump))
+        isCentered = false;
+        retries = 20;
+        while (!isCentered && (retries > 0))
+        {
+            isCentered = centerOnBuoy(m_secondToBump);
+            usleep(100000);
+            retries--;
+        }
+
+        if (isCentered)
         {
             // 6. Bump bouy
             printf("BuoysTask: Driving Forward to bump second buoy\n");
