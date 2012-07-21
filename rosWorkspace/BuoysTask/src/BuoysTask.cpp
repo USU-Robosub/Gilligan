@@ -35,7 +35,7 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
     m_centerOnPointPublisher = m_nodeHandle.advertise<Robosub::Point>("Center_On_Point", 10);
 
     // Setup publisher for high level motor control
-    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motor_Control", 10);
+    m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
 
     m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Complete", 10);
 
