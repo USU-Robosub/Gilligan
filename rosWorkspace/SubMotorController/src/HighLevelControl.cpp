@@ -61,9 +61,9 @@ ros::Publisher* motorPub;
 
 void CenterOnPointCallback(Robosub::Point::ConstPtr msg) {
 	TurnMode = AUTOMATIC;
-	TurnOffset = msg->x * 60 / 1640;
+	TurnOffset = msg->x * 60 / 940;
 	DepthMode = AUTOMATIC;
-	DepthOffset = -msg->y / 80.0;
+	DepthOffset = (40 - msg->y) / 150.0;
 }
 
 void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
