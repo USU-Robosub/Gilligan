@@ -5,4 +5,6 @@ message /High_Level_Motion move Forward 100
 PathTask
 CompRun
 <Triggers>
-/Task_Completion string = "PathTask Success" triggers transition FindWreath
+/Task_Completion string any message triggers transition FindWreath
+<Timers>
+After 15 s do transition DriveAtGate
