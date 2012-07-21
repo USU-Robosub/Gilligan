@@ -1,0 +1,6 @@
+<Inherits>
+StateChanger
+<Setup>
+message /High_Level_Motion move Forward -5
+<Timers>
+After 10 s do transition oclate2

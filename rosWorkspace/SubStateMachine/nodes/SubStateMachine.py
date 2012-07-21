@@ -73,7 +73,6 @@ class Trigger:
 		self.mEffect = effect
 
 	def Check(self, message):
-		print str(self.mValue) + ' ' + self.mOp + ' ' + str(message.data)
 		if self.mOp == '=' and str(message.data) == str(self.mValue):
 			self.mEffect.Execute(message)
 		elif self.mOp == '<' and message.data < self.mValue:
@@ -85,7 +84,6 @@ class Trigger:
 		elif self.mOp == 'any':
 			self.mEffect.Execute(message)
 		else:
-			print "no"
 
 class TopicListener:
 	def __init__(self, Topic, Type):
@@ -359,7 +357,7 @@ def checkTimers():
 
 def main():
 	global gTimers
-	rospy.init_node('StateMachine')
+	rospy.init_node('Wait_Button')
 	ChangeState("StateChanger")
 	rate = rospy.Rate(20);
 	try:

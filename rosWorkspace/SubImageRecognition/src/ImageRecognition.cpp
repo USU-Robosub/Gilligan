@@ -22,8 +22,9 @@ using namespace std;
 
 // CONSTANTS
 
-const int SAMPLE_SIZE = 6;
+const int SAMPLE_SIZE = 4;
 const unsigned int MIN_POINTS = 10;
+const float MIN_CONFIDENCE = 0.5;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
 
@@ -478,19 +479,22 @@ void genericCallback(
 				ros::Time time = ros::Time::now();
 				for (unsigned int k = 0; k < analysisList.size(); k++) {
 					BlobAnalysis analysis = analysisList[k];
-					// Publish information
-					SubImageRecognition::ImgRecObject msg;
-					msg.stamp = time;
-					msg.id = k;
-					msg.center_x = analysis.center_x - rotated.image.cols / 2;
-					msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-					msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
-					msg.width = analysis.width;
-					msg.height = analysis.height;
-					msg.confidence = computeConfidence(algorithm, analysis);
-					algorithm.publisher.publish(msg);
-					// Annotate image
-					annotateImage(rotated.image, algorithm, analysis);
+					float confidence = computeConfidence(algorithm, analysis);
+					if (confidence >= MIN_CONFIDENCE) {
+						// Publish information
+						SubImageRecognition::ImgRecObject msg;
+						msg.stamp = time;
+						msg.id = k;
+						msg.center_x = analysis.center_x - rotated.image.cols / 2;
+						msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+						msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
+						msg.width = analysis.width;
+						msg.height = analysis.height;
+						msg.confidence = computeConfidence(algorithm, analysis);
+						algorithm.publisher.publish(msg);
+						// Annotate image
+						annotateImage(rotated.image, algorithm, analysis);
+					}
 				}
 			}
 		}

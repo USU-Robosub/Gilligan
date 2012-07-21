@@ -1,7 +1,5 @@
 
 <Inherits>
-CompRun
-GateTask
+PathTask
 <Triggers>
 /img_rec/paths img any message triggers transition Path1
-/Task_Completion string any message triggers transition Path1
