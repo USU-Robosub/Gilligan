@@ -440,7 +440,11 @@ void BuoysTask::bumpBuoy(BuoyColors color)
         printf("### Bump Buoy iteration %i\n", loopDelayCount);
 
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
-        centerOnBuoy(color);
+
+        if(loopDelayCount % 10 == 0)
+        {
+            centerOnBuoy(color);
+        }
 
         usleep(100000);
         ros::spinOnce();
