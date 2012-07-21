@@ -96,6 +96,7 @@ void BuoysTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
                 taskCompleteMsg.data = "BuoysTask Failure";
             }
             m_taskCompletePublisher.publish(taskCompleteMsg);
+            m_isEnabled = false;
         }
         else
         {
@@ -251,10 +252,10 @@ bool BuoysTask::performTask(void)
     }
 
     // 2. Identify first buoy to bump and center on point
-    printf("BuoysTask: Centering on point to bump first buoy\n");
     retries = 20;
     while (!isCentered && (retries > 0))
     {
+        printf("BuoysTask: Centering on point to bump first buoy\n");
         isCentered = centerOnBuoy(m_firstToBump);
         usleep(100000);
         retries--;
@@ -359,7 +360,7 @@ bool BuoysTask::performTask(void)
     }
     else
     {
-        printf("BuoysTask: Failed to center on first buoy\n");
+        printf("BuoysTask: Failed to center on first buoy, giving up\n");
         return false;
     }
 }
@@ -368,7 +369,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
 {
     Robosub::Point pointMsg;
     bool isCentered = false;
-    int retries = 50;
+    int retries = 25;
 
     while (!isCentered && (retries > 0))
     {
@@ -407,7 +408,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
         {
             m_centerOnPointPublisher.publish(pointMsg);
 
-            if ((pointMsg.x <= 20) && (pointMsg.x >= -20) && (pointMsg.y <= 20) && (pointMsg.y >= -20))
+            if ((pointMsg.x <= 80) && (pointMsg.x >= -80) && (pointMsg.y <= 80) && (pointMsg.y >= -20))
             {
                 pointMsg.x = 0;
                 pointMsg.y = 0;
