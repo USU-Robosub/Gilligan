@@ -377,7 +377,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
         switch (color)
         {
             case RED:
-                if (m_redBuoySamples.size() > 2)
+                if (m_redBuoySamples.size() > 1)
                 {
                     pointMsg.x = m_redBuoySamples.back().centerX;
                     pointMsg.y = m_redBuoySamples.back().centerY;
@@ -386,7 +386,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
                 break;
 
             case GREEN:
-                if (m_greenBuoySamples.size () > 2)
+                if (m_greenBuoySamples.size () > 1)
                 {
                     pointMsg.x = m_greenBuoySamples.back().centerX;
                     pointMsg.y = m_greenBuoySamples.back().centerY;
@@ -395,7 +395,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
                 break;
 
             case YELLOW:
-                if (m_yellowBuoySamples.size() > 2)
+                if (m_yellowBuoySamples.size() > 1)
                 {
                     pointMsg.x = m_yellowBuoySamples.back().centerX;
                     pointMsg.y = m_yellowBuoySamples.back().centerY;
@@ -437,8 +437,6 @@ void BuoysTask::bumpBuoy(BuoyColors color)
 
     for (int loopDelayCount = 0; loopDelayCount < 50; loopDelayCount++)
     {
-        printf("### Bump Buoy iteration %i\n", loopDelayCount);
-
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
         if(loopDelayCount % 10 == 0)
