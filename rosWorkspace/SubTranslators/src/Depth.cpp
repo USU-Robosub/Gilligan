@@ -1,10 +1,10 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
 
-float offset = 83;
-float scalingFactor = 0.177; //feet per tick
+float offset = 101;
+float scalingFactor = 0.277; //feet per tick
 float currentDepthRaw = 16.6;
-float lastTicks = 83;
+float lastTicks = 107;
 
 ros::Publisher depthPub;
 
