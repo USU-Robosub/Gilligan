@@ -253,7 +253,7 @@ bool BuoysTask::performTask(void)
 
     // 2. Identify first buoy to bump and center on point
     retries = 20;
-    while (!isCentered && (retries > 0))
+    while (!isCentered && isBuoyVisible(m_firstToBump) && (retries > 0))
     {
         printf("BuoysTask: Centering on point to bump first buoy\n");
         isCentered = centerOnBuoy(m_firstToBump);
@@ -292,11 +292,11 @@ bool BuoysTask::performTask(void)
             searchBuoys(m_secondToBump);
         }
 
-        printf("BuoysTask: Centering on point to bump second buoy\n");
         isCentered = false;
         retries = 20;
-        while (!isCentered && (retries > 0))
+        while (!isCentered && isBuoyVisible(m_secondToBump) && (retries > 0))
         {
+            printf("BuoysTask: Centering on point to bump second buoy\n");
             isCentered = centerOnBuoy(m_secondToBump);
             usleep(100000);
             retries--;
