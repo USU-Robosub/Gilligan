@@ -30,7 +30,7 @@ rosrun moboTemp moboTemp &
 rosrun SubTranslators DepthTranslator &
 
 rosrun SubStateMachine SubStateMachine.py 
-rosrun GateTask GateTask &
+#rosrun GateTask GateTask &
 rosrun PathTask PathTask &
 rosrun BuoyTask BuoyTask RED YELLOW &
 
