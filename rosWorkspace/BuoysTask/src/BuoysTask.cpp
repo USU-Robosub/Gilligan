@@ -37,7 +37,7 @@ BuoysTask::BuoysTask(BuoyColors first, BuoyColors second)
     // Setup publisher for high level motor control
     m_highLevelMotorPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
 
-    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Complete", 10);
+    m_taskCompletePublisher = m_nodeHandle.advertise<std_msgs::String>("Task_Completion", 10);
 
     switch(m_firstToBump)
     {
@@ -408,7 +408,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
         {
             m_centerOnPointPublisher.publish(pointMsg);
 
-            if ((pointMsg.x <= 80) && (pointMsg.x >= -80) && (pointMsg.y <= 80) && (pointMsg.y >= -80))
+            if ((pointMsg.x <= 75) && (pointMsg.x >= -75) && (pointMsg.y <= 75) && (pointMsg.y >= -75))
             {
                 pointMsg.x = 0;
                 pointMsg.y = 0;
