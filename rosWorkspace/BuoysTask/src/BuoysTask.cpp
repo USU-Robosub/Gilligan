@@ -110,7 +110,7 @@ void BuoysTask::greenBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
-        printf("BuoysTask: Got green buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
+        //printf("BuoysTask: Got green buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
 
         //@todo Throw out message below some confidence level?
 
@@ -136,7 +136,7 @@ void BuoysTask::yellowBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
-        printf("BuoysTask: Got yellow buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
+        //printf("BuoysTask: Got yellow buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
 
         //@todo Throw out message below some confidence level?
 
@@ -162,7 +162,7 @@ void BuoysTask::redBuoyCallback(const SubImageRecognition::ImgRecObject& msg)
 {
     if (m_isEnabled)
     {
-        printf("BuoysTask: Got red buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
+        //printf("BuoysTask: Got red buoy msg x: %i y: %i height: %i width: %i\n", msg.center_x, msg.center_y, msg.height, msg.width);
 
         //@todo Throw out message below some confidence level?
 
@@ -408,7 +408,7 @@ bool BuoysTask::centerOnBuoy(BuoyColors color)
         {
             m_centerOnPointPublisher.publish(pointMsg);
 
-            if ((pointMsg.x <= 80) && (pointMsg.x >= -80) && (pointMsg.y <= 80) && (pointMsg.y >= -20))
+            if ((pointMsg.x <= 80) && (pointMsg.x >= -80) && (pointMsg.y <= 80) && (pointMsg.y >= -80))
             {
                 pointMsg.x = 0;
                 pointMsg.y = 0;
