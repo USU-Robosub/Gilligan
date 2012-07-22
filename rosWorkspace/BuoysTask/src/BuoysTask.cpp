@@ -222,17 +222,22 @@ bool BuoysTask::performTask(void)
         return false;
     }
 
+    m_greenBuoySamples.clear();
+    m_yellowBuoySamples.clear();
+
     printf("BuoysTask: Centering on red buoy to make sure we are heading the right direction\n");
 
     // Move closer to buoys while centering on the red buoy
     float distanceToRed = getDistanceToBuoy(RED);
+
+    highLevelControlMsg.MotionType = "Manual";
+    highLevelControlMsg.Value = 125.0f;
+    m_highLevelMotorPublisher.publish(highLevelControlMsg);
+
     retries = 40;
     while ((retries > 0) && ((distanceToRed > 7.0f) || (distanceToRed == -1.0f)))
     {
         centerOnBuoy(RED);
-        highLevelControlMsg.MotionType = "Auto";
-        highLevelControlMsg.Value = 2.0f;
-        m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
         ros::spinOnce();
         usleep(100000);
@@ -243,7 +248,7 @@ bool BuoysTask::performTask(void)
 
     // Stop moving forward
     highLevelControlMsg.Direction = "Forward";
-    highLevelControlMsg.MotionType = "Offset";
+    highLevelControlMsg.MotionType = "Manul";
     highLevelControlMsg.Value = 0.0f;
     m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
