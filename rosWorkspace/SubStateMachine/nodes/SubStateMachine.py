@@ -83,7 +83,6 @@ class Trigger:
 			self.mEffect.Execute(message)
 		elif self.mOp == 'any':
 			self.mEffect.Execute(message)
-		else:
 
 class TopicListener:
 	def __init__(self, Topic, Type):
@@ -357,8 +356,8 @@ def checkTimers():
 
 def main():
 	global gTimers
-	rospy.init_node('Wait_Button')
-	ChangeState("StateChanger")
+	rospy.init_node('StateMachine')
+	ChangeState("Wait_Button")
 	rate = rospy.Rate(20);
 	try:
 		while not rospy.is_shutdown():
