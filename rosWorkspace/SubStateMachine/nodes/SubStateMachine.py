@@ -51,6 +51,8 @@ class Effect:
 			ChangeState(exeArgs[0])
 		elif self.Type == 'message':
 			SendMessage(exeArgs)
+		elif selt.Type == 'execute':
+			os.system(' '.join(exeArgs))
 		else:
 			print "Error: unknown action " + self.Type
 
