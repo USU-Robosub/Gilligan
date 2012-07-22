@@ -248,7 +248,7 @@ bool BuoysTask::performTask(void)
 
     // Stop moving forward
     highLevelControlMsg.Direction = "Forward";
-    highLevelControlMsg.MotionType = "Manul";
+    highLevelControlMsg.MotionType = "Manual";
     highLevelControlMsg.Value = 0.0f;
     m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
