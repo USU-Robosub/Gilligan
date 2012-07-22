@@ -548,7 +548,7 @@ void SubConsole::disableViewThresholds(void)
     SubImageRecognition::UpdateAlgorithm::Response updateAlgorithmResponse;
 
     updateAlgorithmService.algorithm.name = getSelectedAlgorithm();
-    updateAlgorithmService.algorithm.flags = 0; // @todo What do set flags to to disable threshold view without disabling algorithm
+    updateAlgorithmService.algorithm.flags = 1;
 
     if (m_imageRecService.call(updateAlgorithmService, updateAlgorithmResponse))
     {
@@ -580,7 +580,7 @@ std::string SubConsole::getSelectedAlgorithm(void)
     {
         selected = "gate";
     }
-    else if (m_pUi->algorithmComboBox->currentText() == "Obstable Course")
+    else if (m_pUi->algorithmComboBox->currentText() == "Obstacle Course")
     {
         selected = "obstacle_course";
     }
@@ -591,6 +591,14 @@ std::string SubConsole::getSelectedAlgorithm(void)
     else if (m_pUi->algorithmComboBox->currentText() == "Path")
     {
         selected = "paths";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Obstacle Down")
+    {
+        selected = "obstacle_course_downward";
+    }
+    else if (m_pUi->algorithmComboBox->currentText() == "Gate Distant")
+    {
+        selected = "gate_distant";
     }
 
     return selected;
@@ -609,6 +617,7 @@ void SubConsole::imageRecThresholdBoxDrawn(void)
     if(thresholdMsg.name != "")
     {
         m_thresholdBoxPublisher.publish(thresholdMsg);
+        printf("Publishing threshold message for %s\n", thresholdMsg.name.c_str());
     }
 }
 

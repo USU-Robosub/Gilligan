@@ -279,7 +279,7 @@
         <item>
          <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>Current/Voltage</string>
+           <string>Voltage/Current</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -452,6 +452,16 @@
         <item>
          <property name="text">
           <string>Path</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Obstacle Down</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Gate Distant</string>
          </property>
         </item>
        </widget>

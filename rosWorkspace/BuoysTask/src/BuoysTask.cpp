@@ -193,21 +193,30 @@ bool BuoysTask::performTask(void)
 
     printf("BuoysTask: Driving Forward to find buoys...\n");
     highLevelControlMsg.Direction = "Forward";
-    highLevelControlMsg.MotionType = "Offset";
-    highLevelControlMsg.Value = 2.0f;
+    highLevelControlMsg.MotionType = "Manual";
 
     // 1. Find the red bouy - keep driving forward - Get at least 10 samples of buoy before deciding it has been seen
-    retries = 200;  // 20 seconds-ish timeout
-    while ((m_redBuoySamples.size() <= 10) && (retries > 0))
+    for(int searchCount = 0; (searchCount < 10) && !isBuoyVisible(RED); searchCount++)
     {
-        m_highLevelMotorPublisher.publish(highLevelControlMsg);
+        retries = 30;  // 3 seconds-ish timeout
+        while (!isBuoyVisible(RED) && (retries > 0))
+        {
+            highLevelControlMsg.Value = 125.0f;
+            m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
-        ros::spinOnce();
-        usleep(100000);
-        retries--;
+            ros::spinOnce();
+            usleep(100000);
+            retries--;
+        }
+
+        if (!isBuoyVisible(RED))
+        {
+            highLevelControlMsg.Value = 0.0f;
+            searchBuoys(RED);
+        }
     }
 
-    if (retries == 0)
+    if (!isBuoyVisible(RED))
     {
         printf("BuoyTask: Failed to identiy any buoys while trying to initially locate them/n");
         return false;
@@ -221,6 +230,8 @@ bool BuoysTask::performTask(void)
     while ((retries > 0) && ((distanceToRed > 7.0f) || (distanceToRed == -1.0f)))
     {
         centerOnBuoy(RED);
+        highLevelControlMsg.MotionType = "Auto";
+        highLevelControlMsg.Value = 2.0f;
         m_highLevelMotorPublisher.publish(highLevelControlMsg);
 
         ros::spinOnce();
@@ -562,7 +573,6 @@ void BuoysTask::searchBuoys(BuoyColors buoy)
         retries--;
         ros::spinOnce();
     }
-
 
     if (isBuoyVisible(buoy))
     {
