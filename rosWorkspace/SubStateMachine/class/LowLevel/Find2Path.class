@@ -1,10 +1,10 @@
 
 <Setup>
-message /High_Level_Motion move Forward 100
+message /High_Level_Motion move Forward 2.5
 <Inherits>
 PathTask
 CompRun
 <Triggers>
-/Task_Completion string any message triggers transition FindWreath
+/Task_Completion string any message triggers transition Find3Path
 <Timers>
-After 15 s do transition DriveBlind
+After 25 s do transition Find3Path

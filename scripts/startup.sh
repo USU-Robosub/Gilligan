@@ -29,8 +29,8 @@ rosrun moboTemp moboTemp &
 # Translation from ticks to actual depth
 rosrun SubTranslators DepthTranslator &
 
-rosrun SubStateMachine SubStateMachine.py 
-rosrun GateTask GateTask &
+rosrun SubStateMachine SubStateMachine.py & 
+#rosrun GateTask GateTask &
 rosrun PathTask PathTask &
 rosrun BuoyTask BuoyTask RED YELLOW &
 
