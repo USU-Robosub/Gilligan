@@ -54,7 +54,7 @@ const int ANNOTATION_RADIUS = 1;
 
 typedef vector<Point> Points;
 
-class Algorithm {
+class AlgorithmB {
 private:
 	string buildParamName(const char* param) {
 		string paramName(NAMESPACE_ROOT);
@@ -87,7 +87,7 @@ public:
 		nodeHandle.setParam(buildParamName(PARAM_V_MIN), minThreshold[2]);
 	}
 
-	Algorithm(
+	AlgorithmB(
 			string _name,
 			int _camera,
 			Scalar _minThreshold,
@@ -197,7 +197,7 @@ public:
 
 // GLOBALS  :/  HA HA AH WELL
 
-vector<Algorithm> algorithms;
+vector<AlgorithmB> algorithms;
 
 int forwardOffset = 0, downwardOffset = 0;
 image_transport::Publisher forwardPublisher, downwardPublisher;
@@ -208,7 +208,7 @@ Mat forwardThreshold, downwardThreshold;
 // FUNCTIONS
 
 void initAlgorithms() {
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"gate",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -219,7 +219,7 @@ void initAlgorithms() {
 		Scalar(0, 128, 255), // Orange
 		ANNOTATION_ROTATION
 	));
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"buoys/red",
 		CAMERA_FORWARD,
 		Scalar(135, 0, 55),
@@ -230,7 +230,7 @@ void initAlgorithms() {
 		Scalar(0, 0, 255), // Red
 		ANNOTATION_RADIUS
 	));
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"buoys/green",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -241,7 +241,7 @@ void initAlgorithms() {
 		Scalar(0, 255, 0), // Green
 		ANNOTATION_RADIUS
 	));
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"buoys/yellow",
 		CAMERA_FORWARD,
 		Scalar(0, 185, 110),
@@ -252,7 +252,7 @@ void initAlgorithms() {
 		Scalar(0, 255, 255), // Yellow
 		ANNOTATION_RADIUS
 	));
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"obstacle_course",
 		CAMERA_FORWARD,
 		Scalar(0, 0, 0),
@@ -263,7 +263,7 @@ void initAlgorithms() {
 		Scalar(255, 0, 0), // Blue
 		ANNOTATION_ROTATION
 	));
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"paths",
 		CAMERA_DOWNWARD,
 		Scalar(0, 0, 0),
@@ -274,7 +274,7 @@ void initAlgorithms() {
 		Scalar(0, 128, 255), // Orange
 		ANNOTATION_ROTATION
 	));
-	algorithms.push_back(Algorithm(
+	algorithms.push_back(AlgorithmB(
 		"obstacle_course_downward",
 		CAMERA_DOWNWARD,
 		Scalar(0, 0, 0),
@@ -373,7 +373,7 @@ vector<Points> findBlobs(Mat& image,
 	return blobs;
 }
 
-vector<BlobAnalysis> analyzeBlob(Algorithm& algorithm,
+vector<BlobAnalysis> analyzeBlob(AlgorithmB& algorithm,
 		Points& blob, Mat& image) {
 	vector<BlobAnalysis> analysisList;
 	RotatedRect rectangle;
@@ -385,7 +385,7 @@ vector<BlobAnalysis> analyzeBlob(Algorithm& algorithm,
 	return analysisList;
 }
 
-float computeConfidence(Algorithm& algorithm, BlobAnalysis& a) {
+float computeConfidence(AlgorithmB& algorithm, BlobAnalysis& a) {
 	// A return value of -1 indicates 'divide by zero' error
 	// A return value of -2 indicates 'unknown confidence type' error
 	int expectedPoints;
@@ -412,7 +412,7 @@ float computeConfidence(Algorithm& algorithm, BlobAnalysis& a) {
 	}
 }
 
-void annotateImage(Mat& image, Algorithm& algorithm, BlobAnalysis& a) {
+void annotateImage(Mat& image, AlgorithmB& algorithm, BlobAnalysis& a) {
 	int r, x, y;
 	switch (algorithm.annotationType) {
 	case ANNOTATION_ROTATION:
@@ -457,7 +457,7 @@ void genericCallback(
 
 	// Iterate through all algorithms
 	for (unsigned int i = 0; i < algorithms.size(); i++) {
-		Algorithm algorithm = algorithms[i];
+		AlgorithmB algorithm = algorithms[i];
 		// Run applicable algorithms
 		if ((algorithm.flags & FLAG_ENABLED) && algorithm.camera == camera) {
 			inRange(segmented, algorithm.minThreshold,
