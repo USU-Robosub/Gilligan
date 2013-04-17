@@ -39,3 +39,4 @@ rosbuild_add_executable(SubImuController src/packets/fields/DataFields/DataField
 rosbuild_add_executable(SubImuController src/packets/fields/DataFields/EulerAngles.cpp)
 rosbuild_add_executable(SubImuController src/packets/fields/DataFields/ScaledAccelerometerVector.cpp)
 rosbuild_add_executable(SubImuController src/packets/fields/DataFields/ScaledGyroVector.cpp)
+rosbuild_add_executable(SubImuController src/packets/fields/DataFields/DeltaVelocityVector.cpp)
