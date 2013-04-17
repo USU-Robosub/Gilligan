@@ -10,14 +10,17 @@
 #include "../../../common/BufferUtils.hpp"
 
 ScaledAccelerometerVector::ScaledAccelerometerVector()
+  : DataField(),
+    m_x(0.0),
+    m_y(0.0),
+    m_z(0.0)
 {
-  // TODO Auto-generated constructor stub
-
+  // empty
 }
 
 ScaledAccelerometerVector::~ScaledAccelerometerVector()
 {
-  // TODO Auto-generated destructor stub
+  // empty
 }
 
 UInt8 ScaledAccelerometerVector::serialize(UInt8* pBuf, UInt8 size)

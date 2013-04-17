@@ -10,14 +10,17 @@
 #include "../../../common/BufferUtils.hpp"
 
 ScaledGyroVector::ScaledGyroVector()
+  : DataField(),
+    m_x(0.0),
+    m_y(0.0),
+    m_z(0.0)
 {
-  // TODO Auto-generated constructor stub
-
+  //empty
 }
 
 ScaledGyroVector::~ScaledGyroVector()
 {
-  // TODO Auto-generated destructor stub
+  //empty
 }
 
 UInt8 ScaledGyroVector::serialize(UInt8* pBuf, UInt8 size)

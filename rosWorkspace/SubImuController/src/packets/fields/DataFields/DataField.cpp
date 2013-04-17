@@ -11,6 +11,7 @@
 #include "EulerAngles.hpp"
 #include "ScaledAccelerometerVector.hpp"
 #include "ScaledGyroVector.hpp"
+#include "DeltaVelocityVector.hpp"
 
 DataField::DataField()
   : MipField()
@@ -20,7 +21,7 @@ DataField::DataField()
 
 DataField::~DataField()
 {
-  // TODO Auto-generated destructor stub
+  //empty
 }
 
 UInt8 DataField::serialize(UInt8* pBuf, UInt8 size)
@@ -41,24 +42,6 @@ UInt8 DataField::deserializeToField(MipField*& rpField, UInt8* pBuf, UInt8 size)
   {
     switch (pBuf[MipField::FIELD_DESCRIPTOR_OFFSET])
     {
-      case DATA_FIELD_RAW_ACCELEROMETER_VECTOR_SET:
-      {
-        //TODO later
-      }
-      break;
-
-      case DATA_FIELD_RAW_GYRO_VECTOR_SET:
-      {
-        //TODO later
-      }
-      break;
-
-      case DATA_FIELD_MAGNETOMETER_VECTOR_SET:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_SCALED_ACCELEROMETER_VECTOR_SET:
       {
         ScaledAccelerometerVector* pField = new ScaledAccelerometerVector();
@@ -75,42 +58,6 @@ UInt8 DataField::deserializeToField(MipField*& rpField, UInt8* pBuf, UInt8 size)
       }
       break;
 
-      case DATA_FIELD_SCALED_MAGNETOMETER_VECTOR_SET:
-      {
-
-      }
-      break;
-
-      case DATA_FIELD_DELTA_THETA_VECTOR_SET:
-      {
-        //TODO later
-      }
-      break;
-
-      case DATA_FIELD_DELTA_VELOCITY_VECTOR_SET:
-      {
-        //TODO later
-      }
-      break;
-
-      case DATA_FIELD_ORIENTATION_MATRIX_SET:
-      {
-        //TODO later
-      }
-      break;
-
-      case DATA_FIELD_QUATERNION_SET:
-      {
-        //TODO later
-      }
-      break;
-
-      case DATA_FIELD_ORIENTATION_UPDATE_MATRIX_SET:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_EULER_ANGLES_SET:
       {
         EulerAngles* pField = new EulerAngles();
@@ -119,42 +66,29 @@ UInt8 DataField::deserializeToField(MipField*& rpField, UInt8* pBuf, UInt8 size)
       }
       break;
 
+      case DATA_FIELD_DELTA_VELOCITY_VECTOR_SET:
+      {
+        DeltaVelocityVector* pField = new DeltaVelocityVector();
+        ret = pField->deserialize(pBuf, size);
+        rpField = pField;
+      }
+      break;
+
+      //TODO break these out into individual case statements when supported
+      case DATA_FIELD_RAW_ACCELEROMETER_VECTOR_SET:
+      case DATA_FIELD_RAW_GYRO_VECTOR_SET:
+      case DATA_FIELD_MAGNETOMETER_VECTOR_SET:
+      case DATA_FIELD_SCALED_MAGNETOMETER_VECTOR_SET:
+      case DATA_FIELD_DELTA_THETA_VECTOR_SET:
+      case DATA_FIELD_ORIENTATION_MATRIX_SET:
+      case DATA_FIELD_QUATERNION_SET:
+      case DATA_FIELD_ORIENTATION_UPDATE_MATRIX_SET:
       case DATA_FIELD_INTERNAL_TIMESTAMP_SET:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_BEACONED_TIMESTAMP_SET:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_STABILIZED_MAG_VECTOR_SET:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_STABILIZED_ACCEL_VECTOR:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_GPS_CORRELATION_TIMESTAMP_SET:
-      {
-        //TODO later
-      }
-      break;
-
       case DATA_FIELD_WRAPPED_RAW_SET:
-      {
-        //TODO later
-      }
-      break;
-
       default:
         printf("Unhandled DataField 0x%x\n", pBuf[MipField::FIELD_DESCRIPTOR_OFFSET]);
         DataField* pField = new DataField();
