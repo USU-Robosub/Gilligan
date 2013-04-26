@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <vector>
 
+#include "filter.hpp"
 #include "joystick.h"
 #include "qwt/qwt_compass.h"
 #include "attitude_indicator.h"
@@ -20,6 +21,7 @@
 #include "sensor_msgs/CompressedImage.h"
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 
+#define AVERAGE_LEN 10
 namespace Ui
 {
   class SubConsole;
@@ -32,7 +34,7 @@ public:
    SubConsole(QWidget* pParent = 0);
    ~SubConsole();
 
-   void imuDataCallback(const std_msgs::Float64MultiArray::ConstPtr& msg);
+   void imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void motorControllerTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void moboTempCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void pressureDataCallback(const std_msgs::Float32::ConstPtr& msg);
@@ -72,6 +74,13 @@ private:
    double m_rightThrustPercentage;
    double m_leftThrustPercentage;
 
+   Filter m_rollAverage;
+   Filter m_pitchAverage;
+   Filter m_yawAverage;
+   Filter m_depthAverage;
+   Filter m_battAverage;
+   Filter m_currAverage;
+
    unsigned char* m_pForwardCameraData;     //!< Pointer to the the last received forward camera frame
    unsigned char* m_pDownwardCameraData;    //!< Pointer to the the last received downward camera frame
    bool m_downPipEnabled;                   //!< Flag if downward picture in picture is enabled
@@ -104,6 +113,7 @@ private:
 
    void sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn);
    std::string getSelectedAlgorithm(void);
+   void filterData(double data, double* buf, double& result);
 
 private slots:
    void readJoystickInput(void);
