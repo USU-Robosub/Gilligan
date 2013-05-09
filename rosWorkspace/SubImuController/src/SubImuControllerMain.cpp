@@ -30,9 +30,10 @@ bool m_running = true;
 
 int main(int argc, char** argv)
 {
+  UInt32 baudRate = 115200;
   Int32 maxSize = 115200;
   UInt8 aBuf[maxSize];
-  SerialInterface sp("/dev/controller_Imu");
+  SerialInterface sp("/dev/controller_Imu", baudRate);
   signal(SIGINT, catchSig);
 
   ros::init(argc, argv, "SubImuController");

@@ -11,14 +11,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <termios.h>
 #include <time.h>
 #include <cstring>
 #include "SerialInterface.hpp"
 
-SerialInterface::SerialInterface(std::string port)
+SerialInterface::SerialInterface(std::string port, UInt32 baudRate)
   : m_fd(0),
     m_port(port),
+    m_baudRate(baudRate),
     m_isPortGood(false)
 {
   //empty
@@ -117,8 +117,10 @@ void SerialInterface::configure()
   struct termios port_settings;      // structure to store the port settings in
   bzero(&port_settings, sizeof(port_settings));
 
-  cfsetispeed(&port_settings, B115200);    // set baud rates
-  cfsetospeed(&port_settings, B115200);
+  speed_t speed = convertSpeed(m_baudRate);
+
+  cfsetispeed(&port_settings, speed);    // set baud rates
+  cfsetospeed(&port_settings, speed);
 
   port_settings.c_cflag |= ( CLOCAL | CREAD |  CS8);                        // Configure the device : 8 bits, no parity, no control
   port_settings.c_iflag |= ( IGNPAR | IGNBRK );
@@ -153,4 +155,104 @@ bool SerialInterface::openInterface()
   {
     m_fd = 0;
   }
+}
+
+speed_t SerialInterface::convertSpeed(UInt32 baudRate)
+{
+  speed_t speed;
+
+  switch (baudRate)
+  {
+    case 57600:
+    {
+      speed = B57600;
+    }
+    break;
+
+    case 230400:
+    {
+      speed = B230400;
+    }
+    break;
+
+    case 460800:
+    {
+      speed = B460800;
+    }
+    break;
+
+    case 500000:
+    {
+      speed = B500000;
+    }
+    break;
+
+    case 576000:
+    {
+      speed = B576000;
+    }
+    break;
+
+    case 921600:
+    {
+      speed = B921600;
+    }
+    break;
+
+    case 1000000:
+    {
+      speed = B1000000;
+    }
+    break;
+
+    case 1152000:
+    {
+      speed = B1152000;
+    }
+    break;
+
+    case 1500000:
+    {
+      speed = B1500000;
+    }
+    break;
+
+    case 2000000:
+    {
+      speed = B2000000;
+    }
+    break;
+
+    case 2500000:
+    {
+      speed = B2500000;
+    }
+    break;
+
+    case 3000000:
+    {
+      speed = B3000000;
+    }
+    break;
+
+    case 3500000:
+    {
+      speed = B3500000;
+    }
+    break;
+
+    case 4000000:
+    {
+      speed = B4000000;
+    }
+    break;
+
+    case 115200:
+    default:
+    {
+      speed = B115200;
+    }
+  }
+
+  return speed;
 }

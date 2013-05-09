@@ -62,31 +62,61 @@ UInt8 DeltaVelocityVector::deserialize(UInt8* pBuf, UInt8 size)
   return ret;
 }
 
+/**
+ * @brief Get the X Delta Velocity
+ *
+ * @return The X delta velocity in g's a second
+ */
 Float32 DeltaVelocityVector::getX()
 {
   return m_x;
 }
 
+/**
+ * @brief Get the Y Delta Velocity
+ *
+ * @return The Y delta velocity in g's a second
+ */
 Float32 DeltaVelocityVector::getY()
 {
   return m_y;
 }
 
+/**
+ * @brief Get the Z Delta Velocity
+ *
+ * @return The Z delta velocity in g's a second
+ */
 Float32 DeltaVelocityVector::getZ()
 {
   return m_z;
 }
 
+/**
+ * @brief Set the X Delta Velocity
+ *
+ * @param x The X delta velocity in g's a second
+ */
 void DeltaVelocityVector::setX(Float32 x)
 {
   m_x = x;
 }
 
+/**
+ * @brief Set the Y Delta Velocity
+ *
+ * @param y The Y delta velocity in g's a second
+ */
 void DeltaVelocityVector::setY(Float32 y)
 {
   m_y = y;
 }
 
+/**
+ * @brief Set the Z Delta Velocity
+ *
+ * @param z The Z delta velocity in g's a second
+ */
 void DeltaVelocityVector::setZ(Float32 z)
 {
   m_z = z;
