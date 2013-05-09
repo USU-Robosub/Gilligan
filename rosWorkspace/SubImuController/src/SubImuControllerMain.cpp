@@ -1,12 +1,9 @@
 /*
- * SubImuControllerMain.cpp
- *
- *  Created on: Apr 14, 2013
- *      Author: subcrew
- */
-
-
-
+ *  * SubImuControllerMain.cpp
+ *   *
+ *    *  Created on: Apr 14, 2013
+ *     *      Author: subcrew
+ *      */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +19,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
+
 
 int waitForGoodHeader(SerialInterface& sp, UInt8* pBuf);
 void catchSig(int sig);
@@ -52,7 +50,8 @@ int main(int argc, char** argv)
 
     if (size > 0)
     {
-      UInt8 expectedSize = MipPacket::MIP_PACKET_HEADER_SIZE + MipPacket::MIP_PACKET_FOOTER_SIZE + aBuf[MipPacket::PAYLOAD_LENGTH_OFFSET];
+      UInt8 expectedSize = MipPacket::MIP_PACKET_HEADER_SIZE + MipPacket::MIP_PACKET_FOOTER_SIZE + aBuf[MipPacket::PAYLOAD_LENGTH_OFFSET]; //size of a AHRS
+      //printf("Expecting packet of size: %d\n",expectedSize);
 
       while (size < expectedSize && ros::ok() && m_running)
       {
@@ -70,7 +69,6 @@ int main(int argc, char** argv)
 
       if (size == expectedSize)
       {
-
         if (aBuf[MipPacket::DESCRIPTOR_OFFSET] == 0x80)
         {
           MipPacket packet;
@@ -83,9 +81,9 @@ int main(int argc, char** argv)
                EulerAngles* pData = static_cast<EulerAngles*>(pIt->m_pData);
 
                std_msgs::Float32MultiArray rawMsg;
-               rawMsg.data.push_back(pData->getYaw());
-               rawMsg.data.push_back(pData->getPitch());
-               rawMsg.data.push_back(pData->getRoll());
+               rawMsg.data.push_back(pData->getYaw()*(180.0/M_PI));
+               rawMsg.data.push_back(pData->getPitch()*(180.0/M_PI));
+               rawMsg.data.push_back(pData->getRoll()*(180.0/M_PI));
                imuAttitudePub.publish(rawMsg);
              }
              else if (pIt->m_pData->getFieldDescriptor() == DataField::DATA_FIELD_SCALED_ACCELEROMETER_VECTOR_SET)
@@ -113,11 +111,12 @@ int main(int argc, char** argv)
       }
       else
       {
-        printf("bad packet\n");
+        //printf("bad packet\n");
       }
     }
   }
 }
+
 
 int waitForGoodHeader(SerialInterface& sp, UInt8* pBuf)
 {
@@ -129,28 +128,31 @@ int waitForGoodHeader(SerialInterface& sp, UInt8* pBuf)
     {
       if (tmp < 0)
       {
-        printf("Error\n");
+        //printf("Error reading first byte from buffer\n");
       }
     }
 
     if (pBuf[size] == MipPacket::SYNC_BYTE_1_VALUE)
     {
+       //printf("Received the firts sync byte\n");
       size++;
 
       while ((tmp = sp.recv(&pBuf[size], 1)) <= 0 && ros::ok() && m_running)
       {
         if (tmp < 0)
         {
-          printf("Error\n");
+          //printf("Error reading the second byte from buffer\n");
         }
       }
 
       if (pBuf[size] == MipPacket::SYNC_BYTE_2_VALUE)
       {
+	//printf("Received the second sync byte\n");
         size++;
 
         while (size < MipPacket::MIP_PACKET_HEADER_SIZE + MipPacket::MIP_PACKET_FOOTER_SIZE && ros::ok() && m_running)
         {
+ //Read the rest of the packages
           int tmpSize = sp.recv(&pBuf[size], MipPacket::MIP_PACKET_HEADER_SIZE + MipPacket::MIP_PACKET_FOOTER_SIZE - size);
 
           if (tmpSize > 0)
@@ -159,15 +161,16 @@ int waitForGoodHeader(SerialInterface& sp, UInt8* pBuf)
           }
           else if (tmpSize < 0)
           {
-            printf("Error\n");
+            //printf("Error reading the data bytes from the packet\n");
           }
         }
+	//printf("Received a packet of size: %d\n",size);
         return size;
       }
     }
     else
     {
-      printf("Bad sync byte of %x\n", pBuf[0]);
+      //printf("Bad sync byte of %x\n", pBuf[0]);
     }
   }
   return 0;

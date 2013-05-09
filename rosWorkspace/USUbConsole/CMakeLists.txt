@@ -10,16 +10,7 @@ rosbuild_init()
 
 rosbuild_genmsg()
 
-set(QT_ROOT $ENV{QT_ROOT})
-set(QT_QMAKE_EXECUTABLE ${QT_ROOT}/bin/qmake)
-set(QT_MOC_EXECUTABLE ${QT_ROOT}/bin/moc)
-set(QT_RCC_EXECUTABLE ${QT_ROOT}/bin/rcc)
-set(QT_UIC_EXECUTABLE ${QT_ROOT}/bin/uic)
-set(QT_INCLUDE_DIR ${QT_ROOT}/include)
-set(QT_LIBRARY_DIR ${QT_ROOT}/lib)
-set(QT_QTCORE_LIBRARY ${QT_ROOT}/lib)
-
-SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp src/ClickableLabel.cpp)
+SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp src/ClickableLabel.cpp src/filter.cpp)
 SET(subConsole_FORMS src/SubConsole.ui)
 SET(subConsole_HEADERS src/SubConsole.hpp src/attitude_indicator.h src/ClickableLabel.hpp)
 
