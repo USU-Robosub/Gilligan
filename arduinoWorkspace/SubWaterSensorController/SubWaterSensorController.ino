@@ -8,12 +8,13 @@
 #define DELAY 200
 
 void setup(){
+  analogReference(DEFAULT);
   Serial.begin(BAUD);
 }
 
 void loop(){
-  int s1 = analogRead(S1)>0.2?1:0;
-  int s2 = analogRead(S2)>0.2?1:0;
+  int s1 = analogRead(S1)>600?1:0;
+  int s2 = analogRead(S2)>600?1:0;
   
   Serial.print("S");
   Serial.print(s1);
