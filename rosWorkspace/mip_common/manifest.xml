@@ -1,0 +1,16 @@
+<package>
+  <description brief="mip_common">
+
+     mip_common
+
+  </description>
+  <author>subcrew</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/mip_common</url>
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-shared -L${prefix}/lib -lmip_common"/>
+  </export>
+</package>
+
+

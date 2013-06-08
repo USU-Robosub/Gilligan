@@ -1,14 +1,38 @@
-Things you must do (32-bit):
-1. Setup ROS
-2. Get Qt4 installed (grab it from Qt's website)
-3. Copy all libraries in USUbConsole/libs to usr/lib
-4. Set an environment variable called QT_ROOT to point to the Qt installation folder containing the bin directory (i.e. QtSDK/Desktop/Qt/474/gcc)
-5. Navigate to the USUbConsole/build directory and run build.sh
-6. Executable should build into SubConsole/
+USUbConsole Build Instructions for Ubuntu 12.04
+===============================================
 
-Make sure you have roscore running and that "should" be it.
+0)  You should have an updated installation of Ubuntu 12.04
+    You should have followed all ROS Fuerte installation instructions at
+        http://www.ros.org/wiki/fuerte/Installation/Ubuntu
+    You should have an updated clone of usu-robosub at /opt/robosub:
+        git clone https://code.google.com/p/usu-robosub /opt/robosub
+    You should have an updated clone of uvc_camera at /opt/camera_umd:
+        git clone git://ram.umd.edu/ros/camera_umd.git /opt/camera_umd
+    Your ~/.bashrc should contain these lines at the end:
+        source /opt/ros/fuerte/setup.bash
+        source /opt/robosub/bashrc
 
-64-bit Notes:
--Make sure you installed the 64-bit version of Qt
--You will need to grab install the 64-bit libjoystick++ library from sourceforge
--You might need to download and build qwt, copying the built libraries into /usr/lib
+1)  sudo apt-get install qtcreator cmake libqwt6 libqwt-dev
+
+2)  Go to /opt/robosub/rosWorkspace/USUbConsole/libs
+    Copy the appropriate verion of libjoystick++.*.so to your /usr/lib:
+        For 32-bit:
+            sudo cp libjoystick++.32.so /usr/lib/libjoystick++.so
+        For 64-bit:
+            sudo cp libjoystick++.64.so /usr/lib/libjoystick++.so
+    sudo ldconfig
+
+3)  Go to /opt/robosub/rosWorkspace/SubImageRecognition
+    Build new CMake files:
+        cmake .
+    Build messages and services:
+        make rospack_genmsg_all
+        make rospack_gensrv_all
+
+4)  Go to /opt/robosub/rosWorkspace/USUbConsole
+    Build new CMake files:
+        cmake .
+    Build USUbConsole
+        make USUbConsole
+
+5)  Setup your ROS_MASTER_URI, run roscore, and run the console!

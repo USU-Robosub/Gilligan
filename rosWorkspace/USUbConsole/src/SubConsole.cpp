@@ -1,5 +1,5 @@
 #include <QPoint>
-#include<QDesktopWidget>
+#include <QDesktopWidget>
 #include <QImage>
 #include <QImageReader>
 #include <QPixmap>
@@ -17,7 +17,7 @@
 #include "SubImageRecognition/ImgRecThreshold.h"
 #include "ui_SubConsole.h"
 
-/**
+/*	
  * @brief SubConsole ctor which sets up timers and connect signals/slots
  *
  * @param pParent Poitner to parent widget
@@ -59,7 +59,13 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pPitchIndicator(NULL),
      m_pRollIndicator(NULL),
      m_pImageRecBoxLabel(NULL),
-     m_pImageRecDownBoxLabel(NULL)
+     m_pImageRecDownBoxLabel(NULL),
+     m_rollAverage(AVERAGE_LEN),
+     m_pitchAverage(AVERAGE_LEN),
+     m_yawAverage(AVERAGE_LEN),
+     m_depthAverage(AVERAGE_LEN),
+     m_battAverage(AVERAGE_LEN),
+     m_currAverage(AVERAGE_LEN/2)
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -82,6 +88,10 @@ SubConsole::SubConsole(QWidget* pParent)
    //Center window on screen
    move(qApp->desktop()->availableGeometry(this).center()-rect().center());
 
+   //Initialize the filter buffers
+//   m_rollAverageData = {0};
+//   m_yawAverageData = {0};
+//   m_pitchAverageData = {0};
    m_pUi->forwardCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
@@ -339,21 +349,26 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
    m_motorDriverPublisher.publish(motorMsg);
 }
 
+
 /**
  * @brief ROS callback for IMU_Attitude subscription
  *
  * @param msg The received message
  **/
-void SubConsole::imuDataCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
-{
-   m_pUi->yawLineEdit->setText(QString::number(msg->data[0]));
-   m_pCompass->setValue(msg->data[0]);
+void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{   
+   m_yawAverage.Update(msg->data[2]);
+   m_pitchAverage.Update(msg->data[1]);
+   m_rollAverage.Update(msg->data[0]);
+   
+   m_pUi->yawLineEdit->setText(QString::number(m_yawAverage.Value()));
+   m_pCompass->setValue(m_yawAverage.Value());
 
-   m_pUi->pitchLineEdit->setText(QString::number(msg->data[1]));
-   m_pPitchIndicator->setGradient(msg->data[1]/90.0);
+   m_pUi->pitchLineEdit->setText(QString::number(m_pitchAverage.Value()));
+   m_pPitchIndicator->setGradient(m_pitchAverage.Value()/90.0);
 
-   m_pUi->rollLineEdit->setText(QString::number(msg->data[2]));
-   m_pRollIndicator->setAngle(msg->data[2]);
+   m_pUi->rollLineEdit->setText(QString::number(m_rollAverage.Value()));
+   m_pRollIndicator->setAngle(m_rollAverage.Value());
 }
 
 /**
@@ -396,7 +411,8 @@ void SubConsole::pressureDataCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-   m_pUi->depthLineEdit->setText(QString::number(msg->data));
+   m_depthAverage.Update(msg->data);
+   m_pUi->depthLineEdit->setText(QString::number(m_depthAverage.Value()));
 }
 
 /**
@@ -406,8 +422,10 @@ void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-   m_pUi->currentLineEdit->setText(QString::number(msg->data[0]));
-   m_pUi->voltageLineEdit->setText(QString::number(msg->data[1]));
+   m_currAverage.Update(msg->data[0]);
+   m_pUi->currentLineEdit->setText(QString::number(m_currAverage.Value()));
+   m_battAverage.Update(msg->data[1]);
+   m_pUi->voltageLineEdit->setText(QString::number(m_battAverage.Value()));
 }
 
  void SubConsole::errorLogCallback(const std_msgs::String::ConstPtr& msg)

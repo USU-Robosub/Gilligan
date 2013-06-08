@@ -11,6 +11,7 @@ then
 fi
 
 EXEC=`udevadm info -a -p $(udevadm info -q path -n $1) | egrep -i "ATTRS{serial}|ATTRS{idVendor}|ATTRS{idProduct}" -m 3 | gawk '{ print $1}' | sed 's/ATTRS/SYSFS/;' | sed 'N;s/\n/, /;' | sed 'N;s/\n/, /;'`
+NEWSTRING=${EXEC//SYSFS/ATTR}
 
-echo "BUS==\"usb\", $EXEC, NAME=\"$2\""
+echo "$NEWSTRING, MODE="660", NAME=\"$2\""
 
