@@ -14,6 +14,12 @@ const int REVERSED = 0x100;
 
 bool MODE = ON;
 
+//TODO Subscribe this module to the IMU data
+//TODO Add the PI Controller
+//TODO Add the stabilizer: A PI controller?
+//TODO Make the stabilizer independent and add the output to the motor signal
+//TODO Make the stabilizer output differential (so it can add or substract from the motor signal)
+
 ros::Publisher depthMotor;
 
 void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
@@ -30,13 +36,13 @@ void setDepthSpeed(float speed) {
 		speedInt = -255;
 //	setMotors(REAR_DEPTH_MOTOR_BIT | FRONT_DEPTH_MOTOR_BIT,  //<- bit mask
 //			0,        0,          //<- Drive motors (ignored because of mask)
-//			speedInt, speedInt,   //<- Depth motors 
+//			speedInt, speedInt,   //<- Depth motors
 //			0,        0           //<- Turn motors  (also ignored)
 //		);
-	setMotors(REAR_DEPTH_MOTOR_BIT | FRONT_DEPTH_MOTOR_BIT,  
-			0,        0,          
-			-speedInt, -speedInt, 
-			0,        0          
+	setMotors(REAR_DEPTH_MOTOR_BIT | FRONT_DEPTH_MOTOR_BIT,
+			0,        0,
+			-speedInt, -speedInt,
+			0,        0
 		);
 }
 
@@ -64,6 +70,7 @@ int main(int argc, char** argv) {
 	ros::NodeHandle nh;
 	ros::Subscriber curDepth = nh.subscribe("Sub_Depth", 1, mCurrentDepthCallback);
 	ros::Subscriber targetDepth = nh.subscribe("/Target_Depth", 1, mTargetDepthCallback);
+	ros::Subscriber imuAttitude = nh.subscribe("")
 	ros::Subscriber enabled = nh.subscribe("/Module_Control", 1, mEnabledCallback);
 	ros::spin();
 }
