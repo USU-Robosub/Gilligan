@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "motor.h"
 #include <Robosub/ModuleEnableMsg.h>
 #include <sys/time.h>
@@ -87,7 +88,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
     }
 
     //Proportional
-    p = KP*error;
+    float p = KP*error;
     //Integral
     if (yOld==0 && eOld==0){
         //reset timer
@@ -97,7 +98,10 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
     struct timeval tNow;
     gettimeofday(&tNow,0);
 
-    t = tNow-tOld;
+    float t;
+	t = tNow.tv_sec - tOld.tv_sec;
+	t += (tNow.tv_usec - tOld.tv_usec)/1000000.0;
+
     float y = yOld + KI*t/2*(error+eOld); //should be <1
 
     //Update buffers
@@ -106,7 +110,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
     tOld.tv_sec = tNow.tv_sec;
     tOld.tv_usec = tNow.tv_usec;
 
-    speed = p+y;
+    float speed = p+y;
     if (speed > 1)
         speed = 1;
     else if(speed < -1)
