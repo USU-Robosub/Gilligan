@@ -1,0 +1,18 @@
+<package>
+  <description brief="SubFloodSensor">
+
+     SubFloodSensor
+
+  </description>
+  <author>bholdaway</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubFloodSensor</url>
+  <depend package="roslib"/>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="CommonLib"/>
+
+</package>
+
+

@@ -2,25 +2,43 @@
 * Water Sensor Controller *
 * ************************/
 #include <Serial.h>
-#define S1 6
-#define S2 7
-#define BAUD 115200
-#define DELAY 200
 
-void setup(){
-  analogReference(DEFAULT);
+#define BAUD 115200
+#define MIN_PACKET_LENGTH 2
+
+int gAnalogDevices = 8;
+int gDelay = 2000;
+
+void setup()
+{
   Serial.begin(BAUD);
 }
 
-void loop(){
-  int s1 = analogRead(S1)>600?1:0;
-  int s2 = analogRead(S2)>600?1:0;
+void loop()
+{
+  //build value to output
+  uint8_t bytesPerReading = sizeof(uint16_t);
+  uint8_t packetSize = gAnalogDevices * bytesPerReading;
+  uint8_t value[packetSize];
+  for (int i = 0; i < gAnalogDevices; i++)
+  {
+    uint16_t tmp = analogRead(i);
+    int pos = i * sizeof(uint16_t);
+    
+    value[pos] = (uint8_t)(tmp >> 8);
+    value[pos+1] = (uint8_t)(tmp & 0x00ff);
+  }
   
-  Serial.print("S");
-  Serial.print(s1);
-  Serial.print(s2);
-  Serial.println("E");
+  Serial.print('S');
+  Serial.write(packetSize);
+  Serial.write(bytesPerReading);
+  for (uint8_t i = 0; i < packetSize; i++)
+  {
+    Serial.write(value[i]);
+  }
   
-  delay(DELAY);
+  //TODO add ability to command this device via serial
+  
+  delay(gDelay);
   
 }
