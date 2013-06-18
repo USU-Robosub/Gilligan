@@ -50,6 +50,7 @@ class MotorControllerHandler {
 		ros::Publisher errorOut;
 		ros::Publisher currentMotorSetting;
 		ros::Publisher motorStatus;
+		ros::Publisher motorCurrent;
 		Message currentMessage;
 		string name;
 		timeval lastSendTime;
