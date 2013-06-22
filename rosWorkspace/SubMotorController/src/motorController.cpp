@@ -186,6 +186,8 @@ void MotorControllerHandler::processResponce() {
 				msg.motorName = name;
 				msg.motorPosition = "Left";
 				msg.motorCurrent = LeftCurrent;
+
+				motorCurrent.publish(msg);
 			}
 			else
 			{
@@ -194,6 +196,8 @@ void MotorControllerHandler::processResponce() {
 				msg.motorName = name;
 				msg.motorPosition = "Right";
 				msg.motorCurrent = RightCurrent;
+
+				motorCurrent.publish(msg);
 			}
 
 			currentMessage.type = NO_MESSAGE;
