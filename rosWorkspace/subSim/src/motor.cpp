@@ -25,7 +25,7 @@ void setMotors(unsigned int mask,
 }
 
 int filter(int speed) {
-	return (double)speed /100.0 * 255
+	return (double)speed /100.0 * 255;
 }
 
 void setDrive(int speed) {
