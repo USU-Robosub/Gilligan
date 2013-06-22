@@ -1,0 +1,3 @@
+string motorName
+string motorPosition
+float32 motorCurrent
