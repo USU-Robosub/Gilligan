@@ -260,7 +260,7 @@ void MotorControllerHandler::CheckQuery() {
 	timeval curtime;
 	gettimeofday(&curtime, NULL);
 	int elsaped = getMilliSecsBetween(lastQRCurTime, curtime);
-	if(elsaped > QUERY_PERIOD) {
+	if(elsaped > CURRENT_PERIOD) {
 		Message query;
 		query.type = CURRENT_TYPE;
 		query.DataC[0] = 'R';
@@ -269,7 +269,7 @@ void MotorControllerHandler::CheckQuery() {
 		return;
 	}
 	elsaped = getMilliSecsBetween(lastQLCurTime, curtime);
-	if(elsaped > QUERY_PERIOD) {
+	if(elsaped > CURRENT_PERIOD) {
 		Message query;
 		query.type = CURRENT_TYPE;
 		query.DataC[0] = 'L';
