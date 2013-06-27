@@ -88,7 +88,7 @@ echo "Republish camera topics" >&3
 # Republish cameras as compressed for recording
 /opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=left/image_raw compressed out:=camera_left/image_compressed &  
 
-/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=pgr_camera_node/image_raw compressed out:=camera_right/image_compressed &  
+/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=right/image_raw compressed out:=camera_right/image_compressed &  
 
 #/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=image_raw compressed out:=image_compressed &  
 
@@ -114,13 +114,12 @@ sleep 2
 # Save compressed cameras and resulting recognition info in a bag
 #rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
 
+echo Starting camera bag
+rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag camera_right/image_compressed/compressed camera_left/image_compressed/compressed downward_camera/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
 
-rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag
-camera_right/image_compressed/compressed camera_left/image_compressed/compressed downward_camera/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
-
+echo Starting sensor bag
 # Save sensor data in a bag
-rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag
-Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Accel_Debug IMU_Gyro_Debug Mobo_Temp Motor_Control Motor_State Motor_Current Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest &  
+rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Accel_Debug IMU_Gyro_Debug Mobo_Temp Motor_Control Motor_State Motor_Current Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest &  
 
 echo "Calibrating depth to zero">&3
 # Calibrate the current pressure as 0

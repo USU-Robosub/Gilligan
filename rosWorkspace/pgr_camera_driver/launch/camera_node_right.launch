@@ -1,7 +1,7 @@
 <launch>
     <!-- Variable names -->
     <arg name="respawn" default="false" />
-    <arg name="camera_node" default="pgr_camera_node" />
+    <arg name="camera_node" default="right" />
     <arg name="calibration_file" default="file://$(find pgr_camera_driver)/test_intrinsics.ini" />
     <arg name="serial_number" default="0" />
 
