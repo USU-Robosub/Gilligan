@@ -90,9 +90,10 @@ public:
     PGRCameraNode (const ros::NodeHandle & node_handle, ros::NodeHandle param_nh):nh_ (node_handle), nh_private_ (param_nh), it_ (param_nh), cam_ (NULL), running (false),
     count_ (0)
   {
-    unsigned int serial = 0;
-    int serial_param;
-    bool gotSerNo = nh_private_.getParam("serialnumber", serial_param);
+    printf("Left\n");
+    unsigned int serial = 12460898;
+    int serial_param = 12460898;
+    bool gotSerNo = true;//nh_private_.getParam("serialnumber", serial_param);
 
     printf("Serial param is %u\n", serial_param);
 

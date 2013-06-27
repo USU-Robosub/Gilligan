@@ -25,8 +25,22 @@ sleep 2
 
 # Start camera drivers
 echo "Start camera drivers" >&3
-#ROS_NAMESPACE=stereo roslaunch pgr_camera_driver camera_node.launch camera_node:=left  serial_number:=12460898 &  
-#ROS_NAMESPACE=stereo roslaunch pgr_camera_driver camera_node.launch camera_node:=right serial_number:=13021177 &  
+ROS_NAMESPACE=stereo
+#roslaunch pgr_camera_driver camera_node.launch _camera_node:=stereo/left _serial_number:=12460898 &
+roslaunch pgr_camera_driver camera_node_left.launch _camera_node:=left _serialnumber:=12460898 &
+#LID=$!
+
+#roslaunch pgr_camera_driver camera_node.launch _camera_node:=stereo/right _serial_number:=13021177 &  
+roslaunch pgr_camera_driver camera_node_right.launch _camera_node:=right _serial_number:=13021177 & 
+#RID=$!
+
+
+#osleep 10
+
+#kill $LID $RID
+
+#rerun to see if we can get cameras
+
 roslaunch SubCameraDriver camera.launch &  
 
 # Start the sensor board
@@ -72,11 +86,11 @@ sleep 4
 
 echo "Republish camera topics" >&3
 # Republish cameras as compressed for recording
-/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=stereo/left/image_raw compressed out:=stereo/left/image_compressed &  
+/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=left/image_raw compressed out:=camera_left/image_compressed &  
 
-#/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=camera_right/image_raw compressed out:=camera_right/image_compressed &  
+/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=pgr_camera_node/image_raw compressed out:=camera_right/image_compressed &  
 
-/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=image_raw compressed out:=image_compressed &  
+#/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=image_raw compressed out:=image_compressed &  
 
 echo "Start image recognition" >&3
 # Image recognition
@@ -90,7 +104,9 @@ sleep 2
 ## Stage 4
 
 # Republish image recognition as compressed for viewing remotely
-/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=forward_camera/image_raw compressed out:=forward_camera/image_compressed &  
+
+#Don't need this one anymore
+#/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=forward_camera/image_raw compressed out:=forward_camera/image_compressed &  
 
 /opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=downward_camera/image_raw compressed out:=downward_camera/image_compressed &  
 
@@ -99,8 +115,11 @@ sleep 2
 #rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
 
 
+rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag
+camera_right/image_compressed/compressed camera_left/image_compressed/compressed downward_camera/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
+
 # Save sensor data in a bag
-#rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Raw Mobo_Temp Motor_Control Motor_State Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest &  
+rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Raw Mobo_Temp Motor_Control Motor_State Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest &  
 
 echo "Calibrating depth to zero">&3
 # Calibrate the current pressure as 0
