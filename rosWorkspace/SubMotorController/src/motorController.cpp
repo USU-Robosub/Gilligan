@@ -1,4 +1,5 @@
 #include "motorController.h"
+#include "SubMotorController/MotorCurrentMsg.h"
 #include "time.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -47,6 +48,7 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 		bufIndex = 0;
 	}
 	//motorStatus = n->advertise<SubMotorController::MotorDataMessage>("/Motor_Data", 10);
+	motorCurrent = n->advertise<SubMotorController::MotorCurrentMsg>("/Motor_Current", 100);
 }
 
 void MotorControllerHandler::sendMessage(Message m) {
@@ -178,9 +180,25 @@ void MotorControllerHandler::processResponce() {
 			}
 
 			if(currentMessage.DataC[0] == 'L')
+			{
 				LeftCurrent = responce.DataF;
+				SubMotorController::MotorCurrentMsg msg;
+				msg.motorName = name;
+				msg.motorPosition = "Left";
+				msg.motorCurrent = LeftCurrent;
+
+				motorCurrent.publish(msg);
+			}
 			else
+			{
 				RightCurrent = responce.DataF;
+				SubMotorController::MotorCurrentMsg msg;
+				msg.motorName = name;
+				msg.motorPosition = "Right";
+				msg.motorCurrent = RightCurrent;
+
+				motorCurrent.publish(msg);
+			}
 
 			currentMessage.type = NO_MESSAGE;
 			awaitingResponce = false;
@@ -242,7 +260,7 @@ void MotorControllerHandler::CheckQuery() {
 	timeval curtime;
 	gettimeofday(&curtime, NULL);
 	int elsaped = getMilliSecsBetween(lastQRCurTime, curtime);
-	if(elsaped > QUERY_PERIOD) {
+	if(elsaped > CURRENT_PERIOD) {
 		Message query;
 		query.type = CURRENT_TYPE;
 		query.DataC[0] = 'R';
@@ -251,7 +269,7 @@ void MotorControllerHandler::CheckQuery() {
 		return;
 	}
 	elsaped = getMilliSecsBetween(lastQLCurTime, curtime);
-	if(elsaped > QUERY_PERIOD) {
+	if(elsaped > CURRENT_PERIOD) {
 		Message query;
 		query.type = CURRENT_TYPE;
 		query.DataC[0] = 'L';

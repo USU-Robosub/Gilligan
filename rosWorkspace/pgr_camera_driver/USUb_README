@@ -1,0 +1,11 @@
+## Serial Numbers
+left:   12460898
+right:  13021177
+
+## How To Start the Nodes
+roslaunch pgr_camera_driver camera_node.launch camera_node:=camera_left  serial_number:=12460898
+roslaunch pgr_camera_driver camera_node.launch camera_node:=camera_right serial_number:=13021177
+
+## How To View the Cameras Remotely
+rosrun image_view image_view image:=/camera_left/image_raw  compressed
+rosrun image_view image_view image:=/camera_right/image_raw compressed

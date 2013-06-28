@@ -19,6 +19,7 @@ const SerialPort::BaudRate BAUD = SerialPort::BAUD_115200;
 
 const int RESEND_TIMEOUT = 1000;
 const int QUERY_PERIOD = 1000;
+const int CURRENT_PERIOD = 100;
 const int MOTOR_PERIOD = 70;
 
 struct Message {
@@ -50,6 +51,7 @@ class MotorControllerHandler {
 		ros::Publisher errorOut;
 		ros::Publisher currentMotorSetting;
 		ros::Publisher motorStatus;
+		ros::Publisher motorCurrent;
 		Message currentMessage;
 		string name;
 		timeval lastSendTime;

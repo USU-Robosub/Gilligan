@@ -1,6 +1,7 @@
 <launch>
 	<node name="camera" pkg="uvc_camera" type="camera_node">
-		<param name="device" value="/dev/v4l/by-id/usb-046d_081b_1EEF6ED0-video-index0" />
+		<!-- <param name="device" value="/dev/v4l/by-id/usb-046d_081b_1EEF6ED0-video-index0" /> -->
 		<!-- <param name="device" value="/dev/v4l/by-id/usb-046d_081b_3F69ACE0-video-index0" /> -->
+	    <param name="right/device" value="/dev/v4l/by-id/usb-046d_081b_3F69ACE0-video-index0" />
 	</node>
 </launch>
