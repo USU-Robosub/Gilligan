@@ -108,6 +108,7 @@ private:
    bool m_downPipEnabled;                   //!< Flag if downward picture in picture is enabled
    bool m_forwardPipEnabled;                //!< Flag if forward picture in picture is enabled
 
+   //Will be pointing to an actual widget (could be eventually removed, with the required changes)
    QwtCompass* m_pCompass;                   //!< Qwt compass widget
    AttitudeIndicator* m_pPitchIndicator;     //!< Qwt attitude indicator used for pitch
    AttitudeIndicator* m_pRollIndicator;      //!< Qwt attitude indicator used for roll

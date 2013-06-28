@@ -148,6 +148,8 @@ SubConsole::SubConsole(QWidget* pParent)
 
    printf("Finished ROS topic publish and subscription initialization\n");
 
+
+   //Changed to point an actual QWidget in the GUI
    m_pCompass = m_pUi->yawCompass;//new QwtCompass(m_pUi->imuGroupBox);
    //m_pCompass->resize(80, 80);
    //m_pCompass->move(40, 25);

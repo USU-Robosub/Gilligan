@@ -46,7 +46,10 @@ AttitudeIndicator::AttitudeIndicator(
     const QColor color = palette().color( QPalette::Text );
     setNeedle( new AttitudeIndicatorNeedle( color ) );
 
+
     //Called to allow the widget be part of a layout
+    //in an attempt to let the UI recognize its ability
+    //to be part of a layout (doesn't seem to work)
     QWidget::setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 }
 

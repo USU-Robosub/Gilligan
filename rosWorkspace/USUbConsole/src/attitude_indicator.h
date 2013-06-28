@@ -1,3 +1,5 @@
+//Included the ifndef to enable creating the AttitudeIndicator
+//widget in the UI
 #ifndef ATTITUDE_INDICATOR_H
 #define ATTITUDE_INDICATOR_H
 

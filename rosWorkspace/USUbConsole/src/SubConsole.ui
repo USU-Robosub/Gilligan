@@ -1147,19 +1147,6 @@
        <string/>
       </property>
      </widget>
-     <widget class="QPushButton" name="downPipButton">
-      <property name="geometry">
-       <rect>
-        <x>450</x>
-        <y>660</y>
-        <width>31</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>PiP</string>
-      </property>
-     </widget>
      <widget class="QLabel" name="rightCameraImage">
       <property name="geometry">
        <rect>
@@ -1201,7 +1188,6 @@
      <zorder>leftCameraImage</zorder>
      <zorder>downCameraImageThumb</zorder>
      <zorder></zorder>
-     <zorder>downPipButton</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
