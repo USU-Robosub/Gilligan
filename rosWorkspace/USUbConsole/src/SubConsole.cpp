@@ -6,16 +6,31 @@
 #include <QPainter>
 #include <QDebug>
 #include <QDateTime>
+#include <QPalette>
 #include <iostream>
 #include <math.h>
 #include "qwt/qwt_dial_needle.h"
 
 #include "SubConsole.hpp"
-#include "USUbConsole/MotorMessage.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
 #include "SubImageRecognition/ListAlgorithms.h"
 #include "SubImageRecognition/ImgRecThreshold.h"
 #include "ui_SubConsole.h"
+
+
+#define LEFT_DRIVE_BIT  0x01
+#define RIGHT_DRIVE_BIT 0x02
+#define FRONT_DEPTH_BIT 0x04
+#define REAR_DEPTH_BIT  0x08
+#define FRONT_TURN_BIT  0x10
+#define REAR_TURN_BIT   0x20
+
+#define X_LINE 0
+#define X_DOT 1
+#define Y_LINE 2
+#define Y_DOT 3
+#define Z_LINE 4
+#define Z_DOT 5
 
 /*	
  * @brief SubConsole ctor which sets up timers and connect signals/slots
@@ -40,10 +55,13 @@ SubConsole::SubConsole(QWidget* pParent)
      m_moboTempSubscriber(),
      m_pressureSubscriber(),
      m_depthSubscriber(),
-     m_forwardCameraSubscriber(),
+//     m_forwardCameraSubscriber(),
+     m_leftCameraSubscriber(),
+     m_rightCameraSubscriber(),
      m_downwardCameraSubscriber(),
      m_voltageCurrentSubscriber(),
      m_errorLogSubscriber(),
+     m_rawAccelSubscriber(),
      m_lastXAxisValue(0),
      m_lastYAxisValue(0),
      m_lastThrottleValue(0),
@@ -51,21 +69,30 @@ SubConsole::SubConsole(QWidget* pParent)
      m_turnForwardPercentage(1.0),
      m_rightThrustPercentage(1.0),
      m_leftThrustPercentage(1.0),
-     m_pForwardCameraData(NULL),
-     m_pDownwardCameraData(NULL),
-     m_downPipEnabled(false),
-     m_forwardPipEnabled(false),
-     m_pCompass(NULL),
-     m_pPitchIndicator(NULL),
-     m_pRollIndicator(NULL),
-     m_pImageRecBoxLabel(NULL),
-     m_pImageRecDownBoxLabel(NULL),
+     m_leftFwdMotorVal(0),
+     m_rightFwdMotorVal(0),
+     m_frontTurnMotorVal(0),
+     m_rearTurnMotorVal(0),
+     m_frontDepthMotorVal(0),
+     m_rearDepthMotorVal(0),
+//     m_pForwardCameraData(NULL),
      m_rollAverage(AVERAGE_LEN),
      m_pitchAverage(AVERAGE_LEN),
      m_yawAverage(AVERAGE_LEN),
      m_depthAverage(AVERAGE_LEN),
      m_battAverage(AVERAGE_LEN),
-     m_currAverage(AVERAGE_LEN/2)
+     m_currAverage(AVERAGE_LEN/2),
+     m_pLeftCameraData(NULL),
+     m_pRightCameraData(NULL),
+     m_pDownwardCameraData(NULL),
+     m_downPipEnabled(false),
+     m_forwardPipEnabled(false),
+     m_pCompass(NULL),
+     m_pPitchIndicator(NULL),
+     m_pRollIndicator(NULL)
+//     m_pImageRecBoxLabel(NULL),
+//     m_pImageRecDownBoxLabel(NULL),
+
 {
    m_pUi->setupUi(this);
    m_pJoystickTimer->setInterval(JOYSTICK_POLL_INTERVAL_MSEC);
@@ -76,9 +103,9 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
-   connect(m_pUi->toggleBoxThresholdButton, SIGNAL(clicked()), this, SLOT(toggleBoxThresholding()));
-   connect(m_pUi->enableViewThresholdButton, SIGNAL(clicked()), this, SLOT(enableViewThresholds()));
-   connect(m_pUi->disableViewThresholdButton, SIGNAL(clicked()), this, SLOT(disableViewThresholds()));
+//   connect(m_pUi->toggleBoxThresholdButton, SIGNAL(clicked()), this, SLOT(toggleBoxThresholding()));
+//   connect(m_pUi->enableViewThresholdButton, SIGNAL(clicked()), this, SLOT(enableViewThresholds()));
+//   connect(m_pUi->disableViewThresholdButton, SIGNAL(clicked()), this, SLOT(disableViewThresholds()));
 
    m_pCallbackTimer->start();
 
@@ -92,7 +119,10 @@ SubConsole::SubConsole(QWidget* pParent)
 //   m_rollAverageData = {0};
 //   m_yawAverageData = {0};
 //   m_pitchAverageData = {0};
-   m_pUi->forwardCameraImageThumb->hide();
+
+//   m_pUi->forwardCameraImageThumb->hide();
+   m_pUi->leftCameraImageThumb->hide();
+   m_pUi->rightCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
    m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
@@ -107,26 +137,30 @@ SubConsole::SubConsole(QWidget* pParent)
    m_moboTempSubscriber = m_nodeHandle.subscribe("Mobo_Temp", 100, &SubConsole::moboTempCallback, this);
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_depthSubscriber = m_nodeHandle.subscribe("Sub_Depth", 100, &SubConsole::depthCallback, this);
-   m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_compressed/compressed", 100, &SubConsole::forwardCameraCallback, this);
+   //m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_raw/compressed", 100, &SubConsole::forwardCameraCallback, this);
+   m_leftCameraSubscriber = m_nodeHandle.subscribe("/camera_left/image_compressed/compressed", 100, &SubConsole::leftCameraCallback, this);
+   m_rightCameraSubscriber = m_nodeHandle.subscribe("/camera_right/image_compressed/compressed", 100, &SubConsole::rightCameraCallback, this);
    m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
    m_voltageCurrentSubscriber = m_nodeHandle.subscribe("Computer_Cur_Volt", 100, &SubConsole::currentVoltageCallback, this);
    m_errorLogSubscriber = m_nodeHandle.subscribe("Error_Log", 100, &SubConsole::errorLogCallback, this);
+   m_rawAccelSubscriber = m_nodeHandle.subscribe("IMU_Accel_Debug", 100, &SubConsole::rawAccelCallback, this);
+   m_motorStatusSubscriber = m_nodeHandle.subscribe("Motor_Control", 100, &SubConsole::motorStatusCallback, this);
 
    printf("Finished ROS topic publish and subscription initialization\n");
 
-   m_pCompass = new QwtCompass(m_pUi->imuGroupBox);
-   m_pCompass->resize(80, 80);
-   m_pCompass->move(40, 25);
+   m_pCompass = m_pUi->yawCompass;//new QwtCompass(m_pUi->imuGroupBox);
+   //m_pCompass->resize(80, 80);
+   //m_pCompass->move(40, 25);
    m_pCompass->setNeedle(new QwtCompassMagnetNeedle());
 
-   m_pPitchIndicator = new AttitudeIndicator(m_pUi->imuGroupBox);
-   m_pPitchIndicator->resize(80, 80);
-   m_pPitchIndicator->move(165, 25);
+   m_pPitchIndicator = m_pUi->pitchIndicator;//new AttitudeIndicator(m_pUi->imuGroupBox);
+   //m_pPitchIndicator->resize(80, 80);
+   //m_pPitchIndicator->move(165, 25);
 
-   m_pRollIndicator = new AttitudeIndicator(m_pUi->imuGroupBox);
-   m_pRollIndicator->resize(80, 80);
-   m_pRollIndicator->move(290, 25);
-
+   m_pRollIndicator = m_pUi->rollIndicator;//new AttitudeIndicator(m_pUi->imuGroupBox);
+   //m_pRollIndicator->resize(80, 80);
+   //m_pRollIndicator->move(290, 25);
+/*
    m_pImageRecBoxLabel = new ClickableLabel(m_pUi->forwardCameraImage);
    m_pImageRecBoxLabel->resize(478, 638);
    m_pImageRecBoxLabel->move(1, 1);
@@ -136,13 +170,57 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pImageRecDownBoxLabel->resize(478, 638);
    m_pImageRecDownBoxLabel->move(1, 1);
    connect(m_pImageRecDownBoxLabel, SIGNAL(clicked()), this, SLOT(imageRecDownThresholdBoxDrawn()));
+   */
+
+   //Acceleration Plotting
+
+   m_pUi->accelGraph->addGraph(); //graph for X
+   m_pUi->accelGraph->graph(X_LINE)->setPen(QPen(Qt::blue)); //line
+   m_pUi->accelGraph->addGraph(); //dot for X
+   m_pUi->accelGraph->graph(X_DOT)->setPen(QPen(Qt::blue)); //dot
+   m_pUi->accelGraph->graph(X_DOT)->setLineStyle(QCPGraph::lsNone);
+   m_pUi->accelGraph->graph(X_DOT)->setScatterStyle(QCP::ssDisc);
+   m_pUi->accelGraph->graph(X_DOT)->setName("X");
+   m_pUi->accelGraph->legend->removeItem(0);
+
+
+   m_pUi->accelGraph->addGraph(); //graph for Y
+   m_pUi->accelGraph->graph(Y_LINE)->setPen(QPen(Qt::red));
+   m_pUi->accelGraph->addGraph(); //dot for Y
+   m_pUi->accelGraph->graph(Y_DOT)->setPen(QPen(Qt::red));
+   m_pUi->accelGraph->graph(Y_DOT)->setLineStyle(QCPGraph::lsNone);
+   m_pUi->accelGraph->graph(Y_DOT)->setScatterStyle(QCP::ssDisc);
+   m_pUi->accelGraph->graph(Y_DOT)->setName("Y");
+   m_pUi->accelGraph->legend->removeItem(1);
+
+
+   m_pUi->accelGraph->addGraph(); //graph for Z
+   m_pUi->accelGraph->graph(Z_LINE)->setPen(QPen(Qt::green));
+   m_pUi->accelGraph->addGraph(); //dot for Z
+   m_pUi->accelGraph->graph(Z_DOT)->setPen(QPen(Qt::green));
+   m_pUi->accelGraph->graph(Z_DOT)->setLineStyle(QCPGraph::lsNone);
+   m_pUi->accelGraph->graph(Z_DOT)->setScatterStyle(QCP::ssDisc);
+   m_pUi->accelGraph->graph(Z_DOT)->setName("Z");
+   m_pUi->accelGraph->legend->removeItem(2);
+
+
+   m_pUi->accelGraph->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+   m_pUi->accelGraph->xAxis->setDateTimeFormat("hh:mm:ss");
+   m_pUi->accelGraph->xAxis->setAutoTickStep(false);
+   m_pUi->accelGraph->xAxis->setTickStep(2);
+   m_pUi->accelGraph->xAxis->setLabel("Time");
+   m_pUi->accelGraph->yAxis->setLabel("g");
+   m_pUi->accelGraph->setupFullAxesBox();
+   m_pUi->accelGraph->legend->setVisible(true);
+   m_pUi->accelGraph->legend->setFont(QFont("Helvetica",9));
+   m_pUi->accelGraph->legend->setPositionStyle(QCPLegend::psTopLeft);
+
 }
 
 /**
  * @brief SubConsole dtor
  **/
-SubConsole::~SubConsole()
-{
+SubConsole::~SubConsole(){
    delete m_pCompass;
    delete m_pPitchIndicator;
    delete m_pRollIndicator;
@@ -176,8 +254,7 @@ void SubConsole::joyConnect(void)
 /**
  * @brief Periodically reads joystick states if any states have changed publish topic to motor controllers
  **/
-void SubConsole::readJoystickInput(void)
-{
+void SubConsole::readJoystickInput(void){
    int currentXAxis = m_pJoystick->getAxis(0);
    int currentYAxis = m_pJoystick->getAxis(1);
    int currentTwistAxis = m_pJoystick->getAxis(2);
@@ -329,6 +406,27 @@ void SubConsole::handleRosCallbacks(void)
     ros::spinOnce();
 }
 
+void SubConsole::motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr &msg){
+    //update the motor graphs values
+
+
+     m_leftFwdMotorVal      = msg->mask & LEFT_DRIVE_BIT  ? msg->Left       :   m_leftFwdMotorVal;
+     m_rightFwdMotorVal     = msg->mask & RIGHT_DRIVE_BIT ? msg->Right      :   m_rightFwdMotorVal;
+     m_frontDepthMotorVal   = msg->mask & FRONT_DEPTH_BIT ? msg->FrontDepth :   m_frontDepthMotorVal;
+     m_rearDepthMotorVal    = msg->mask & REAR_DEPTH_BIT  ? msg->RearDepth  :   m_rearDepthMotorVal;
+     m_frontTurnMotorVal    = msg->mask & FRONT_TURN_BIT  ? msg->FrontTurn  :   m_frontTurnMotorVal;
+     m_rearTurnMotorVal     = msg->mask & REAR_TURN_BIT   ? msg->RearTurn   :   m_rearTurnMotorVal;
+
+     //Maybe I don't need these and can just write it straight to the graph
+     //Unless the values have to be manipulated, then a function needs to be called
+     m_pUi->leftThrustBar->setValue(abs(m_leftFwdMotorVal));
+     m_pUi->rightThrustBar->setValue(abs(m_rightFwdMotorVal));
+     m_pUi->frontTurnBar->setValue(abs(m_frontTurnMotorVal));
+     m_pUi->rearTurnBar->setValue(abs(m_rearTurnMotorVal));
+     m_pUi->frontDepthBar->setValue(abs(m_frontDepthMotorVal));
+     m_pUi->rearDepthBar->setValue(abs(m_rearDepthMotorVal));
+}
+
 /**
  * @brief Publishes a Motor_Driver message
  *
@@ -346,8 +444,9 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
    motorMsg.FrontTurn = frontTurn;
    motorMsg.RearTurn = rearTurn;
 
-   m_motorDriverPublisher.publish(motorMsg);
+   //m_motorDriverPublisher.publish(motorMsg);
 }
+
 
 
 /**
@@ -426,6 +525,10 @@ void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::Const
    m_pUi->currentLineEdit->setText(QString::number(m_currAverage.Value()));
    m_battAverage.Update(msg->data[1]);
    m_pUi->voltageLineEdit->setText(QString::number(m_battAverage.Value()));
+   if (msg->data[1]<11){
+       QPalette p = m_pUi->voltageLineEdit->palette();
+       p.setColor(QPalette::Base, QColor(255,45,0));//green color
+   }
 }
 
  void SubConsole::errorLogCallback(const std_msgs::String::ConstPtr& msg)
@@ -436,11 +539,52 @@ void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::Const
      m_pUi->errorLogTextEdit->appendPlainText(dateString + QString::fromStdString(msg->data));
  }
 
-/**
- * @brief ROS callback for Forward_Camera subscription
- *
- * @param msg The received message
- **/
+ void SubConsole::rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
+     //Update and plot the accelerometer vector
+     // calculate two new data points:
+   #if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+     double key = 0;
+   #else
+     double key = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
+   #endif
+     static double lastPointKey = 0;
+     if (key-lastPointKey > 0.01) // at most add point every 10 ms
+     {
+
+       // add data to lines:
+       m_pUi->accelGraph->graph(X_LINE)->addData(key, msg->data[0]);
+       m_pUi->accelGraph->graph(Y_LINE)->addData(key, msg->data[1]);
+       m_pUi->accelGraph->graph(Z_LINE)->addData(key, msg->data[2]);
+       // set data of dots:
+       m_pUi->accelGraph->graph(X_DOT)->clearData();
+       m_pUi->accelGraph->graph(X_DOT)->addData(key, msg->data[0]);
+       m_pUi->accelGraph->graph(Y_DOT)->clearData();
+       m_pUi->accelGraph->graph(Y_DOT)->addData(key, msg->data[1]);
+       m_pUi->accelGraph->graph(Z_DOT)->clearData();
+       m_pUi->accelGraph->graph(Z_DOT)->addData(key, msg->data[2]);
+       // remove data of lines that's outside visible range:
+       m_pUi->accelGraph->graph(X_LINE)->removeDataBefore(key-8);
+       m_pUi->accelGraph->graph(Y_LINE)->removeDataBefore(key-8);
+       m_pUi->accelGraph->graph(Z_LINE)->removeDataBefore(key-8);
+       // rescale value (vertical) axis to fit the current data:
+       m_pUi->accelGraph->graph(X_LINE)->rescaleValueAxis();
+       m_pUi->accelGraph->graph(Y_LINE)->rescaleValueAxis();
+       m_pUi->accelGraph->graph(Z_LINE)->rescaleValueAxis(true);
+       lastPointKey = key;
+     }
+     // make key axis range scroll with the data (at a constant range size of 8):
+     m_pUi->accelGraph->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
+     m_pUi->accelGraph->replot();
+ }
+
+//Camera methods
+
+///**
+// * @brief ROS callback for Forward_Camera subscription
+// *
+// * @param msg The received message
+// **/
+ /*
 void SubConsole::forwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
 {
    QImage image;
@@ -462,9 +606,67 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::CompressedImage::Const
       m_pUi->forwardCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(192), 0));
    }
 }
+*/
 
-/**
- * @brief ROS callback for Forward_Camera subscription
+ /**
+  * @brief ROS callback for Left_Camera subscription
+  *
+  * @param msg The received message
+  **/
+
+ void SubConsole::leftCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
+ {
+    QImage image;
+    QPixmap pixmap;
+
+    if(m_pLeftCameraData != NULL)
+    {
+        delete [] m_pLeftCameraData;
+    }
+
+    m_pLeftCameraData = new unsigned char[msg->data.size()];
+    std::copy(msg->data.begin(), msg->data.end(), m_pLeftCameraData);
+
+    image.loadFromData(m_pLeftCameraData, msg->data.size(), "JPG");
+    m_pUi->leftCameraImage->setPixmap(pixmap.fromImage(image.scaledToHeight(320), 0));
+
+    if(m_forwardPipEnabled)
+    {
+       m_pUi->leftCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+    }
+ }
+
+ /**
+  * @brief ROS callback for Right_Camera subscription
+  *
+  * @param msg The received message
+  **/
+
+ void SubConsole::rightCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
+ {
+    QImage image;
+    QPixmap pixmap;
+
+    if(m_pRightCameraData != NULL)
+    {
+        delete [] m_pRightCameraData;
+    }
+
+    m_pRightCameraData = new unsigned char[msg->data.size()];
+    std::copy(msg->data.begin(), msg->data.end(), m_pRightCameraData);
+
+    image.loadFromData(m_pRightCameraData, msg->data.size(), "JPG");
+    m_pUi->rightCameraImage->setPixmap(pixmap.fromImage(image.scaledToHeight(320), 0));
+
+    if(m_forwardPipEnabled)
+    {
+       m_pUi->rightCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+    }
+ }
+
+
+ /**
+ * @brief ROS callback for Downward_Camera subscription
  *
  * @param msg The received message
  **/
@@ -514,16 +716,21 @@ void SubConsole::toggleForwardPiP(void)
 {
     if(m_forwardPipEnabled)
     {
-        m_pUi->forwardCameraImageThumb->hide();
+        m_pUi->leftCameraImageThumb->hide();
+        m_pUi->rightCameraImageThumb->hide();
         m_forwardPipEnabled = false;
     }
     else
     {
-        m_pUi->forwardCameraImageThumb->show();
+        m_pUi->leftCameraImageThumb->show();
+        m_pUi->rightCameraImageThumb->show();
         m_forwardPipEnabled = true;
     }
 }
 
+//Image Record Algorithms
+
+/* Unused for the moment - Ivan
 void SubConsole::toggleBoxThresholding(void)
 {
     if (m_pUi->toggleBoxThresholdButton->text() == "Enable Box Thresholding")
@@ -654,4 +861,4 @@ void SubConsole::imageRecDownThresholdBoxDrawn(void)
         m_thresholdBoxPublisher.publish(thresholdMsg);
     }
 }
-
+*/

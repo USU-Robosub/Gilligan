@@ -45,6 +45,9 @@ AttitudeIndicator::AttitudeIndicator(
 
     const QColor color = palette().color( QPalette::Text );
     setNeedle( new AttitudeIndicatorNeedle( color ) );
+
+    //Called to allow the widget be part of a layout
+    QWidget::setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 }
 
 void AttitudeIndicator::setGradient( double gradient )
