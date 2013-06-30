@@ -1,0 +1,12 @@
+<launch>
+    <!-- Variable names -->
+    <arg name="respawn" default="false" />
+    <arg name="camera_node" default="right" />
+    <arg name="calibration_file" default="file://$(find pgr_camera_driver)/test_intrinsics.ini" />
+    <arg name="serial_number" default="0" />
+
+    <node name="$(arg camera_node)" pkg="pgr_camera_driver" type="pgr_camera_node_right" respawn="$(arg respawn)" output="screen">
+        <param name="intrinsics_ini" type="str" value="$(arg calibration_file)" />
+        <param name="serial_number" type="int" value="$(arg serial_number)" />
+    </node>
+</launch>

@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QApplication::setStyle("plastique");
 
-    ros::init(argc, argv, "USUbConsole");
+    ros::init(argc, argv, "USUbConsole2");
 
     SubConsole w;
     w.show();

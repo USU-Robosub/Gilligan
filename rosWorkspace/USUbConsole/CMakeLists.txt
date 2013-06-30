@@ -10,9 +10,9 @@ rosbuild_init()
 
 rosbuild_genmsg()
 
-SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp src/ClickableLabel.cpp src/filter.cpp)
+SET(subConsole_SOURCES src/main.cpp src/SubConsole.cpp src/attitude_indicator.cpp src/ClickableLabel.cpp src/filter.cpp src/qcustomplot.cpp)
 SET(subConsole_FORMS src/SubConsole.ui)
-SET(subConsole_HEADERS src/SubConsole.hpp src/attitude_indicator.h src/ClickableLabel.hpp)
+SET(subConsole_HEADERS src/SubConsole.hpp src/attitude_indicator.h src/ClickableLabel.hpp src/qcustomplot.h)
 
 QT4_WRAP_CPP(subConsole_HEADERS_MOC ${subConsole_HEADERS})
 QT4_WRAP_UI(subConsole_FORMS_HEADERS ${subConsole_FORMS})

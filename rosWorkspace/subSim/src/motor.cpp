@@ -2,9 +2,9 @@
 #include <ros/ros.h>
 #include <SubMotorController/MotorMessage.h>
 
-void setMotors(unsigned int mask, 
-		int DriveL, int DriveR, 
-		int DiveF,  int DiveR, 
+void setMotors(unsigned int mask,
+		int DriveL, int DriveR,
+		int DiveF,  int DiveR,
 		int TurnF,  int TurnR) {
 	static bool initialized = false;
 	static ros::Publisher motorController;
@@ -25,7 +25,7 @@ void setMotors(unsigned int mask,
 }
 
 int filter(int speed) {
-	return (double)speed /100.0 * 255
+	return (double)speed /100.0 * 255;
 }
 
 void setDrive(int speed) {
