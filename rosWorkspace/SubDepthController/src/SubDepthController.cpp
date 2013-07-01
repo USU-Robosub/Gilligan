@@ -15,7 +15,7 @@ const int RIGHT_MOTOR = 0x200;
 const int REVERSED = 0x100;
 
 const double KI = 0.000005;
-const double KP = 0.5;
+const double KP = 0.4;
 const double iMax = 0.6;
 
 //Initial contidions
