@@ -56,7 +56,7 @@
      <height>50</height>
     </size>
    </property>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>510</x>
@@ -1184,10 +1184,74 @@
        <string/>
       </property>
      </widget>
-     <zorder>rightCameraImage</zorder>
+     <widget class="Line" name="line">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>233</x>
+        <y>10</y>
+        <width>20</width>
+        <height>651</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_2">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>35</x>
+        <y>160</y>
+        <width>421</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_3">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>26</x>
+        <y>465</y>
+        <width>431</width>
+        <height>70</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="downPipButton">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>660</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PiP</string>
+      </property>
+     </widget>
      <zorder>leftCameraImage</zorder>
      <zorder>downCameraImageThumb</zorder>
-     <zorder></zorder>
+     <zorder>rightCameraImage</zorder>
+     <zorder>line_3</zorder>
+     <zorder>line</zorder>
+     <zorder>line_2</zorder>
+     <zorder>downPipButton</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
