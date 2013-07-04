@@ -12,6 +12,7 @@
 #include "qwt/qwt_dial_needle.h"
 
 #include "SubConsole.hpp"
+#include "USUbConsole/MotorMessage.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
 #include "SubImageRecognition/ListAlgorithms.h"
 #include "SubImageRecognition/ImgRecThreshold.h"
