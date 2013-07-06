@@ -10,6 +10,7 @@
 #include <string.h>
 #include <vector>
 #include <fstream>
+#include <math.h>
 
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
@@ -43,6 +44,9 @@ const int CONFIDENCE_CIRCLE = 1;
 
 const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
+
+const int FRAME_MARGIN_OF_ERROR=2;
+const int TRACKING_MOVEMENT_TOLERANCE=50;
 
 // DEFINITIONS
 
@@ -112,9 +116,30 @@ public:
 		}
 };
 
+class BlobTrack
+{
+public:
+	int x;
+	int y;
+	int lifetime;
+	int lastSeen;
+	int objType;
+	BlobTrack(int x, int y, int lastSeen, int objType):
+	x(x)
+	,y(y)
+	,lastSeen(lastSeen)
+	,objType(objType)
+	,lifetime(0)
+	{
+	}
+};
+
 // GLOBALS  :/  HA HA AH WELL
 
 vector<Object> objects;
+vector<BlobTrack> trackBlobs;
+
+int curFrame=0;
 
 int forwardOffset = 0, downwardOffset = 0;
 image_transport::Publisher forwardPublisher, downwardPublisher;
@@ -364,8 +389,48 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 					threshold.at<uint8_t>(i,j,0)=object.enumType;
 				}
 			}
-		}   
+		}
 	}
+}
+
+bool inCircle(BlobAnalysis analysis, BlobTrack track)
+{
+	int deltaX=analysis.center_x-track.x;
+	int deltaY=analysis.center_y-track.y;
+	return (sqrt((float)deltaX * deltaX + deltaY * deltaY)) <= TRACKING_MOVEMENT_TOLERANCE;
+}
+
+bool trackBlob(BlobAnalysis analysis, int type)
+{
+	for(int i=0;i<trackBlobs.size();++i)
+	{
+		if(type==trackBlobs[i].objType)
+		{
+			if(inCircle(analysis, trackBlobs[i]))
+			{
+				trackBlobs[i].x=analysis.center_x;
+				trackBlobs[i].y=analysis.center_y;
+				trackBlobs[i].lastSeen=curFrame;
+				++trackBlobs[i].lifetime;
+				return FRAME_MARGIN_OF_ERROR>=trackBlobs[i].lifetime;
+			}
+		}
+	}
+	trackBlobs.push_back(BlobTrack(analysis.center_x, analysis.center_y, curFrame, type));
+	return false;
+}
+
+void updateBlobTracking()
+{
+	for(int i=0;i<trackBlobs.size();++i)
+	{
+		if(trackBlobs[i].lastSeen < (curFrame - FRAME_MARGIN_OF_ERROR))
+		{
+			trackBlobs.erase(trackBlobs.begin()+i);
+			--i;
+		}
+	}
+	++curFrame;
 }
 
 void genericCallback(
@@ -414,8 +479,8 @@ void genericCallback(
 								ros::Time time = ros::Time::now();
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
-										float confidence = computeConfidence(object, analysis);
-										if (confidence >= MIN_CONFIDENCE) {
+
+										if (trackBlob(analysis, object.enumType)) {
 												// Publish information
 												SubImageRecognition::ImgRecObject msg;
 												msg.stamp = time;
@@ -430,6 +495,7 @@ void genericCallback(
 												// Annotate image
 												annotateImage(rotated.image, object, analysis);
 										}
+
 								}
 						}
 				}
@@ -437,6 +503,7 @@ void genericCallback(
 
 		// Publish annotated image
 		publisher.publish(rotated.toImageMsg());
+		updateBlobTracking();
 }
 
 void forwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
@@ -462,7 +529,7 @@ int main(int argc, char **argv) {
 	//forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
-	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("camera_left/image_raw", 1, forwardCallback);
+	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("left/image_raw", 1, forwardCallback);
 
 	//image_transport::Subscriber downwardSubscriber =imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 	image_transport::Subscriber downwardSubscriber = imageTransport.subscribe("image_raw", 1, downwardCallback);
