@@ -422,6 +422,9 @@ void SubConsole::motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr &
 
      //Maybe I don't need these and can just write it straight to the graph
      //Unless the values have to be manipulated, then a function needs to be called
+
+
+
      m_pUi->leftThrustBar->setValue(abs(m_leftFwdMotorVal));
      m_pUi->rightThrustBar->setValue(abs(m_rightFwdMotorVal));
      m_pUi->frontTurnBar->setValue(abs(m_frontTurnMotorVal));
@@ -447,7 +450,7 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
    motorMsg.FrontTurn = frontTurn;
    motorMsg.RearTurn = rearTurn;
 
-   //m_motorDriverPublisher.publish(motorMsg);
+   m_motorDriverPublisher.publish(motorMsg);
 }
 
 

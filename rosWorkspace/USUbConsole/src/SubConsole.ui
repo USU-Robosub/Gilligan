@@ -965,7 +965,7 @@
             <item>
              <widget class="QLineEdit" name="devLineEdit">
               <property name="text">
-               <string>/dev/input/js1</string>
+               <string>/dev/input/js0</string>
               </property>
              </widget>
             </item>
@@ -1076,7 +1076,7 @@
      </size>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1184,54 +1184,6 @@
        <string/>
       </property>
      </widget>
-     <widget class="Line" name="line">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>233</x>
-        <y>10</y>
-        <width>20</width>
-        <height>651</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-     </widget>
-     <widget class="Line" name="line_2">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>35</x>
-        <y>160</y>
-        <width>421</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="Line" name="line_3">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>26</x>
-        <y>465</y>
-        <width>431</width>
-        <height>70</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
      <widget class="QPushButton" name="downPipButton">
       <property name="geometry">
        <rect>
@@ -1246,12 +1198,9 @@
       </property>
      </widget>
      <zorder>leftCameraImage</zorder>
-     <zorder>downCameraImageThumb</zorder>
      <zorder>rightCameraImage</zorder>
-     <zorder>line_3</zorder>
-     <zorder>line</zorder>
-     <zorder>line_2</zorder>
      <zorder>downPipButton</zorder>
+     <zorder>downCameraImageThumb</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -1347,8 +1296,8 @@
      </widget>
      <zorder>downwardCameraImage</zorder>
      <zorder>forwardPipButton</zorder>
-     <zorder>leftCameraImageThumb</zorder>
      <zorder>rightCameraImageThumb</zorder>
+     <zorder>leftCameraImageThumb</zorder>
     </widget>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
