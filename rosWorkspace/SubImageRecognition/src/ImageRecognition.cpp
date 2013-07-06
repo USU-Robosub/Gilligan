@@ -18,7 +18,7 @@
 #include "SubImageRecognition/ListAlgorithms.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
 #include "SubImageRecognition/SwitchAlgorithm.h"
-#include "SubImageRecognition/DLT.h"
+#include "DLT.h"
 
 using namespace cv;
 using namespace std;
@@ -146,7 +146,7 @@ image_transport::Publisher forwardPublisher, downwardPublisher;
 cv_bridge::CvImage forwardRotated, downwardRotated;
 Mat forwardSegmented, downwardSegmented;
 Mat forwardThreshold, downwardThreshold;
-DLT tree;
+DLT* pTree;
 
 // FUNCTIONS
 
@@ -154,6 +154,7 @@ DLT tree;
 void initObjects() {
 		objects.push_back(Object(
 				"gate",
+				1,
 				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
 				2,
@@ -164,6 +165,7 @@ void initObjects() {
 		));
 		objects.push_back(Object(
 				"buoys/red",
+                1,
 				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
 				1,
@@ -174,6 +176,7 @@ void initObjects() {
 		));
 		objects.push_back(Object(
 				"buoys/green",
+                1,
 				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
 				1,
@@ -184,6 +187,7 @@ void initObjects() {
 		));
 		objects.push_back(Object(
 				"buoys/yellow",
+                1,
 				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
 				1,
@@ -194,6 +198,7 @@ void initObjects() {
 		));
 		objects.push_back(Object(
 				"obstacle_course",
+                1,
 				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
 				3,
@@ -204,6 +209,7 @@ void initObjects() {
 		));
 		objects.push_back(Object(
 				"paths",
+                1,
 				CAMERA_DOWNWARD,
 				ANALYSIS_RECTANGLE,
 				2,
@@ -214,6 +220,7 @@ void initObjects() {
 		));
 		objects.push_back(Object(
 				"obstacle_course_downward",
+                1,
 				CAMERA_DOWNWARD,
 				ANALYSIS_RECTANGLE,
 				1,
@@ -374,17 +381,17 @@ void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
 void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 {	for(unsigned int i=0;i<objects.size();++i){
 		Object object=objects[i];
-		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
-			for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
+		for (int i = offset; i < threshold.rows; i += SAMPLE_SIZE) {
+			for (int j = offset; j < threshold.cols; j += SAMPLE_SIZE) {
 				Sample sample;
-				Vec3b& hsv = segmented.at<cv::Vec3b>(i, j);
+				Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
 				sample.type=0;
 				sample.iAttr[0]=i;
 				sample.iAttr[1]=j;
 				sample.iAttr[2]=hsv[0];
 				sample.iAttr[3]=hsv[1];
 				sample.iAttr[4]=hsv[2];
-				if(tree.classify(sample)==object.enumType)
+				if(pTree->Classify(sample)==object.enumType)
 				{
 					threshold.at<uint8_t>(i,j,0)=object.enumType;
 				}
@@ -520,7 +527,7 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 
 int main(int argc, char **argv) {
 	fstream file("/opt/robosub/rosWorkspace/SubImageRecognition/tree.tree");
-	tree=new DLT(file);
+	pTree = new DLT(file);
 
 	ros::init(argc, argv, "ImageRecognition");
 	ros::NodeHandle nodeHandle;
