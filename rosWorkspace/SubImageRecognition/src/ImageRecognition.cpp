@@ -379,7 +379,10 @@ void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
 
 //assuming i=y and j=x
 void objInRange(const Mat& segmented, Mat& threshold, const int offset)
-{	for(unsigned int i=0;i<objects.size();++i){
+{	if (threshold.total() == 0) {
+		threshold.create(segmented.rows, segmented.cols, CV_8U);
+	}
+	for (unsigned int i=0;i<objects.size();++i){
 		Object object=objects[i];
 		for (int i = offset; i < threshold.rows; i += SAMPLE_SIZE) {
 			for (int j = offset; j < threshold.cols; j += SAMPLE_SIZE) {
@@ -533,16 +536,11 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nodeHandle;
 	image_transport::ImageTransport imageTransport(nodeHandle);
 
-	//forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
+	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
 	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("left/image_raw", 1, forwardCallback);
-
-	//image_transport::Subscriber downwardSubscriber =imageTransport.subscribe("right/image_raw", 1, downwardCallback);
 	image_transport::Subscriber downwardSubscriber = imageTransport.subscribe("image_raw", 1, downwardCallback);
-
-//	  image_transport::Subscriber cameraSubscriber =
-//					  imageTransport.subscribe("image_raw", 1, forwardCallback);
 
 	initObjects();
 	ros::spin();
