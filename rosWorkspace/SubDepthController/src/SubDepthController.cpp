@@ -4,6 +4,7 @@
 #include "motor.h"
 #include <Robosub/ModuleEnableMsg.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #define OFF 0
 #define ON 1
@@ -14,9 +15,9 @@ const int LEFT_MOTOR = 0x400;
 const int RIGHT_MOTOR = 0x200;
 const int REVERSED = 0x100;
 
-const double KI = 0.000005;
-const double KP = 0.4;
-const double iMax = 0.6;
+double KI = 0.000001;
+double KP = 0.4;
+double iMax = 0.6;
 
 //Initial contidions
 float yOld = 0;
@@ -129,11 +130,20 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
     else if(speed < -1)
         speed = -1;
 
-	//setDepthSpeed(speed);
+	setDepthSpeed(speed);
 	printf("D:%f C:%f E:%f P:%f I:%f speed:%f T:%f\n", depth, targetDepth,error, p, y, speed, t);
 }
 
 int main(int argc, char** argv) {
+
+    if (argc>1){
+        KI = strtod(argv[1], NULL);
+    }
+
+    if (argc>2){
+        KP = strtod(argv[2], NULL);
+    }
+
 	ros::init(argc, argv, "SimpleDepthController_beta");
 	ros::NodeHandle nh;
 	ros::Subscriber curDepth = nh.subscribe("Sub_Depth", 1, mCurrentDepthCallback);
