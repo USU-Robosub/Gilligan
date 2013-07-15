@@ -11,6 +11,7 @@ sleep 2
 
 ## Stage 2
 
-roslaunch pgr_camera_driver camera_node_left.launch _camera_node:=left _serialnumber:=12460898 &
+roslaunch pgr_camera_driver camera_node_left.launch _camera_node:=left _serialnumber:=13021177 &
 
-roslaunch pgr_camera_driver camera_node_right.launch _camera_node:=right _serial_number:=13021177 &
+roslaunch pgr_camera_driver camera_node_right.launch _camera_node:=right _serial_number:=12460898 &
+

@@ -26,20 +26,10 @@ sleep 2
 # Start camera drivers
 echo "Start camera drivers" >&3
 ROS_NAMESPACE=stereo
-#roslaunch pgr_camera_driver camera_node.launch _camera_node:=stereo/left _serial_number:=12460898 &
-roslaunch pgr_camera_driver camera_node_left.launch _camera_node:=left _serialnumber:=12460898 &
-#LID=$!
+roslaunch pgr_camera_driver camera_node_left.launch _camera_node:=left _serialnumber:=13021177 &
 
-#roslaunch pgr_camera_driver camera_node.launch _camera_node:=stereo/right _serial_number:=13021177 &  
-roslaunch pgr_camera_driver camera_node_right.launch _camera_node:=right _serial_number:=13021177 & 
-#RID=$!
+roslaunch pgr_camera_driver camera_node_right.launch _camera_node:=right _serial_number:=12460898 &
 
-
-#osleep 10
-
-#kill $LID $RID
-
-#rerun to see if we can get cameras
 
 roslaunch SubCameraDriver camera.launch &  
 
@@ -75,7 +65,7 @@ rosrun SubTranslators DepthTranslator &
 
 echo "Start depth controller"
 # Simple Depth Controller maintains a target depth
-rosrun subSim simpleDepth &  
+#rosrun subSim simpleDepth &  
 
 # Simple Heading Controller maintains a target heading
 #rosrun subSim simpleHeading &  
