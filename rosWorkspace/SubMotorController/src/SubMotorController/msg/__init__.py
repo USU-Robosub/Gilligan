@@ -1,1 +1,2 @@
-from _MotorMessage import *
+from ._MotorMessage import *
+from ._MotorCurrentMsg import *
