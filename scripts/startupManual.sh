@@ -25,11 +25,12 @@ sleep 2
 
 # Start camera drivers
 echo "Start camera drivers" >&3
-ROS_NAMESPACE=stereo
 roslaunch pgr_camera_driver camera_node_left.launch _camera_node:=left _serialnumber:=13021177 &
-
 roslaunch pgr_camera_driver camera_node_right.launch _camera_node:=right _serial_number:=12460898 &
 
+##Run stereo image processing
+
+ROS_NAMESPACE=stereo rosrun stereo_image_proc stereo_image_proc &
 
 roslaunch SubCameraDriver camera.launch &  
 
@@ -76,12 +77,14 @@ sleep 4
 
 echo "Republish camera topics" >&3
 # Republish cameras as compressed for recording
+
 /opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=left/image_raw compressed out:=camera_left/image_compressed &  
 
 /opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=right/image_raw compressed out:=camera_right/image_compressed &  
 
 #/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=image_raw compressed out:=image_compressed &  
 
+sleep 5
 echo "Start image recognition" >&3
 # Image recognition
 /opt/robosub/rosWorkspace/SubImageRecognition/bin/ImageRecognition &  
@@ -102,8 +105,7 @@ sleep 2
 
 
 # Save compressed cameras and resulting recognition info in a bag
-#rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
-
+#rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bagleft/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/v
 echo Starting camera bag
 rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag camera_right/image_compressed/compressed camera_left/image_compressed/compressed downward_camera/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
 
