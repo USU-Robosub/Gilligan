@@ -15,9 +15,9 @@ const int LEFT_MOTOR = 0x400;
 const int RIGHT_MOTOR = 0x200;
 const int REVERSED = 0x100;
 
-double KI = 0.000001;
+double KI = 0.04;
 double KP = 0.4;
-double iMax = 0.6;
+double iMax = 1.0;
 
 //Initial contidions
 float yOld = 0;
@@ -76,7 +76,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 	if(MODE == OFF)
 		return;
 	float depth = msg->data;
-	float error = 0;
+	float error;
 	//Error calculation
 //	if(depth - targetDepth > 1.5)
 //		error = 1;
@@ -89,9 +89,18 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
         //yOld = 0; //Should help avoid drift caused for small differences
         //eOld = 0;
     }
-
+     if (targetDepth<0.05 && error<0.1) //Reset integrator if at the surface
+       yOld = 0;
+       
+       
     //Proportional
-    float p = KP*error;
+    float p;
+
+    if (error>0){ //Be more gentle on recovering if it went too deep
+       p = KP*error*.05;
+    }else{
+       p = KP*error;
+    }
     //Integral
     if (yOld==0 && eOld==0){
         //reset timer
@@ -107,11 +116,11 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 
     float y = yOld + KI*t/2*(error+eOld); //should be <1
 
-    /*
+    
     if(fabs(y)>iMax){
         y = y>0?iMax:-iMax; //Max out the integrator
     }
-    */
+    
 
     if (error==0)
         y = yOld;
@@ -131,7 +140,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
         speed = -1;
 
 	setDepthSpeed(speed);
-	printf("D:%f C:%f E:%f P:%f I:%f speed:%f T:%f\n", depth, targetDepth,error, p, y, speed, t);
+	//printf("D:%f C:%f E:%f P:%f I:%f speed:%f T:%f\n", depth, targetDepth,error, p, y, speed, t);
 }
 
 int main(int argc, char** argv) {
