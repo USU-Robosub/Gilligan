@@ -490,7 +490,9 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
 
-										if (trackBlob(analysis, object.enumType)) {
+										//if (trackBlob(analysis, object.enumType)) {
+                                        //FIXIT: just testing this out 7/17/13
+                                        if(true) {
 												// Publish information
 												SubImageRecognition::ImgRecObject msg;
 												msg.stamp = time;
