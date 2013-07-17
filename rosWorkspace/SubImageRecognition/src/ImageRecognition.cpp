@@ -490,7 +490,9 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
 
-										if (trackBlob(analysis, object.enumType)) {
+										//if (trackBlob(analysis, object.enumType)) {
+                                        //FIXIT: just testing this out 7/17/13
+                                        if(true) {
 												// Publish information
 												SubImageRecognition::ImgRecObject msg;
 												msg.stamp = time;
@@ -539,7 +541,7 @@ int main(int argc, char **argv) {
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
-	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("left/image_raw", 1, forwardCallback);
+	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("/stereo/left/image_raw", 1, forwardCallback);
 	image_transport::Subscriber downwardSubscriber = imageTransport.subscribe("image_raw", 1, downwardCallback);
 
 	initObjects();

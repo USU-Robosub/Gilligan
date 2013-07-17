@@ -93,7 +93,7 @@ public:
     printf("Left\n");
     unsigned int serial = 12460898;
     int serial_param = 12460898;
-    bool gotSerNo = true;//nh_private_.getParam("serialnumber", serial_param);
+    bool gotSerNo = true; //nh_private_.getParam("serialnumber", serial_param);
 
     printf("Serial param is %u\n", serial_param);
 
