@@ -541,7 +541,7 @@ int main(int argc, char **argv) {
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
 
-	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("left/image_raw", 1, forwardCallback);
+	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("/stereo/left/image_raw", 1, forwardCallback);
 	image_transport::Subscriber downwardSubscriber = imageTransport.subscribe("image_raw", 1, downwardCallback);
 
 	initObjects();
