@@ -92,6 +92,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 		yOld = 0;
 		eOld = 0;
 
+    }
 	else{
         error = depth - targetDepth;
         if (fabs(error)<0.02){ //Could change
