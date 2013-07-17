@@ -77,67 +77,80 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 		return;
 	float depth = msg->data;
 	float error;
+	float y;
+	float speed;
+
+
 	//Error calculation
-//	if(depth - targetDepth > 1.5)
-//		error = 1;
-//	else if(depth - targetDepth < -1.5)
-//		error = -1;
-//	else
-	error = depth - targetDepth;
-    if (fabs(error)<0.02){ //Could change
-        error = 0; //maintain the trust
-        //yOld = 0; //Should help avoid drift caused for small differences
-        //eOld = 0;
+    if(depth - targetDepth > 1.5){
+		speed = 1;
+		yOld = 0;
+		eOld = 0;
     }
-     if (targetDepth<0.05 && error<0.1) //Reset integrator if at the surface
-       yOld = 0;
-       
-       
-    //Proportional
-    float p;
+	else if(depth - targetDepth < -1.5){
+		speed = -1;
+		yOld = 0;
+		eOld = 0;
 
-    if (error>0){ //Be more gentle on recovering if it went too deep
-       p = KP*error*.05;
-    }else{
-       p = KP*error;
-    }
-    //Integral
-    if (yOld==0 && eOld==0){
-        //reset timer
-        gettimeofday(&tOld,0);
-    }
+	else{
+        error = depth - targetDepth;
+        if (fabs(error)<0.02){ //Could change
+            error = 0; //maintain the trust
+            //yOld = 0; //Should help avoid drift caused for small differences
+            //eOld = 0;
+        }
+         if (targetDepth<0.05 && error<0.1) //Reset integrator if at the surface
+           yOld = 0;
 
-    struct timeval tNow;
-    gettimeofday(&tNow,0);
 
-    float t;
-	t = tNow.tv_sec - tOld.tv_sec;
-	t += (tNow.tv_usec - tOld.tv_usec)/1000000.0;
+        //Proportional
+        float p;
 
-    float y = yOld + KI*t/2*(error+eOld); //should be <1
+        if (error>0){ //Be more gentle on recovering if it went too deep
+           p = KP*error*.05;
+        }else{
+           p = KP*error;
+        }
+        //Integral
+        if (yOld==0 && eOld==0){
+            //reset timer
+            gettimeofday(&tOld,0);
+        }
 
-    
-    if(fabs(y)>iMax){
-        y = y>0?iMax:-iMax; //Max out the integrator
-    }
-    
+        struct timeval tNow;
+        gettimeofday(&tNow,0);
 
-    if (error==0)
-        y = yOld;
+        float t;
+        t = tNow.tv_sec - tOld.tv_sec;
+        t += (tNow.tv_usec - tOld.tv_usec)/1000000.0;
 
-    //TODO Might need to setup an integrator reset (but when?)
+        y = yOld + KI*t/2*(error+eOld); //should be <1
 
-    //Update buffers
-    yOld = y;
-    eOld = error;
-    tOld.tv_sec = tNow.tv_sec;
-    tOld.tv_usec = tNow.tv_usec;
 
-    float speed = p+y;
-    if (speed > 1)
+        if(fabs(y)>iMax){
+            y = y>0?iMax:-iMax; //Max out the integrator
+        }
+
+
+        if (error==0)
+            y = yOld;
+
+        //TODO Might need to setup an integrator reset (but when?)
+
+        //Update buffers
+        yOld = y;
+        eOld = error;
+        tOld.tv_sec = tNow.tv_sec;
+        tOld.tv_usec = tNow.tv_usec;
+
+        speed = p+y;
+
+	}
+	if (speed > 1)
         speed = 1;
     else if(speed < -1)
         speed = -1;
+
 
 	setDepthSpeed(speed);
 	//printf("D:%f C:%f E:%f P:%f I:%f speed:%f T:%f\n", depth, targetDepth,error, p, y, speed, t);
