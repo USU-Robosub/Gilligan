@@ -394,7 +394,6 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			sample.iAttr[3]=hsv[1];
 			sample.iAttr[4]=hsv[2];
 			int tempClass=pTree->Classify(sample);
-			cout<<"Classifying\n";
 			if(tempClass<0)
 			{
 				cout<<"Classified "<<tempClass<<endl;
