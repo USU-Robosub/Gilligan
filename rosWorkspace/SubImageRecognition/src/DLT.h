@@ -19,5 +19,5 @@ class DLT {
 		int splitVal;
 		DLT* lowSide;
 		DLT* highSide;
-		void print;
+		void print();
 };
