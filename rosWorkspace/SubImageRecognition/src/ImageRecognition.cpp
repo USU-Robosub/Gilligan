@@ -294,8 +294,7 @@ vector<Points> findBlobs(Mat& image,
 		vector<Points> allBlobs;
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-						if (image.at<uint8_t>(i, j, 0) == obj) {
-								cout<<"Point found\n";
+						if ((int)image.at<uint8_t>(i, j, 0) == obj) {
 								Points blob = findBlob(image, i, j, obj);
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
@@ -505,7 +504,6 @@ void genericCallback(
 
 								}
 						}
-						cout<<"Blobs: "<<blobs.size()<<endl<<"TrackBlobs: "<<trackBlobs.size()<<endl;
 				}
 		}
 
