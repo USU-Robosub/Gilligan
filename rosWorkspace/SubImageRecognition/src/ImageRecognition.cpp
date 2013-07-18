@@ -382,23 +382,17 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 {	if (threshold.total() == 0) {
 		threshold.create(segmented.rows, segmented.cols, CV_8U);
 	}
-	for (unsigned int i=0;i<objects.size();++i){
-		Object object=objects[i];
-		for (int i = offset; i < threshold.rows; i += SAMPLE_SIZE) {
-			for (int j = offset; j < threshold.cols; j += SAMPLE_SIZE) {
-				Sample sample;
-				Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
-				sample.type=0;
-				sample.iAttr[0]=i;
-				sample.iAttr[1]=j;
-				sample.iAttr[2]=hsv[0];
-				sample.iAttr[3]=hsv[1];
-				sample.iAttr[4]=hsv[2];
-				if(pTree->Classify(sample)==object.enumType)
-				{
-					threshold.at<uint8_t>(i,j,0)=object.enumType;
-				}
-			}
+	for (int i = offset; i < threshold.rows; i += SAMPLE_SIZE) {
+		for (int j = offset; j < threshold.cols; j += SAMPLE_SIZE) {
+			Sample sample;
+			Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
+			sample.type=0;
+			sample.iAttr[0]=i;
+			sample.iAttr[1]=j;
+			sample.iAttr[2]=hsv[0];
+			sample.iAttr[3]=hsv[1];
+			sample.iAttr[4]=hsv[2];
+			threshold.at<uint8_t>(i,j,0)=pTree->Classify(sample);		
 		}
 	}
 }
