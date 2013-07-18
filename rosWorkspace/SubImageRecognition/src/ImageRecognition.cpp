@@ -510,7 +510,7 @@ void genericCallback(
 
 								}
 						}
-						cout<<"Blobs: "<<blobs.size()<<endl<<"TrackBlobs: "<<trackblobs.size()<<endl;
+						cout<<"Blobs: "<<blobs.size()<<endl<<"TrackBlobs: "<<trackBlobs.size()<<endl;
 				}
 		}
 
