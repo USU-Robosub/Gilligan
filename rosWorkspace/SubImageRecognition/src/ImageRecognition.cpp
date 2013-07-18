@@ -511,6 +511,7 @@ void genericCallback(
 								}
 						}
 				}
+				cout<<"Blobs: "<<blobs.size()<<endl<<"TrackBlobs: "<<trackblobs.size()<<endl;
 		}
 
 		// Publish annotated image
