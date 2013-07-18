@@ -23,3 +23,10 @@ DLT::DLT(istream& fin) {
 		highSide = new DLT(fin);
 	}
 }
+
+DLT::print()
+{
+	cout<<"Node: "<<splitId<<" "<<splitVal<<endl;
+	cout<<"Node: "<<lowSide->splitId<<" "<<lowSide->splitVal<<endl;
+	cout<<"Node: "<<highSide->splitId<<" "<<highSide->splitVal<<endl;
+}
