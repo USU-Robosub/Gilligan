@@ -295,6 +295,7 @@ vector<Points> findBlobs(Mat& image,
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
 						if (image.at<uint8_t>(i, j, 0) == obj) {
+								cout<<"Point found\n";
 								Points blob = findBlob(image, i, j, obj);
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
@@ -382,23 +383,17 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 {	if (threshold.total() == 0) {
 		threshold.create(segmented.rows, segmented.cols, CV_8U);
 	}
-	cout<<segmented.rows<<" "<<segmented.cols<<endl;
 	for (int i = offset; i < threshold.rows; i += SAMPLE_SIZE) {
 		for (int j = offset; j < threshold.cols; j += SAMPLE_SIZE) {
 			Sample sample;
 			Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
 			sample.type=0;
-			sample.iAttr[0]=i;
-			sample.iAttr[1]=j;
+			sample.iAttr[0]=j;
+			sample.iAttr[1]=i;
 			sample.iAttr[2]=hsv[0];
 			sample.iAttr[3]=hsv[1];
 			sample.iAttr[4]=hsv[2];
-			int tempClass=pTree->Classify(sample);
-			if(tempClass<0)
-			{
-				cout<<"Classified "<<tempClass<<endl;
-			}
-			threshold.at<uint8_t>(i,j,0)=tempClass;		
+			threshold.at<uint8_t>(i,j,0)=pTree->Classify(sample);		
 		}
 	}
 }

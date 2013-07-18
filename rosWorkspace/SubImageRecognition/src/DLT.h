@@ -14,7 +14,6 @@ class DLT {
 	public:
 	DLT(std::istream& fin);
 		int Classify(const Sample& s);
-		void outputTree();
 	private:
 		int splitId;
 		int splitVal;
