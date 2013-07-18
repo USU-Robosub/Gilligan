@@ -24,7 +24,7 @@ DLT::DLT(istream& fin) {
 	}
 }
 
-DLT::print()
+DLT::outputTree()
 {
 	cout<<"Node: "<<splitId<<" "<<splitVal<<endl;
 	cout<<"Node: "<<lowSide->splitId<<" "<<lowSide->splitVal<<endl;
