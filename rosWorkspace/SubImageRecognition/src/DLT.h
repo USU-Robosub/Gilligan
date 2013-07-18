@@ -14,10 +14,10 @@ class DLT {
 	public:
 	DLT(std::istream& fin);
 		int Classify(const Sample& s);
+		void outputTree();
 	private:
 		int splitId;
 		int splitVal;
 		DLT* lowSide;
 		DLT* highSide;
-		void outputTree();
 };
