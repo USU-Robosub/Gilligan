@@ -26,7 +26,7 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 4;
-const unsigned int MIN_POINTS = 10;
+const unsigned int MIN_POINTS = 25;
 const float MIN_CONFIDENCE = 0.5;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
@@ -45,7 +45,7 @@ const int CONFIDENCE_CIRCLE = 1;
 const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
 
-const int FRAME_MARGIN_OF_ERROR=2;
+const int FRAME_MARGIN_OF_ERROR=3;
 const int TRACKING_MOVEMENT_TOLERANCE=50;
 
 // DEFINITIONS
@@ -466,7 +466,7 @@ void genericCallback(
 				Object object = objects[i];
 				// Run applicable algorithms
 				if ((object.flags & FLAG_ENABLED) && object.camera == camera) {
-						reduceNoise(threshold);
+						//reduceNoise(threshold);
 						vector<Points> blobs = findBlobs(
 										threshold, offset, object.maxBlobs, object.enumType);
 						if (object.flags & FLAG_PUBLISH_THRESHOLD) {
@@ -484,9 +484,8 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
 
-										//if (trackBlob(analysis, object.enumType)) {
-                                        //FIXIT: just testing this out 7/17/13
-                                        if(true) {
+										if (trackBlob(analysis, object.enumType)) 
+                                        {
 												// Publish information
 												SubImageRecognition::ImgRecObject msg;
 												msg.stamp = time;
@@ -504,6 +503,7 @@ void genericCallback(
 
 								}
 						}
+					//	cout<<"Blobs: "<<blobs.size()<<" Tracks: "<<trackBlobs.size()<<endl;
 				}
 		}
 
