@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
-#include "std_msgs/Float64MultiArray.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "Robosub/HighLevelControl.h"
 #include "Robosub/Point.h"
 #include "SubMotorController/MotorMessage.h"
@@ -126,7 +126,7 @@ void updateDepth(std_msgs::Float32::ConstPtr msg) {
 //	printf("DepthOffset = %f\n", DepthOffset);
 }
 
-void updateAttitude(const std_msgs::Float64MultiArray::ConstPtr msg) {
+void updateAttitude(const std_msgs::Float32MultiArray::ConstPtr msg) {
 	YawOffset = YawOffset + CurrentYaw - msg->data[0];
 	TurnOffset = TurnOffset + CurrentYaw - msg->data[0];
 	CurrentYaw = msg->data[0];
@@ -229,7 +229,7 @@ void ManageTurnThrusters() {
 	FrontThrust = sanatize(FrontThrust);
 	if(RearThrust != currentValueRear ||
 	   FrontThrust != currentValueFront) {
-		
+
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
 				0, 0, RearThrust, FrontThrust, 0, 0);
 		currentValueRear = RearThrust;
