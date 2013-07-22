@@ -1,0 +1,16 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b SubImagePrep 
+
+<!-- 
+Synchronize and resize incoming left and right stereo images for use in
+image_proc and stere_image_proc
+-->
+
+
+-->
+
+
+*/
