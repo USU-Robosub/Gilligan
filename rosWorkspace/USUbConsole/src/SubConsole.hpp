@@ -50,7 +50,7 @@ public:
    void motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr& msg);
    //TODO add the a subscriber and callback for the Raw acceleration topic
    void rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
-
+   void targetDepthCallback(const std_msgs::Float32::ConstPtr& msg);
 
 private:
    Ui::SubConsole* m_pUi;                           //!< Pointer to UI object
@@ -78,6 +78,7 @@ private:
 
    ros::Subscriber m_motorStatusSubscriber;         //!< Subscribes to the Motor_Control topic
    ros::Subscriber m_rawAccelSubscriber;            //!< Subscribes to the IMU_Accel_Debug topic
+   ros::Subscriber m_targetDepthSubscriber;
 
    int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
    int m_lastYAxisValue;            //!< Stores the last joystick y-axis value
@@ -117,7 +118,8 @@ private:
 //   ClickableLabel* m_pImageRecBoxLabel;
 //   ClickableLabel* m_pImageRecDownBoxLabel;
 
-
+    float targetDepth;
+    float depth;
 
 //   std::vector<SubImageRecognition::ImgRecAlgorithm> m_algorithmSettings;
 

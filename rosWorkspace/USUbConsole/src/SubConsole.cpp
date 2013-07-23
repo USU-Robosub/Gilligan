@@ -10,6 +10,7 @@
 #include <iostream>
 #include <math.h>
 #include "qwt/qwt_dial_needle.h"
+#include <sys/time.h>
 
 #include "SubConsole.hpp"
 #include "USUbConsole/MotorMessage.h"
@@ -26,12 +27,20 @@
 #define FRONT_TURN_BIT  0x10
 #define REAR_TURN_BIT   0x20
 
+
 #define X_LINE 0
 #define X_DOT 1
 #define Y_LINE 2
 #define Y_DOT 3
 #define Z_LINE 4
 #define Z_DOT 5
+
+//Depth Controller Stuff
+#define P_LINE 6
+#define I_LINE 7
+#define E_LINE 8
+#define S_LINE 9
+#define D_LINE 10
 
 /*	
  * @brief SubConsole ctor which sets up timers and connect signals/slots
@@ -90,7 +99,16 @@ SubConsole::SubConsole(QWidget* pParent)
      m_forwardPipEnabled(false),
      m_pCompass(NULL),
      m_pPitchIndicator(NULL),
-     m_pRollIndicator(NULL)
+     m_pRollIndicator(NULL),
+     targetDepth(0),
+     depth(0)
+//     error(0),
+//     speed(0),
+//     KI(0.02),
+//     KP(0.4),
+//     iMax(1),
+//     yOld(0),
+//     eOld(0)
 //     m_pImageRecBoxLabel(NULL),
 //     m_pImageRecDownBoxLabel(NULL),
 
@@ -104,6 +122,7 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
+//   connect(m_pUi->updateButton,SIGNAL(clicked()),this,SLOT(updateGains()));
 //   connect(m_pUi->toggleBoxThresholdButton, SIGNAL(clicked()), this, SLOT(toggleBoxThresholding()));
 //   connect(m_pUi->enableViewThresholdButton, SIGNAL(clicked()), this, SLOT(enableViewThresholds()));
 //   connect(m_pUi->disableViewThresholdButton, SIGNAL(clicked()), this, SLOT(disableViewThresholds()));
@@ -139,14 +158,15 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_depthSubscriber = m_nodeHandle.subscribe("Sub_Depth", 100, &SubConsole::depthCallback, this);
    //m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_raw/compressed", 100, &SubConsole::forwardCameraCallback, this);
-   m_leftCameraSubscriber = m_nodeHandle.subscribe("/camera_left/image_compressed/compressed", 100, &SubConsole::leftCameraCallback, this);
-   m_rightCameraSubscriber = m_nodeHandle.subscribe("/camera_right/image_compressed/compressed", 100, &SubConsole::rightCameraCallback, this);
+   m_leftCameraSubscriber = m_nodeHandle.subscribe("forward_camera/image_raw/compressed", 100, &SubConsole::leftCameraCallback, this);
+   m_rightCameraSubscriber = m_nodeHandle.subscribe("stereo/right/image_raw/compressed", 100, &SubConsole::rightCameraCallback, this);
    m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
    m_voltageCurrentSubscriber = m_nodeHandle.subscribe("Computer_Cur_Volt", 100, &SubConsole::currentVoltageCallback, this);
    m_errorLogSubscriber = m_nodeHandle.subscribe("Error_Log", 100, &SubConsole::errorLogCallback, this);
    m_rawAccelSubscriber = m_nodeHandle.subscribe("IMU_Accel_Debug", 100, &SubConsole::rawAccelCallback, this);
    m_motorStatusSubscriber = m_nodeHandle.subscribe("Motor_Control", 100, &SubConsole::motorStatusCallback, this);
 
+   m_targetDepthSubscriber = m_nodeHandle.subscribe("Target_Depth",100, &SubConsole::targetDepthCallback,this);
    printf("Finished ROS topic publish and subscription initialization\n");
 
 
@@ -206,7 +226,28 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->accelGraph->graph(Z_DOT)->setName("Z");
    m_pUi->accelGraph->legend->removeItem(2);
 
+   //Depth Controller stuff
+   m_pUi->accelGraph->addGraph(); //graph for P
+   m_pUi->accelGraph->graph(P_LINE)->setPen(QPen(Qt::cyan));
+   m_pUi->accelGraph->graph(P_LINE)->setName("P");
 
+   m_pUi->accelGraph->addGraph(); //graph for I
+   m_pUi->accelGraph->graph(I_LINE)->setPen(QPen(Qt::yellow));
+   m_pUi->accelGraph->graph(I_LINE)->setName("I");
+
+   m_pUi->accelGraph->addGraph(); //graph for E
+   m_pUi->accelGraph->graph(E_LINE)->setPen(QPen(Qt::red));
+   m_pUi->accelGraph->graph(E_LINE)->setName("Error");
+
+   m_pUi->accelGraph->addGraph(); //graph for S
+   m_pUi->accelGraph->graph(S_LINE)->setPen(QPen(Qt::green));
+   m_pUi->accelGraph->graph(S_LINE)->setName("Speed");
+
+   m_pUi->accelGraph->addGraph(); //graph for D
+   m_pUi->accelGraph->graph(D_LINE)->setPen(QPen(Qt::blue));
+   m_pUi->accelGraph->graph(D_LINE)->setName("Depth");
+
+   //-------------------------------------
    m_pUi->accelGraph->xAxis->setTickLabelType(QCPAxis::ltDateTime);
    m_pUi->accelGraph->xAxis->setDateTimeFormat("hh:mm:ss");
    m_pUi->accelGraph->xAxis->setAutoTickStep(false);
@@ -214,10 +255,15 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->accelGraph->xAxis->setLabel("Time");
    m_pUi->accelGraph->yAxis->setLabel("g");
    m_pUi->accelGraph->setupFullAxesBox();
+   m_pUi->accelGraph->yAxis->setRange(-1.4,1.4);
+   m_pUi->accelGraph->xAxis->setAutoTickStep(true);
    m_pUi->accelGraph->legend->setVisible(true);
    m_pUi->accelGraph->legend->setFont(QFont("Helvetica",9));
    m_pUi->accelGraph->legend->setPositionStyle(QCPLegend::psTopLeft);
 
+   //m_pUi->propLineEdit->setText(QString::number(KP));
+   //m_pUi->intLineEdit->setText(QString::number(KI));
+   //m_pUi->maxLineEdit->setText(QString::number(iMax));
 }
 
 /**
@@ -369,9 +415,11 @@ void SubConsole::readJoystickInput(void){
 
           depthMsg.data = desiredDepth;
 
-          m_pUi->targetDepthLineEdit->setText(QString::number(desiredDepth));
+          //m_pUi->targetDepthLineEdit->setText(QString::number(desiredDepth));
 
           m_depthPublisher.publish(depthMsg);
+          //Depth Controller Stuff
+          //targetDepth = desiredDepth;
       }
       else
       {
@@ -426,11 +474,46 @@ void SubConsole::motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr &
 
 
      m_pUi->leftThrustBar->setValue(abs(m_leftFwdMotorVal));
+     if(m_leftFwdMotorVal<0)
+         m_pUi->leftThrustBar->setInvertedAppearance(true);
+     else
+         m_pUi->leftThrustBar->setInvertedAppearance(false);
+
+
      m_pUi->rightThrustBar->setValue(abs(m_rightFwdMotorVal));
+     if(m_rightFwdMotorVal<0)
+         m_pUi->rightThrustBar->setInvertedAppearance(true);
+     else
+         m_pUi->rightThrustBar->setInvertedAppearance(false);
+
+
      m_pUi->frontTurnBar->setValue(abs(m_frontTurnMotorVal));
+     if(m_frontTurnMotorVal<0)
+         m_pUi->frontTurnBar->setInvertedAppearance(true);
+     else
+         m_pUi->frontTurnBar->setInvertedAppearance(false);
+
+
      m_pUi->rearTurnBar->setValue(abs(m_rearTurnMotorVal));
+     if(m_rearTurnMotorVal<0)
+         m_pUi->rearTurnBar->setInvertedAppearance(true);
+     else
+         m_pUi->rearTurnBar->setInvertedAppearance(false);
+
+
      m_pUi->frontDepthBar->setValue(abs(m_frontDepthMotorVal));
+     if(m_frontDepthMotorVal<0)
+         m_pUi->frontDepthBar->setInvertedAppearance(true);
+     else
+         m_pUi->frontDepthBar->setInvertedAppearance(false);
+
+
      m_pUi->rearDepthBar->setValue(abs(m_rearDepthMotorVal));
+     if(m_rearDepthMotorVal<0)
+         m_pUi->rearDepthBar->setInvertedAppearance(true);
+     else
+         m_pUi->rearDepthBar->setInvertedAppearance(false);
+
 }
 
 /**
@@ -518,6 +601,121 @@ void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
 {
    m_depthAverage.Update(msg->data);
    m_pUi->depthLineEdit->setText(QString::number(m_depthAverage.Value()));
+
+   //Added for Depth Controller gain adjustment
+    depth = m_depthAverage.Value();//msg->data;
+   float error = 0;
+   //Error calculation
+    //	if(depth - targetDepth > 1.5)
+    //		error = 1;
+    //	else if(depth - targetDepth < -1.5)
+    //		error = -1;
+    //	else
+   error = depth - targetDepth;
+   /*
+   if (fabs(error)<0.02){ //Could change
+       error = 0; //maintain the trust
+       //yOld = 0; //Should help avoid drift caused for small differences
+       //eOld = 0;
+   }*/
+   /*if (fabs(error)<0.2){
+       KP=.3;
+   }
+   else{
+       KP = m_pUi->propLineEdit->text().toFloat();
+   }*/
+   /*
+   if (targetDepth<0.05 && error<0.1) //Reset integrator if at the surface
+       yOld = 0;
+
+   //Proportional
+
+   float p;
+
+   if (error>0){ //Be more gentle on recovering if it went too deep
+       p = KP*error*.05;
+   }else{
+       p = KP*error;
+   }
+   //Integral
+   if (yOld==0 && eOld==0){
+       //reset timer
+       gettimeofday(&tOld,0);
+   }
+
+   gettimeofday(&tNow,0);
+
+   float t;
+   t = tNow.tv_sec - tOld.tv_sec;
+   t += (tNow.tv_usec - tOld.tv_usec)/1000000.0;
+
+   float y = yOld + KI*t/2*(error+eOld); //should be <1?
+
+
+   if(fabs(y)>iMax){
+       y = y>0?iMax:-iMax; //Max out the integrator
+   }
+
+
+   if (error==0)
+       y = yOld;
+
+   //TODO Might need to setup an integrator reset (but when?)
+
+   //Update buffers
+   yOld = y;
+   eOld = error;
+   tOld.tv_sec = tNow.tv_sec;
+   tOld.tv_usec = tNow.tv_usec;
+
+   speed = p+y;
+   if (speed > 1)
+       speed = 1;
+   else if(speed < -1)
+       speed = -1;
+
+   short speedInt = speed*255;
+   //sendMotorSpeedMsg(REAR_DEPTH_BIT | FRONT_DEPTH_BIT,
+   //                   0,        0,
+   //                   -speedInt, -speedInt,
+   //                   0,        0
+   //               );
+    */
+   // calculate two new data points:
+ #if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+   double key = 0;
+ #else
+   double key = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
+ #endif
+   static double lastPointKey = 0;
+   if (key-lastPointKey > 0.01) // at most add point every 10 ms
+   {
+
+     // add data to lines:
+     //m_pUi->accelGraph->graph(P_LINE)->addData(key, p);
+     //m_pUi->accelGraph->graph(I_LINE)->addData(key, y);
+     m_pUi->accelGraph->graph(E_LINE)->addData(key, error);
+     //m_pUi->accelGraph->graph(S_LINE)->addData(key, speed);
+     m_pUi->accelGraph->graph(D_LINE)->addData(key, depth/10.0);
+
+     // remove data of lines that's outside visible range:
+     //m_pUi->accelGraph->graph(P_LINE)->removeDataBefore(key-8);
+     //m_pUi->accelGraph->graph(I_LINE)->removeDataBefore(key-8);
+     m_pUi->accelGraph->graph(E_LINE)->removeDataBefore(key-8);
+     //m_pUi->accelGraph->graph(S_LINE)->removeDataBefore(key-8);
+     m_pUi->accelGraph->graph(D_LINE)->removeDataBefore(key-8);
+     // rescale value (vertical) axis to fit the current data:
+     //m_pUi->accelGraph->graph(P_LINE)->rescaleValueAxis();
+     //m_pUi->accelGraph->graph(I_LINE)->rescaleValueAxis();
+     m_pUi->accelGraph->graph(E_LINE)->rescaleValueAxis();
+     //m_pUi->accelGraph->graph(S_LINE)->rescaleValueAxis();
+     m_pUi->accelGraph->graph(D_LINE)->rescaleValueAxis(true);
+     lastPointKey = key;
+   }
+   // make key axis range scroll with the data (at a constant range size of 8):
+   m_pUi->accelGraph->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
+   m_pUi->accelGraph->replot();
+   //------------------------------------------
 }
 
 /**
@@ -547,6 +745,7 @@ void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::Const
 
  void SubConsole::rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
      //Update and plot the accelerometer vector
+     /*
      // calculate two new data points:
    #if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
      double key = 0;
@@ -581,6 +780,7 @@ void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::Const
      // make key axis range scroll with the data (at a constant range size of 8):
      m_pUi->accelGraph->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
      m_pUi->accelGraph->replot();
+     */
  }
 
 //Camera methods
@@ -732,6 +932,26 @@ void SubConsole::toggleForwardPiP(void)
         m_pUi->rightCameraImageThumb->show();
         m_forwardPipEnabled = true;
     }
+}
+/*
+//Depth Controller Stuff
+void SubConsole::updateGains(void){
+    //Read the boxes
+     KP = m_pUi->propLineEdit->text().toFloat();
+    KI = m_pUi->intLineEdit->text().toFloat();
+    int i = system("pkill -f SubDepthController");
+    if (i==0)
+        system("rosrun SubDepthController SubDepthController ");
+    //iMax = m_pUi->maxLineEdit->text().toFloat();
+
+
+}
+*/
+void SubConsole::   targetDepthCallback(const std_msgs::Float32::ConstPtr& msg){
+    m_pUi->targetDepthLineEdit->setText(QString::number(msg->data));
+
+    //Depth Controller Stuff
+    targetDepth = msg->data;
 }
 
 //Image Record Algorithms
