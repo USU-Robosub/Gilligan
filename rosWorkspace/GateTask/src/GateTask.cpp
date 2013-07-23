@@ -62,14 +62,20 @@ void GateTask::moduleEnableCallback(const Robosub::ModuleEnableMsg& msg)
 
 void GateTask::gateCallback(const SubImageRecognition::ImgRecObject& msg)
 {
-  if (m_isEnabled && msg.id == 0)
+    //               vvvvvv  This only works on gate Id 0
+  if (m_isEnabled && msg.id == 0) //It this ID the left gate?
   {
+
+
     float pixPerInch = getPixelsPerInch(msg.width, 3.0f);
     float dist = getDistance(msg.width, 3.0f);
     float x = (msg.center_x / pixPerInch) + 36.0f; //add a 3 feet
     float leftMost = msg.center_x - (msg.width/2.0f);
     float rightMost = msg.center_x + (msg.width/2.0f);
 
+
+    //This code could be replaced by publishing to center on point,
+    //if the Navigation Control module were working
     if ((x < -10.0f || x > 10.0f) &&  (leftMost > -230.0f && rightMost < 230.0f)) //if we are too close to the edge, just drive straight
     {
       printf("Strafing by %f\n", x/12.0f);
