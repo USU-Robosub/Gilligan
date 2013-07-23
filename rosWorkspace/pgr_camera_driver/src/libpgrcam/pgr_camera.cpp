@@ -333,6 +333,9 @@ void Camera::start()
   if ((error = camPGR_.StartCapture(frameDone, (void *) this)) != PGRERROR_OK)
   { //frameDone, (void*) this)) != PGRERROR_OK) {
     ROS_ERROR (error.GetDescription ());
+    if (error == FlyCapture2::PGRERROR_ISOCH_START_FAILED) {
+      printf("we would try to exit now"); // exit();
+    }
   }
   else
   {
@@ -350,7 +353,7 @@ void Camera::stop()
 
 void Camera::SetVideoModeAndFramerate(unsigned int width, unsigned int height, string format, double rate)
 {
-  return;
+/*
   // TODO: support fractional frame rates
   // TODO: support more types of color cameras (just getting RAW data and being handled by the ROS image topic)
   //      It ignores bayasian encoding for now (for color cameras). It forces conversion from raw to RGB8 pixel format encoding.
@@ -470,7 +473,7 @@ void Camera::SetVideoModeAndFramerate(unsigned int width, unsigned int height, s
   {
     ROS_ERROR (error.GetDescription ());
   }
-
+*/
 }
 
 void Camera::SetExposure(bool _auto, bool onoff, unsigned int value)
