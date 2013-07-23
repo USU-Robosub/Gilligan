@@ -26,7 +26,7 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 4;
-const unsigned int MIN_POINTS = 25;
+const unsigned int MIN_POINTS = 75;
 const float MIN_CONFIDENCE = 0.5;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
@@ -46,7 +46,7 @@ const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
 
 const int FRAME_MARGIN_OF_ERROR=3;
-const int TRACKING_MOVEMENT_TOLERANCE=50;
+const int TRACKING_MOVEMENT_TOLERANCE=300;
 
 // DEFINITIONS
 
@@ -450,10 +450,10 @@ void genericCallback(
 
 		// Rotate image upright
 		transpose(cvImage->image, rotated.image);
-        //TODO: find a better way to stop forward camera rotation
-        if (camera == CAMERA_DOWNWARD) {
-            flip(rotated.image, rotated.image, 0); // 0=ccw, 1=cw
-        }
+		//TODO: find a better way to stop forward camera rotation
+		if (camera == CAMERA_DOWNWARD) {
+		    flip(rotated.image, rotated.image, 0); // 0=ccw, 1=cw
+		}
 		rotated.encoding = cvImage->encoding;
 
 		// Segment into HSV
@@ -486,9 +486,10 @@ void genericCallback(
 								ros::Time time = ros::Time::now();
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
-
-										if (trackBlob(analysis, object.enumType)) 
-                                        {
+                           
+									//	if (trackBlob(analysis, object.enumType)) 
+                                        if(true)
+										{
 												// Publish information
 												SubImageRecognition::ImgRecObject msg;
 												msg.stamp = time;
