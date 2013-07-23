@@ -242,12 +242,12 @@ bool Camera::initCam()
   fc2Config.grabMode = FlyCapture2::DROP_FRAMES; // supposedly the default, but just in case..
   if ((error = camPGR_.SetConfiguration(&fc2Config)) != PGRERROR_OK)
     PRINT_ERROR;
-  ROS_INFO ("Setting video mode to VIDEOMODE_1280x960RGB, framerate to FRAMERATE_7_5...");
-  if ((error = camPGR_.SetVideoModeAndFrameRate(FlyCapture2::VIDEOMODE_1280x960RGB, FlyCapture2::FRAMERATE_7_5))
-      != PGRERROR_OK)
-    ROS_ERROR (error.GetDescription ());
-  else
-    ROS_INFO ("...success");
+//  ROS_INFO ("Setting video mode to VIDEOMODE_640x480RGB, framerate to FRAMERATE_7_5...");
+//  if ((error = camPGR_.SetVideoModeAndFrameRate(FlyCapture2::VIDEOMODE_640x480RGB, FlyCapture2::FRAMERATE_7_5))
+//      != PGRERROR_OK)
+//    ROS_ERROR (error.GetDescription ());
+//  else
+//    ROS_INFO ("...success");
   FlyCapture2::EmbeddedImageInfo embedInfo;
   embedInfo.frameCounter.onOff = true;
   if ((error = camPGR_.SetEmbeddedImageInfo(&embedInfo)) != PGRERROR_OK)
@@ -265,19 +265,8 @@ bool Camera::initCam()
   FlyCapture2::Format7Info fmt7Info;
   bool supported;
 
-  // TODO: Setup modes here (working as Raw for now...either Mono or Color...whatever the camera's raw is)
-//  if(camInfo.isColorCamera)
-//  {
-//    k_fmt7Mode_ = FlyCapture2::MODE_0; // TODO: make dynamic
-//    k_fmt7PixFmt_ = FlyCapture2::PIXEL_FORMAT_BGR; // TODO: make dynamic
-//  }
-//  else // Mono
-//  {
-//    k_fmt7Mode_ = FlyCapture2::MODE_1; // TODO: make dynamic
-//    k_fmt7PixFmt_ = FlyCapture2::PIXEL_FORMAT_MONO8; // TODO: make dynamic
-        k_fmt7Mode_ = FlyCapture2::MODE_0; // TODO: make dynamic
-        k_fmt7PixFmt_ = FlyCapture2::PIXEL_FORMAT_RAW8; // TODO: make dynamic
-//  }
+  k_fmt7Mode_ = FlyCapture2::MODE_4;
+  k_fmt7PixFmt_ = FlyCapture2::PIXEL_FORMAT_RAW8;
   fmt7Info.mode = k_fmt7Mode_;
   error = camPGR_.GetFormat7Info( &fmt7Info, &supported );
   if (error != PGRERROR_OK)
@@ -288,10 +277,10 @@ bool Camera::initCam()
   PrintFormat7Capabilities( fmt7Info );
   FlyCapture2::Format7ImageSettings fmt7ImageSettings;
   fmt7ImageSettings.mode = k_fmt7Mode_;
-  fmt7ImageSettings.offsetX = 0;
-  fmt7ImageSettings.offsetY = 0;
-  fmt7ImageSettings.width = fmt7Info.maxWidth;
-  fmt7ImageSettings.height = fmt7Info.maxHeight;
+  fmt7ImageSettings.offsetX = 8;
+  fmt7ImageSettings.offsetY = 22;
+  fmt7ImageSettings.width = 640;
+  fmt7ImageSettings.height = 480;
   fmt7ImageSettings.pixelFormat = k_fmt7PixFmt_;
 
   ROS_INFO("Pixel Format: 0x%08x", k_fmt7PixFmt_);
@@ -321,7 +310,8 @@ bool Camera::initCam()
   // Set the settings to the camera
   error = camPGR_.SetFormat7Configuration(
       &fmt7ImageSettings,
-      fmt7PacketInfo.recommendedBytesPerPacket );
+      (unsigned int) 800 );
+      //fmt7PacketInfo.recommendedBytesPerPacket );
   if (error != PGRERROR_OK)
   {
     PrintError( error );
@@ -360,6 +350,7 @@ void Camera::stop()
 
 void Camera::SetVideoModeAndFramerate(unsigned int width, unsigned int height, string format, double rate)
 {
+  return;
   // TODO: support fractional frame rates
   // TODO: support more types of color cameras (just getting RAW data and being handled by the ROS image topic)
   //      It ignores bayasian encoding for now (for color cameras). It forces conversion from raw to RGB8 pixel format encoding.
