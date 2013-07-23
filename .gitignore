@@ -14,3 +14,5 @@ rosWorkspace/USUbConsole/src/moc_ClickableLabel.cxx
 rosWorkspace/USUbConsole/src/moc_SubConsole.cxx
 rosWorkspace/USUbConsole/src/moc_attitude_indicator.cxx
 rosWorkspace/USUbConsole/ui_SubConsole.h
+*.save
+*.cbp
