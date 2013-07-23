@@ -134,6 +134,7 @@ float GateTask::getPixelsPerInch(float curWidthPixels, float expectedWidthInches
  */
 float GateTask::getDistance(float curObjSize, float actualObjSize)
 {
+    //FIXIT: What formula is this?
   return (actualObjSize/(2.0f*tan(((curObjSize * (M_PI/4.0))/960.0f))));
 }
 

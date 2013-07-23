@@ -4,6 +4,7 @@ bin
 build
 CMakeFiles
 CMakeCache.txt
+Makefile
 cmake_install.cmake
 msg_gen
 srv_gen

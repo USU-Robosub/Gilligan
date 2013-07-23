@@ -3,10 +3,12 @@
     <arg name="respawn" default="false" />
     <arg name="camera_node" default="pgr_camera_node" />
     <arg name="calibration_file" default="file://$(find pgr_camera_driver)/test_intrinsics.ini" />
-    <arg name="serial_number" default="0" />
+    <arg name="serialnumber" default="0" />
 
-    <node name="$(arg camera_node)" pkg="pgr_camera_driver" type="pgr_camera_node" respawn="$(arg respawn)" output="screen">
-        <param name="intrinsics_ini" type="str" value="$(arg calibration_file)" />
-        <param name="serial_number" type="int" value="$(arg serial_number)" />
-    </node>
+    <group ns="/stereo">
+        <node name="$(arg camera_node)" pkg="pgr_camera_driver" type="pgr_camera_node" respawn="$(arg respawn)" output="screen">
+            <param name="intrinsics_ini" type="str" value="$(arg calibration_file)" />
+            <param name="serialnumber" type="int" value="$(arg serialnumber)" />
+        </node>
+    </group>
 </launch>

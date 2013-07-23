@@ -3,8 +3,9 @@ left:   12460898
 right:  13021177
 
 ## How To Start the Nodes
-roslaunch pgr_camera_driver camera_node.launch camera_node:=camera_left  serial_number:=12460898
-roslaunch pgr_camera_driver camera_node.launch camera_node:=camera_right serial_number:=13021177
+Note: The calibration files used here aren't quite ready yet
+roslaunch pgr_camera_driver camera_node.launch camera_node:=left  serialnumber:=12460898 calibration_file:='file:///opt/robosub/rosWorkspace/pgr_camera_driver/stereo_intrinsics.ini'
+roslaunch pgr_camera_driver camera_node.launch camera_node:=right serialnumber:=13021177 calibration_file:='file:///opt/robosub/rosWorkspace/pgr_camera_driver/stereo_intrinsics.ini'
 
 ## How To View the Cameras Remotely
 rosrun image_view image_view image:=/camera_left/image_raw  compressed

@@ -450,7 +450,10 @@ void genericCallback(
 
 		// Rotate image upright
 		transpose(cvImage->image, rotated.image);
-		flip(rotated.image, rotated.image, 0); // 0=ccw, 1=cw
+        //TODO: find a better way to stop forward camera rotation
+        if (camera == CAMERA_DOWNWARD) {
+            flip(rotated.image, rotated.image, 0); // 0=ccw, 1=cw
+        }
 		rotated.encoding = cvImage->encoding;
 
 		// Segment into HSV
