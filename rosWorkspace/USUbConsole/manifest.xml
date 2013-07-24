@@ -12,11 +12,12 @@
   <depend package="std_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="SubImageRecognition" />
+  <depend package="SubMotorController" />
   <rosdep name="qt4"/>
 
    <export>
      <cpp cflags="-I${prefix}/msg/cpp"/>
+    <!-- <cpp cflags="-I../SubMotorController/msg/cpp"/>-->
    </export>
-
 </package>
 
