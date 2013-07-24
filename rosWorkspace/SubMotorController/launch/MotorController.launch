@@ -1,0 +1,7 @@
+<launch>
+    <!-- Variable names -->
+    <arg name="respawn" default="true" />
+    <arg name="motor_node" default="SubMotorController" />
+        <node name="$(arg motor_node)" pkg="SubMotorController" type="motorController" respawn="$(arg respawn)" output="screen">
+        </node>
+</launch>

@@ -1,7 +1,10 @@
 /**************************
 * Water Sensor Controller *
 * ************************/
+<<<<<<< HEAD
 //#include <Serial.h>
+=======
+>>>>>>> f134dfc40b15a7927fe1316235e8ba839c477293
 
 #define BAUD 115200
 #define MIN_PACKET_LENGTH 2
