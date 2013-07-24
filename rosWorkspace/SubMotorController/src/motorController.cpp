@@ -127,7 +127,12 @@ void MotorControllerHandler::transmit() {
         char temp[1000];
 		sprintf(temp, "%s error: Unable to send message - %s\n", name.c_str(), runError.what());
 		print(string(temp));
+	}catch (...){
+        char temp[1000];
+		sprintf(temp, "%s error: Unable to send message - Unknown exception\n", name.c_str());
+		print(string(temp));
 	}
+}
 }
 
 void MotorControllerHandler::processResponce() {
