@@ -71,38 +71,45 @@ void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 		ForwardMode = AUTOMATIC;
 		ForwardOffset = msg->Value;
 	} else if (msg->Direction == "Forward" && msg->MotionType == "Manual") {
-		ForwardMode = MANUAL;
+		ForwardMode = MANUAL;0
 		ForwardSpeed = msg->Value;
+
 	} else if(msg->Direction == "Turn" && msg->MotionType == "Offset") {
 		TurnMode = AUTOMATIC;
 		TurnOffset = msg->Value;
 	} else if (msg->Direction == "Turn" && msg->MotionType == "Manual") {
 		TurnMode = MANUAL;
 		TurnSpeed = msg->Value;
+
 	} else if(msg->Direction == "Straf" && msg->MotionType == "Offset") {
 		StrafMode = AUTOMATIC;
 		StrafOffset = msg->Value;
 	} else if (msg->Direction == "Straf" && msg->MotionType == "Manual") {
 		StrafMode = MANUAL;
 		StrafSpeed = msg->Value;
+
 	} else if(msg->Direction == "Depth" && msg->MotionType == "Offset") {
 		DepthMode = AUTOMATIC;
 		DepthOffset = msg->Value;
 	} else if (msg->Direction == "Depth" && msg->MotionType == "Manual") {
 		DepthMode = MANUAL;
 		DepthSpeed = msg->Value;
+
 	} else if(msg->Direction == "Yaw" && msg->MotionType == "Offset") {
 		YawMode = AUTOMATIC;
 		YawOffset = msg->Value;
 	} else if (msg->Direction == "Yaw" && msg->MotionType == "Manual") {
 		YawMode = MANUAL;
 		YawSpeed = msg->Value;
+
+
 	} else if(msg->Direction == "Pitch" && msg->MotionType == "Offset") {
 		PitchMode = AUTOMATIC;
 		PitchOffset = msg->Value;
 	} else if (msg->Direction == "Pitch" && msg->MotionType == "Manual") {
 		PitchMode = MANUAL;
 		PitchSpeed = msg->Value;
+
 	} else {
 		printf("Unknown Direction: %s and Mode: %s\n", msg->Direction.c_str(), msg->MotionType.c_str());
 	}
@@ -127,26 +134,41 @@ void updateDepth(std_msgs::Float32::ConstPtr msg) {
 }
 
 void updateAttitude(const std_msgs::Float32MultiArray::ConstPtr msg) {
-	YawOffset = YawOffset + CurrentYaw - msg->data[0];
-	TurnOffset = TurnOffset + CurrentYaw - msg->data[0];
-	CurrentYaw = msg->data[0];
+    //This function is where controllers should go.
+    //It is called at 100MHz
 
+    //YAW
+    //Updates the yaw offset with the old value and the new value
+	//              INPUT     + (           ERROR          )
+	YawOffset = YawOffset + CurrentYaw - msg->data[2]; //Yaw is now in [2]
+	TurnOffset = TurnOffset + CurrentYaw - msg->data[2];
+	CurrentYaw = msg->data[2];
+
+    //PITCH
+    //Updates the yaw offset with the old value and the new value
+    //              INPUT     + (           ERROR          )
 	PitchOffset = PitchOffset + CurrentPitch - msg->data[1];
 	CurrentPitch = msg->data[1];
 //	printf("Turn Message = %lf\n", msg->data[0]);
 }
 
+
 void UpdateForwardVelocity() {
+    //Seems to update a velocity memory by increasing based ont the speed constant
+    //and limiting using the drag constant
 	ForwardVelocity += ForwardSpeed * FORWARD_SPEED_CONST;
 	ForwardVelocity *= FORWARD_DRAG_CONST;
 }
 
 void UpdateStrafVelocity() {
+    //Seems to update a velocity memory by increasing based ont the speed constant
+    //and limiting using the drag constant
 	StrafVelocity += StrafSpeed * STRAF_SPEED_CONST;
 	StrafVelocity *= STRAF_DRAG_CONST;
 }
 
-int sanatize(int speed) {
+int sanitize(int speed) {
+
 	if(speed > 0 && speed < 60)
 		speed = 40;
 	else if (speed < 0 && speed > -60)
@@ -158,10 +180,12 @@ int sanatize(int speed) {
 	return speed;
 }
 
+
+
 int CalcDepth() {
 	if(DepthMode == AUTOMATIC) {
 		double speed = DepthOffset / 1.5;
-		return sanatize(speed * 255.0);
+		return sanitize(speed * 255.0);
 	} else {
 		return DepthSpeed;
 	}
@@ -169,7 +193,8 @@ int CalcDepth() {
 
 int CalcTurn() {
 	if(TurnMode == AUTOMATIC) {
-		TurnSpeed = sanatize(TurnOffset / 8.0 * 255)/2;
+        //Update the current turning speed using only 12.5% of the given value
+		TurnSpeed = sanitize(TurnOffset / 8.0 * 255)/2;
 		printf("Offset = %f Speed = %f\n", TurnOffset, TurnSpeed);
 	}
 	return TurnSpeed;
@@ -178,7 +203,7 @@ int CalcTurn() {
 int CalcStraf() {
 	if(StrafMode == AUTOMATIC) {
 		StrafOffset -= StrafVelocity;
-		StrafSpeed = sanatize(StrafOffset / .5 * 255.0);
+		StrafSpeed = sanitize(StrafOffset / .5 * 255.0);
 	}
 	return StrafSpeed;
 }
@@ -186,11 +211,13 @@ int CalcStraf() {
 int CalcPitch() {
 	if(PitchMode == AUTOMATIC) {
 		double speed = PitchOffset / 10;
-		return sanatize(speed * 255.0);
+		return sanitize(speed * 255.0);
 	} else {
 		return PitchSpeed;
 	}
 }
+
+
 
 void ManageForwardThrusters() {
 	static int currentValueRight;
@@ -202,7 +229,7 @@ void ManageForwardThrusters() {
 //		printf("forward offset = %f\n", ForwardOffset);
 //		printf("forward velocity = %f\n", ForwardVelocity);
 		double speed = ForwardOffset / 1.5;
-		ForwardSpeed = sanatize(speed * 255.0);
+		ForwardSpeed = sanitize(speed * 255.0);
 	}
 	if(currentValueLeft != ForwardSpeed ||
 			currentValueRight != ForwardSpeed) {
@@ -225,8 +252,8 @@ void ManageTurnThrusters() {
 
 	UpdateStrafVelocity();
 
-	RearThrust = sanatize(RearThrust);
-	FrontThrust = sanatize(FrontThrust);
+	RearThrust = sanitize(RearThrust);
+	FrontThrust = sanitize(FrontThrust);
 	if(RearThrust != currentValueRear ||
 	   FrontThrust != currentValueFront) {
 
