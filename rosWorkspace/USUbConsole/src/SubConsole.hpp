@@ -21,6 +21,7 @@
 #include "sensor_msgs/CompressedImage.h"
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "USUbConsole/MotorMessage.h"
+#include "SubMotorController/MotorCurrentMsg.h"
 #include "qcustomplot.h"
 
 #define AVERAGE_LEN 10
@@ -51,6 +52,7 @@ public:
    //TODO add the a subscriber and callback for the Raw acceleration topic
    void rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void targetDepthCallback(const std_msgs::Float32::ConstPtr& msg);
+   void motorCurrentCallback(const SubMotorController::MotorCurrentMsg::ConstPtr& msg);
 
 private:
    Ui::SubConsole* m_pUi;                           //!< Pointer to UI object
@@ -79,6 +81,7 @@ private:
    ros::Subscriber m_motorStatusSubscriber;         //!< Subscribes to the Motor_Control topic
    ros::Subscriber m_rawAccelSubscriber;            //!< Subscribes to the IMU_Accel_Debug topic
    ros::Subscriber m_targetDepthSubscriber;
+   ros::Subscriber m_motorCurrentSubscriber;
 
    int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
    int m_lastYAxisValue;            //!< Stores the last joystick y-axis value
@@ -101,6 +104,7 @@ private:
    Filter m_depthAverage;
    Filter m_battAverage;
    Filter m_currAverage;
+
 
 //   unsigned char* m_pForwardCameraData;    //!< Pointer to the the last received forward camera frame
    unsigned char* m_pLeftCameraData;     //!< Pointer to the the last received left camera frame

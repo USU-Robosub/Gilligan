@@ -25,7 +25,7 @@ void MotorControllerHandler::print(string error) {
 	errorOut.publish(msg);
 }
 
-MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* Port) 
+MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* Port)
 	: serialPort(Port) {
 		n = nh;
 
@@ -96,7 +96,7 @@ Message createMessageFromSpeed(int rightSpeed, int leftSpeed) {
 }
 
 void MotorControllerHandler::transmit() {
-	if(currentMessage.type == NO_MESSAGE) 
+	if(currentMessage.type == NO_MESSAGE)
 		return;
 
 	gettimeofday(&lastSendTime, NULL);
@@ -119,9 +119,13 @@ void MotorControllerHandler::transmit() {
 		}
 		serialPort.WriteByte('E');
 		awaitingResponce = true;
-	} catch (...) {
+	} catch (SerialPort::NotOpen serError){
 		char temp[1000];
-		sprintf(temp, "%s error: Unable to send message\n", name.c_str());
+		sprintf(temp, "%s error: Port not open - %s\n", name.c_str(), serError.what());
+		print(string(temp));
+	} catch (std::runtime_error runError){
+        char temp[1000];
+		sprintf(temp, "%s error: Unable to send message - %s\n", name.c_str(), runError.what());
 		print(string(temp));
 	}
 }
@@ -130,7 +134,7 @@ void MotorControllerHandler::processResponce() {
 	if(buffer[0] != 'S' || buffer[6] != 'E') {
 		//Misaligned data? throw out bytes until you get it to align correctly
 		printf("Misaligned data: ");
-		for(int i = 0; i < 7; i++) 
+		for(int i = 0; i < 7; i++)
 			printf("\'%c\' (%x)", buffer[i], buffer[i]);
 		printf("\n");
 		for(int i = 0; i < 6; i++) {
@@ -330,4 +334,4 @@ void MotorControllerHandler::spinOnce() {
 	if(awaitingResponce && TransmitTimeout()) {
 		transmit();
 	}
-} 
+}

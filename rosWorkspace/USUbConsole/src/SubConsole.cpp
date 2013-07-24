@@ -42,7 +42,7 @@
 #define S_LINE 9
 #define D_LINE 10
 
-/*	
+/*
  * @brief SubConsole ctor which sets up timers and connect signals/slots
  *
  * @param pParent Poitner to parent widget
@@ -167,6 +167,7 @@ SubConsole::SubConsole(QWidget* pParent)
    m_motorStatusSubscriber = m_nodeHandle.subscribe("Motor_Control", 100, &SubConsole::motorStatusCallback, this);
 
    m_targetDepthSubscriber = m_nodeHandle.subscribe("Target_Depth",100, &SubConsole::targetDepthCallback,this);
+   m_motorCurrentSubscriber = m_nodeHandle.subscribe("Motor_Current",100, &SubConsole::motorCurrentCallback,this);
    printf("Finished ROS topic publish and subscription initialization\n");
 
 
@@ -544,11 +545,11 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, sho
  * @param msg The received message
  **/
 void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
-{   
+{
    m_yawAverage.Update(msg->data[2]);
    m_pitchAverage.Update(msg->data[1]);
    m_rollAverage.Update(msg->data[0]);
-   
+
    m_pUi->yawLineEdit->setText(QString::number(m_yawAverage.Value()));
    m_pCompass->setValue(m_yawAverage.Value());
 
@@ -725,22 +726,30 @@ void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-   m_currAverage.Update(msg->data[0]);
-   m_pUi->currentLineEdit->setText(QString::number(m_currAverage.Value()));
-   m_battAverage.Update(msg->data[1]);
+   m_battAverage.Update(msg->data[0] - 0.5f);
    m_pUi->voltageLineEdit->setText(QString::number(m_battAverage.Value()));
-   if (msg->data[1]<11){
+   m_currAverage.Update(msg->data[1]);//The sensor seems to be uncalibrated
+   m_pUi->currentLineEdit->setText(QString::number(m_currAverage.Value()));
+
+   if (msg->data[1]<12.6){
        QPalette p = m_pUi->voltageLineEdit->palette();
-       p.setColor(QPalette::Base, QColor(255,45,0));//green color
+       p.setColor(QPalette::Base, QColor(255,45,45)); //red color
    }
 }
 
  void SubConsole::errorLogCallback(const std_msgs::String::ConstPtr& msg)
  {
+     QString txt = QString::fromStdString(msg->data);
+
+     if(txt.contains("BUTN", Qt::CaseSensitive)){
+         if(!m_pUi->killSwitchCheckBox->isChecked())
+            m_pUi->killSwitchCheckBox->setCheckState(Qt::Checked);
+         return; //Avoid printing this line
+     }
      QDate date = QDate::currentDate();
      QString dateString = date.toString();
 
-     m_pUi->errorLogTextEdit->appendPlainText(dateString + QString::fromStdString(msg->data));
+     m_pUi->errorLogTextEdit->appendPlainText(dateString + txt);
  }
 
  void SubConsole::rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
@@ -952,6 +961,31 @@ void SubConsole::   targetDepthCallback(const std_msgs::Float32::ConstPtr& msg){
 
     //Depth Controller Stuff
     targetDepth = msg->data;
+}
+
+
+void SubConsole::motorCurrentCallback(const SubMotorController::MotorCurrentMsg::ConstPtr &msg){
+    //Update the current boxes as they arrive
+    //Forward
+    if(msg->motorName =="/dev/controller_drive"){
+        if(msg->motorPosition == "Left")
+            m_pUi->frontFLineEdit->setText(QString::number(msg->motorCurrent));
+        else
+            m_pUi->rearFLineEdit->setText(QString::number(msg->motorCurrent));
+    } else if (msg->motorName =="/dev/controller_turn"){
+        if(msg->motorPosition == "Left")
+            m_pUi->frontTLineEdit->setText(QString::number(msg->motorCurrent));
+        else
+            m_pUi->rearTLineEdit->setText(QString::number(msg->motorCurrent));
+    }else if(msg->motorName =="/dev/controller_dive"){
+        if(msg->motorPosition == "Left")
+            m_pUi->frontDLineEdit->setText(QString::number(msg->motorCurrent));
+        else
+            m_pUi->rearDLineEdit->setText(QString::number(msg->motorCurrent));
+    }else{
+        printf("Unknown motor current device reported\n");
+    }
+
 }
 
 //Image Record Algorithms
