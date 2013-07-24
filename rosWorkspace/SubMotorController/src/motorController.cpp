@@ -133,7 +133,6 @@ void MotorControllerHandler::transmit() {
 		print(string(temp));
 	}
 }
-}
 
 void MotorControllerHandler::processResponce() {
 	if(buffer[0] != 'S' || buffer[6] != 'E') {
