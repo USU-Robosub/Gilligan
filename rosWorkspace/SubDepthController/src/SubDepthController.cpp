@@ -88,12 +88,12 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
         yOld = 0;
 		eOld = 0;
 	}
-    else if(error > 1.5){
+    else if(error > 1.5 && depth > 1){
 		speed = 1;
 		yOld = 0;
 		eOld = 0;
     }
-	else if(error < -1.5){
+	else if(error < -1.5 && depth > 1){
 		speed = -1;
 		yOld = 0;
 		eOld = 0;
