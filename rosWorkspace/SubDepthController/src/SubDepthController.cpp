@@ -80,21 +80,27 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 	float y;
 	float speed;
 
-
 	//Error calculation
-    if(depth - targetDepth > 1.5){
+	error = depth - targetDepth;
+
+	if (error > 0.5 && depth < 1){ //Force full speed to get out of the surface
+        speed = -1;
+        yOld = 0;
+		eOld = 0;
+	}
+    else if(error > 1.5){
 		speed = 1;
 		yOld = 0;
 		eOld = 0;
     }
-	else if(depth - targetDepth < -1.5){
+	else if(error < -1.5){
 		speed = -1;
 		yOld = 0;
 		eOld = 0;
 
     }
 	else{
-        error = depth - targetDepth;
+
         if (fabs(error)<0.02){ //Could change
             error = 0; //maintain the trust
             //yOld = 0; //Should help avoid drift caused for small differences
@@ -125,7 +131,12 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
         t = tNow.tv_sec - tOld.tv_sec;
         t += (tNow.tv_usec - tOld.tv_usec)/1000000.0;
 
-        y = yOld + KI*t/2*(error+eOld); //should be <1
+        if (error>0){ //Be more gentle on recovering if it went too deep
+           y = yOld + 0.5*KI*t/2*(error+eOld);
+        }else{
+           y = yOld + KI*t/2*(error+eOld);
+        }
+
 
 
         if(fabs(y)>iMax){
