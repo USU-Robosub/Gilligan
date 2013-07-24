@@ -249,7 +249,7 @@ void ManageDepthThrusters() {
 
 	if(true || RearThrust != currentValueRear ||
 			FrontThrust != currentValueFront) {
-		printf("Depth %d %d\n", RearThrust, FrontThrust);
+		//printf("Depth %d %d\n", RearThrust, FrontThrust);
 		sendMotorMessage(REAR_DEPTH_BIT | FRONT_DEPTH_BIT,
 				0, 0, 0, 0, RearThrust, FrontThrust);
 		currentValueRear = RearThrust;
