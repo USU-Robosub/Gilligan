@@ -449,12 +449,15 @@ void genericCallback(
 		cv_bridge::CvImageConstPtr cvImage = cv_bridge::toCvShare(rosImage, "bgr8");
 
 		// Rotate image upright
-		transpose(cvImage->image, rotated.image);
 		//TODO: find a better way to stop forward camera rotation
 		if (camera == CAMERA_DOWNWARD) {
+	    	transpose(cvImage->image, rotated.image);
 		    flip(rotated.image, rotated.image, 0); // 0=ccw, 1=cw
+    		rotated.encoding = cvImage->encoding;
 		}
-		rotated.encoding = cvImage->encoding;
+		else{
+			rotated = *cvImage;
+		}
 
 		// Segment into HSV
 		cvtColor(rotated.image, segmented, CV_BGR2HSV);
