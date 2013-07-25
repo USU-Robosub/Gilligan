@@ -30,8 +30,6 @@ rosbuild_genmsg()
 #target_link_libraries(example ${PROJECT_NAME})
 
 
-rosbuild_add_library(motorFunc src/motor.cpp)
 rosbuild_add_executable(SubDepthController src/SubDepthController.cpp)
 #rosbuild_add_executable(example examples/example.cpp)
 
-target_link_libraries(SubDepthController motorFunc)

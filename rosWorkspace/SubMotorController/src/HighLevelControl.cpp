@@ -83,41 +83,49 @@ void CenterOnPointCallback(Robosub::Point::ConstPtr msg) {
 }
 //Changed the previous word of Offset to Command
 //Changed the name Straf to Strafe EVERYWHERE
+//All the MANUAL inputs are [0,1]
+
+/*
+AUTOMATIC ("Command") inputs differ:
+Forward: percentage [0,1];
+Turn: angle [-180,180];
+Strafe: percentage [0,1];
+
 void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 	if(msg->Direction == "Forward" && msg->MotionType == "Command") {
 		ForwardMode = AUTOMATIC;
 		ForwardCommand = msg->Value;
 	} else if (msg->Direction == "Forward" && msg->MotionType == "Manual") {
 		ForwardMode = MANUAL;
-		ForwardSpeed = msg->Value;
+		ForwardSpeed = makeSpeed(msg->Value);
 
 	} else if(msg->Direction == "Turn" && msg->MotionType == "Command") {
 		TurnMode = AUTOMATIC;
 		TurnCommand = msg->Value;
 	} else if (msg->Direction == "Turn" && msg->MotionType == "Manual") {
 		TurnMode = MANUAL;
-		TurnSpeed = msg->Value;
+		TurnSpeed = makeSpeed(msg->Value);
 
 	} else if(msg->Direction == "Strafe" && msg->MotionType == "Command") {
 		StrafeMode = AUTOMATIC;
 		StrafeCommand = msg->Value;
 	} else if (msg->Direction == "Strafe" && msg->MotionType == "Manual") {
 		StrafeMode = MANUAL;
-		StrafeSpeed = msg->Value;
+		StrafeSpeed = makeSpeed(msg->Value);
 
 	} else if(msg->Direction == "Depth" && msg->MotionType == "Command") {
 		DepthMode = AUTOMATIC;
 		DepthCommand = msg->Value;
 	} else if (msg->Direction == "Depth" && msg->MotionType == "Manual") {
 		DepthMode = MANUAL;
-		DepthSpeed = msg->Value;
+		DepthSpeed = makeSpeed(msg->Value);
 
 	} else if(msg->Direction == "Yaw" && msg->MotionType == "Command") {
 		YawMode = AUTOMATIC;
 		YawCommand = msg->Value;
 	} else if (msg->Direction == "Yaw" && msg->MotionType == "Manual") {
 		YawMode = MANUAL;
-		YawSpeed = msg->Value;
+		YawSpeed = makeSpeed(msg->Value);
 
 
 	} else if(msg->Direction == "Pitch" && msg->MotionType == "Command") {
@@ -125,7 +133,7 @@ void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 		PitchCommand = msg->Value;
 	} else if (msg->Direction == "Pitch" && msg->MotionType == "Manual") {
 		PitchMode = MANUAL;
-		PitchSpeed = msg->Value;
+		PitchSpeed = makeSpeed(msg->Value);
 
 	} else {
 		printf("Unknown Direction: %s and Mode: %s\n", msg->Direction.c_str(), msg->MotionType.c_str());
