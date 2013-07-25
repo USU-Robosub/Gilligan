@@ -6,6 +6,7 @@ import sys
 
 from std_msgs.msg import UInt8, Float32
 from SubMotorController.msg import MotorMessage
+from Rosrun.msg import ModuleEnableMsg
 from thread import start_new_thread
 from threading import Thread
 
@@ -23,11 +24,12 @@ class QualifyTask:
 
     def __init__(self):
         self.seenKilledYet = False
-        self.controlManualPub = None;
-        self.depthPub = None;
-        self.killSwitchSub = None;
+        self.controlManualPub = None
+        self.depthPub = None
+        self.killSwitchSub = None
         self.isEnabled = False 
         self.goForwardManualMsg = MotorMessage()
+        self.moduleEnableSub = None
         
         rospy.loginfo("Hello, qualifying...")
         #Startup the node
@@ -38,7 +40,7 @@ class QualifyTask:
         self.controlManualPub = rospy.Publisher('Motor_Control', MotorMessage)
         
         #Set up Subscribers
-        self.killSwitchSub = rospy.Subscriber('Motor_State', UInt8, self.killSwitchCallback)
+        self.moduleEnableSub = rospy.Subscriber('Module_Enable', ModuleEnableMsg, self.moduleEnableCallback)
 
         self.goForwardManualMsg.mask = 3
 
@@ -47,13 +49,13 @@ class QualifyTask:
         rospy.spin()
         
         
-    def killSwitchCallback(self, motorState):
-        rospy.loginfo("Kill switch is currently {}".format(motorState.data))
+    def moduleEnableCallback(self, msg):
+        rospy.loginfo("Enabled: {}".format(msg.State))
         if not self.seenKilledYet and motorState.data == 1:
             return
         elif not self.seenKilledYet and motorState.data == 0:
             self.seenKilledYet = True
-        if motorState.data == 1:
+        if msg.Module == "Qualify" and msg.State == 1:
             if not self.isEnabled:
                 self.isEnabled = True
                 thread = Thread(target=self.diveAndDrive)
