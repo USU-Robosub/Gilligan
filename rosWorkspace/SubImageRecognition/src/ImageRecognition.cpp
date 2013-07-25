@@ -295,8 +295,8 @@ vector<Points> findBlobs(Mat& image,
 		vector<Points> allBlobs;
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-						if ((int)image.at<uint8_t>(i, j, 0) == (obj*60)) {
-								Points blob = findBlob(image, i, j, (obj*60));
+						if ((int)image.at<uint8_t>(i, j, 0) == obj) {
+								Points blob = findBlob(image, i, j, obj);
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
 								}
@@ -399,7 +399,8 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			sat+=hsv[1];
 			bright+=hsv[2];
 			++count;
-			threshold.at<uint8_t>(i,j,0)=(pTree->Classify(sample)*60);		
+			int temp=pTree->Classify(sample);
+			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*30+123) : 0);		
 		}
 	}
 	lastAvgHue=hue/count;
@@ -488,10 +489,11 @@ void genericCallback(
 								cv_bridge::CvImage temp;
 								temp.encoding = "mono8";
 								temp.image = threshold;
-								publisher.publish(temp.toImageMsg());
+								threshPublisher.publish(temp.toImageMsg());
 						}
+                        int tempenum=object.enumType;
 						vector<Points> blobs = findBlobs(
-										threshold, offset, object.maxBlobs, object.enumType);
+										threshold, offset, object.maxBlobs, (tempenum ? (tempenum*30+123) : 0));
 						// Iterate through all blobs
 						for (unsigned int j = 0; j < blobs.size(); j++) {
 								vector<BlobAnalysis> analysisList =
