@@ -1,3 +1,5 @@
 
 <Triggers>
+message /chatter string Going to surface
 /WaterSensor Int > 0 triggers transition EmergencySurface
+
