@@ -17,3 +17,4 @@ rosWorkspace/USUbConsole/src/moc_attitude_indicator.cxx
 rosWorkspace/USUbConsole/ui_SubConsole.h
 *.save
 *.cbp
+_*.py
