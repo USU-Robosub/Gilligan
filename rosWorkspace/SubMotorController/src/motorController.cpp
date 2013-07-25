@@ -29,7 +29,7 @@ MotorControllerHandler::MotorControllerHandler(ros::NodeHandle* nh, const char* 
 	: serialPort(Port) {
 		n = nh;
 
-	awaitingResponce = false;
+	awaitingResponse = false;
 	bufIndex = 0;
 	currentMessage.type = NO_MESSAGE;
 	gettimeofday(&lastQRCurTime, NULL);
@@ -100,7 +100,7 @@ void MotorControllerHandler::transmit() {
 		return;
 
 	gettimeofday(&lastSendTime, NULL);
-	awaitingResponce = true;
+	awaitingResponse = true;
 
 	if(!serialPort.IsOpen()) {
 		try {
@@ -118,7 +118,7 @@ void MotorControllerHandler::transmit() {
 			serialPort.WriteByte(currentMessage.DataC[i]);
 		}
 		serialPort.WriteByte('E');
-		awaitingResponce = true;
+		awaitingResponse = true;
 	} catch (SerialPort::NotOpen serError){
 		char temp[1000];
 		sprintf(temp, "%s error: Port not open - %s\n", name.c_str(), serError.what());
@@ -134,7 +134,7 @@ void MotorControllerHandler::transmit() {
 	}
 }
 
-void MotorControllerHandler::processResponce() {
+void MotorControllerHandler::processResponse() {
 	if(buffer[0] != 'S' || buffer[6] != 'E') {
 		//Misaligned data? throw out bytes until you get it to align correctly
 		printf("Misaligned data: ");
@@ -149,39 +149,39 @@ void MotorControllerHandler::processResponce() {
 	}
 
 	bufIndex = 0;
-	Message responce;
-	responce.type = buffer[1];
+	Message response;
+	response.type = buffer[1];
 	for(int i = 0; i < 4; i++) {
-		responce.DataC[i] = buffer[i+2];
+		response.DataC[i] = buffer[i+2];
 	}
 
-	//printf("got responce %c %c %x %x %x %x %c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6]);
-	switch (responce.type) {
+	//printf("got response %c %c %x %x %x %x %c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6]);
+	switch (response.type) {
 		case ERROR_TYPE:
 			char temp[1000];
 			sprintf(temp, "%s error from controller: %c%c%c%c\n", name.c_str(), buffer[2], buffer[3], buffer[4], buffer[5]);
 			print(string(temp));
 
-			awaitingResponce = false;
+			awaitingResponse = false;
 			break;
-		case MOTOR_RESPONCE_TYPE:
+		case MOTOR_RESPONSE_TYPE:
 			if(currentMessage.type != MOTOR_TYPE) {
 				printMessageMismatchError();
 				break;
 			}
-			if(responce.DataC[0])
-				leftSpeed = responce.DataC[0];
+			if(response.DataC[0])
+				leftSpeed = response.DataC[0];
 			else
-				leftSpeed = -responce.DataC[1];
+				leftSpeed = -response.DataC[1];
 
-			if(responce.DataC[2])
-				rightSpeed = responce.DataC[2];
+			if(response.DataC[2])
+				rightSpeed = response.DataC[2];
 			else
-				rightSpeed = -responce.DataC[3];
+				rightSpeed = -response.DataC[3];
 			currentMessage.type = NO_MESSAGE;
-			awaitingResponce = false;
+			awaitingResponse = false;
 			break;
-		case CURRENT_RESPONCE_TYPE:
+		case CURRENT_RESPONSE_TYPE:
 			if(currentMessage.type != CURRENT_TYPE) {
 				printMessageMismatchError();
 				break;
@@ -189,7 +189,7 @@ void MotorControllerHandler::processResponce() {
 
 			if(currentMessage.DataC[0] == 'L')
 			{
-				LeftCurrent = responce.DataF;
+				LeftCurrent = response.DataF;
 				SubMotorController::MotorCurrentMsg msg;
 				msg.motorName = name;
 				msg.motorPosition = "Left";
@@ -199,7 +199,7 @@ void MotorControllerHandler::processResponce() {
 			}
 			else
 			{
-				RightCurrent = responce.DataF;
+				RightCurrent = response.DataF;
 				SubMotorController::MotorCurrentMsg msg;
 				msg.motorName = name;
 				msg.motorPosition = "Right";
@@ -209,34 +209,34 @@ void MotorControllerHandler::processResponce() {
 			}
 
 			currentMessage.type = NO_MESSAGE;
-			awaitingResponce = false;
+			awaitingResponse = false;
 			break;
-		case VOLTAGE_RESPONCE_TYPE:
+		case VOLTAGE_RESPONSE_TYPE:
 			if(currentMessage.type != VOLTAGE_TYPE) {
 				printMessageMismatchError();
 				break;
 			}
-			Voltage = responce.DataF;
+			Voltage = response.DataF;
 			currentMessage.type = NO_MESSAGE;
-			awaitingResponce = false;
+			awaitingResponse = false;
 			break;
 		default:
-			printf("Unrecognized responce type: %c\n", responce.type);
+			printf("Unrecognized response type: %c\n", response.type);
 	}
 }
 
-void MotorControllerHandler::recieve() {
-	if(serialPort.IsOpen() && awaitingResponce) {
+void MotorControllerHandler::receive() {
+	if(serialPort.IsOpen() && awaitingResponse) {
 		try {
 			while(serialPort.IsDataAvailable()) {
 				unsigned char data = serialPort.ReadByte();
-//				printf("recieved byte \'%c\'\n", data);
+//				printf("received byte \'%c\'\n", data);
 				while(bufIndex == 7) {
-					processResponce();
+					processResponse();
 				}
 				buffer[bufIndex++] = data;
 				if(bufIndex == 7) {
-					processResponce();
+					processResponse();
 				}
 			}
 		} catch (...) {
@@ -263,7 +263,7 @@ bool MotorControllerHandler::TransmitTimeout() {
 }
 
 void MotorControllerHandler::CheckQuery() {
-	if(awaitingResponce)
+	if(awaitingResponse)
 		return;
 	timeval curtime;
 	gettimeofday(&curtime, NULL);
@@ -296,7 +296,7 @@ void MotorControllerHandler::CheckQuery() {
 }
 
 void MotorControllerHandler::CheckMotor() {
-	if(awaitingResponce)
+	if(awaitingResponse)
 		return;
 	timeval curTime;
 	gettimeofday(&curTime, NULL);
@@ -332,10 +332,10 @@ void MotorControllerHandler::CheckMotor() {
 }
 
 void MotorControllerHandler::spinOnce() {
-	recieve();
+	receive();
 	CheckMotor();
 	CheckQuery();
-	if(awaitingResponce && TransmitTimeout()) {
+	if(awaitingResponse && TransmitTimeout()) {
 		transmit();
 	}
 }

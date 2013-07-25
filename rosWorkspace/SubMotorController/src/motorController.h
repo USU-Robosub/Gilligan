@@ -7,11 +7,11 @@ using namespace std;
 
 const char NO_MESSAGE = ' ';
 const char MOTOR_TYPE = 'D';
-const char MOTOR_RESPONCE_TYPE = 'd';
+const char MOTOR_RESPONSE_TYPE = 'd';
 const char CURRENT_TYPE = 'C';
-const char CURRENT_RESPONCE_TYPE = 'c';
+const char CURRENT_RESPONSE_TYPE = 'c';
 const char VOLTAGE_TYPE = 'V';
-const char VOLTAGE_RESPONCE_TYPE = 'v';
+const char VOLTAGE_RESPONSE_TYPE = 'v';
 const char ERROR_TYPE = 'e';
 
 const SerialPort::BaudRate BAUD = SerialPort::BAUD_115200;
@@ -37,9 +37,9 @@ class MotorControllerHandler {
 		MotorControllerHandler(ros::NodeHandle* nh, const char* Port);
 		void sendMessage(Message);
 		void transmit();
-		void recieve();
+		void receive();
 		void spinOnce();
-		void processResponce();
+		void processResponse();
 		bool TransmitTimeout();
 		void CheckQuery();
 		void CheckMotor();
@@ -47,7 +47,7 @@ class MotorControllerHandler {
 		void print(std::string error);
 	private:
 		int MaxStep;
-		bool awaitingResponce;
+		bool awaitingResponse;
 		ros::Publisher errorOut;
 		ros::Publisher currentMotorSetting;
 		ros::Publisher motorStatus;

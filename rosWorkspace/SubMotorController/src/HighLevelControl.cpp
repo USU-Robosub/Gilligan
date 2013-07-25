@@ -21,6 +21,9 @@ const double FORWARD_DRAG_CONST = .99;
 const double STRAF_SPEED_CONST = .0000004;
 const double STRAF_DRAG_CONST = .98;
 
+const double LEFT_FWD_MULT = 0.75;
+const double TRN_MULT = 1;
+
 enum Mode {
 	MANUAL,
 	AUTOMATIC
@@ -29,83 +32,97 @@ enum Mode {
 const double Epsilon = .4;
 
 Mode ForwardMode = MANUAL;
-Mode StrafMode = MANUAL;
+Mode StrafeMode = MANUAL;
 Mode TurnMode = MANUAL;
 Mode DepthMode = MANUAL;
 Mode YawMode = MANUAL;
 Mode PitchMode = MANUAL;
 
-double ForwardSpeed = 0;
-double StrafSpeed = 0;
-double TurnSpeed = 0;
-double DepthSpeed = 0;
-double YawSpeed = 0;
-double PitchSpeed = 0;
+//Speeds come from the controllers
+int ForwardSpeed = 0;
+int StrafeSpeed = 0;
+int TurnSpeed = 0;
+int DepthSpeed = 0;
+int YawSpeed = 0;
+int PitchSpeed = 0;
 
-double ForwardOffset = 0;
-double StrafOffset = 0;
-double TurnOffset = 0;
-double DepthOffset = 0;
-double YawOffset = 0;
-double PitchOffset = 0;
+//Commands come from the tasks
+double ForwardCommand = 0;
+double StrafeCommand = 0;
+double TurnCommand = 0;
+double DepthCommand = 0;
+double YawCommand = 0;
+double PitchCommand = 0;
 
 double CurrentDepth = 0;
 double CurrentYaw = 0;
 double CurrentTurn = 0;
 double CurrentPitch = 0;
 double ForwardVelocity = 0;
-double StrafVelocity = 0;
+double StrafeVelocity = 0;
+
+//These store the last speeds sent to the motors
+int currentFwdRight = 0;
+int currentFwdLeft = 0;
+int currentTurnRear = 0;
+int currentTurnFront = 0;
+int currentDepthRear = 0;
+int currentDepthFront = 0;
 
 bool DepthInMotion = false;
-ros::Publisher* motorPub;
+
+ros::Publisher motorPublisher;
+ros::Publisher depthPublisher;
+ros::Publisher headingPublisher;
 
 void CenterOnPointCallback(Robosub::Point::ConstPtr msg) {
 	TurnMode = AUTOMATIC;
-	TurnOffset = msg->x * 60 / 940;
+	TurnCommand = msg->x * 60 / 940;
 	DepthMode = AUTOMATIC;
-	DepthOffset = (40 - msg->y) / 150.0;
+	DepthCommand = (40 - msg->y) / 150.0;
 }
-
+//Changed the previous word of Offset to Command
+//Changed the name Straf to Strafe EVERYWHERE
 void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
-	if(msg->Direction == "Forward" && msg->MotionType == "Offset") {
+	if(msg->Direction == "Forward" && msg->MotionType == "Command") {
 		ForwardMode = AUTOMATIC;
-		ForwardOffset = msg->Value;
+		ForwardCommand = msg->Value;
 	} else if (msg->Direction == "Forward" && msg->MotionType == "Manual") {
 		ForwardMode = MANUAL;
 		ForwardSpeed = msg->Value;
 
-	} else if(msg->Direction == "Turn" && msg->MotionType == "Offset") {
+	} else if(msg->Direction == "Turn" && msg->MotionType == "Command") {
 		TurnMode = AUTOMATIC;
-		TurnOffset = msg->Value;
+		TurnCommand = msg->Value;
 	} else if (msg->Direction == "Turn" && msg->MotionType == "Manual") {
 		TurnMode = MANUAL;
 		TurnSpeed = msg->Value;
 
-	} else if(msg->Direction == "Straf" && msg->MotionType == "Offset") {
-		StrafMode = AUTOMATIC;
-		StrafOffset = msg->Value;
-	} else if (msg->Direction == "Straf" && msg->MotionType == "Manual") {
-		StrafMode = MANUAL;
-		StrafSpeed = msg->Value;
+	} else if(msg->Direction == "Strafe" && msg->MotionType == "Command") {
+		StrafeMode = AUTOMATIC;
+		StrafeCommand = msg->Value;
+	} else if (msg->Direction == "Strafe" && msg->MotionType == "Manual") {
+		StrafeMode = MANUAL;
+		StrafeSpeed = msg->Value;
 
-	} else if(msg->Direction == "Depth" && msg->MotionType == "Offset") {
+	} else if(msg->Direction == "Depth" && msg->MotionType == "Command") {
 		DepthMode = AUTOMATIC;
-		DepthOffset = msg->Value;
+		DepthCommand = msg->Value;
 	} else if (msg->Direction == "Depth" && msg->MotionType == "Manual") {
 		DepthMode = MANUAL;
 		DepthSpeed = msg->Value;
 
-	} else if(msg->Direction == "Yaw" && msg->MotionType == "Offset") {
+	} else if(msg->Direction == "Yaw" && msg->MotionType == "Command") {
 		YawMode = AUTOMATIC;
-		YawOffset = msg->Value;
+		YawCommand = msg->Value;
 	} else if (msg->Direction == "Yaw" && msg->MotionType == "Manual") {
 		YawMode = MANUAL;
 		YawSpeed = msg->Value;
 
 
-	} else if(msg->Direction == "Pitch" && msg->MotionType == "Offset") {
+	} else if(msg->Direction == "Pitch" && msg->MotionType == "Command") {
 		PitchMode = AUTOMATIC;
-		PitchOffset = msg->Value;
+		PitchCommand = msg->Value;
 	} else if (msg->Direction == "Pitch" && msg->MotionType == "Manual") {
 		PitchMode = MANUAL;
 		PitchSpeed = msg->Value;
@@ -124,13 +141,13 @@ void sendMotorMessage(unsigned int mask, int FR, int FL, int TR, int TF, int DR,
 	msg.RearDepth = DR;
 	msg.FrontTurn = TF;
 	msg.RearTurn = TR;
-	motorPub->publish(msg);
+	motorPublisher.publish(msg);
 }
-
+/*
 void updateDepth(std_msgs::Float32::ConstPtr msg) {
-	DepthOffset = DepthOffset + CurrentDepth - msg->data;
+	DepthCommand = DepthCommand + CurrentDepth - msg->data;
 	CurrentDepth = msg->data;
-//	printf("DepthOffset = %f\n", DepthOffset);
+//	printf("DepthCommand = %f\n", DepthCommand);
 }
 
 void updateAttitude(const std_msgs::Float32MultiArray::ConstPtr msg) {
@@ -140,14 +157,14 @@ void updateAttitude(const std_msgs::Float32MultiArray::ConstPtr msg) {
     //YAW
     //Updates the yaw offset with the old value and the new value
 	//              INPUT     + (           ERROR          )
-	YawOffset = YawOffset + CurrentYaw - msg->data[2]; //Yaw is now in [2]
-	TurnOffset = TurnOffset + CurrentYaw - msg->data[2];
+	YawCommand = YawCommand + CurrentYaw - msg->data[2]; //Yaw is now in [2]
+	TurnCommand = msg->data[2];
 	CurrentYaw = msg->data[2];
 
     //PITCH
     //Updates the yaw offset with the old value and the new value
     //              INPUT     + (           ERROR          )
-	PitchOffset = PitchOffset + CurrentPitch - msg->data[1];
+	PitchCommand = PitchCommand + CurrentPitch - msg->data[1];
 	CurrentPitch = msg->data[1];
 //	printf("Turn Message = %lf\n", msg->data[0]);
 }
@@ -160,13 +177,14 @@ void UpdateForwardVelocity() {
 	ForwardVelocity *= FORWARD_DRAG_CONST;
 }
 
-void UpdateStrafVelocity() {
+void UpdateStrafeVelocity() {
     //Seems to update a velocity memory by increasing based ont the speed constant
     //and limiting using the drag constant
-	StrafVelocity += StrafSpeed * STRAF_SPEED_CONST;
-	StrafVelocity *= STRAF_DRAG_CONST;
+	StrafeVelocity += StrafeSpeed * STRAF_SPEED_CONST;
+	StrafeVelocity *= STRAF_DRAG_CONST;
 }
 
+*/
 int sanitize(int speed) {
 
 	if(speed > 0 && speed < 60)
@@ -180,117 +198,154 @@ int sanitize(int speed) {
 	return speed;
 }
 
+int makeSpeed(float percent)
+{
+    //The smallest output is 60
+    //The largets output is 255
+
+    //map from 100 to 255 and from 60 to 1 percent
+    if (fabs(percent)<0.01)
+        return 0;
+    return (percent - .01) * (255-60) / (1-.05) + 60;
+    //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 
 
-int CalcDepth() {
-	if(DepthMode == AUTOMATIC) {
-		double speed = DepthOffset / 1.5;
-		return sanitize(speed * 255.0);
-	} else {
-		return DepthSpeed;
-	}
 }
 
-int CalcTurn() {
+void setDepth(float input){
+    std_msgs::Float32 msg;
+    msg.data = input;
+    depthPublisher.publish(msg);
+}
+
+void setHeading(float input){
+    std_msgs::Float32 msg;
+    msg.data = input;
+    headingPublisher.publish(msg);
+}
+
+
+void CalcTurn() {
+    //The input on AUTOMATIC is a heading in degrees
+    //The heading needs be converted to yaw degrees.
+
+    //Zero yaw starts when the IMU is powered, and
+    //with drift, it means heading of zero may change
+
+    //If AUTOMATIC, it sends the command to the Heading Controller
 	if(TurnMode == AUTOMATIC) {
-        //Update the current turning speed using only 12.5% of the given value
-		TurnSpeed = sanitize(TurnOffset / 8.0 * 255)/2;
-		printf("Offset = %f Speed = %f\n", TurnOffset, TurnSpeed);
+        //Prepare and set Target_Heading and let the
+		//controller take care of it
+        setHeading(TurnCommand); //This sets TurnSpeed
+		printf("Command = %f Speed = %i\n", TurnCommand, TurnSpeed);
 	}
-	return TurnSpeed;
 }
 
-int CalcStraf() {
-	if(StrafMode == AUTOMATIC) {
-		StrafOffset -= StrafVelocity;
-		StrafSpeed = sanitize(StrafOffset / .5 * 255.0);
-	}
-	return StrafSpeed;
+void CalcStrafe() {
+    //Convert the percentage on AUTOMATIC to a speed
+    if(StrafeMode == AUTOMATIC) {
+        //Convert from percentage to speed
+        StrafeSpeed = makeSpeed(StrafeCommand);
+    }
 }
 
-int CalcPitch() {
+void CalcDepth() {
+	if(DepthMode == AUTOMATIC) {
+		//Prepare and set Target_Depth and let the
+		//controller take care of it
+        setDepth(DepthCommand);
+	}
+}
+
+void CalcPitch() {
 	if(PitchMode == AUTOMATIC) {
-		double speed = PitchOffset / 10;
-		return sanitize(speed * 255.0);
-	} else {
-		return PitchSpeed;
+		PitchSpeed = 0;
 	}
 }
 
 
-
+//Changed the AUTOMATIC behavior to accept a percentage
+//Included a bias of 75% for the left thruster to minimize drift
 void ManageForwardThrusters() {
-	static int currentValueRight;
-	static int currentValueLeft;
+    //If AUTOMATIC, it converts from a percentage to a speed
+    //otherwise it uses the value sent from Manual
 
-	UpdateForwardVelocity();
 	if(ForwardMode == AUTOMATIC) {
-		ForwardOffset -= ForwardVelocity;
-//		printf("forward offset = %f\n", ForwardOffset);
-//		printf("forward velocity = %f\n", ForwardVelocity);
-		double speed = ForwardOffset / 1.5;
-		ForwardSpeed = sanitize(speed * 255.0);
+
+		ForwardSpeed = makeSpeed(ForwardCommand);
 	}
-	if(currentValueLeft != ForwardSpeed ||
-			currentValueRight != ForwardSpeed) {
-		sendMotorMessage(LEFT_DRIVE_BIT | RIGHT_DRIVE_BIT,
-				ForwardSpeed, ForwardSpeed, 0, 0, 0, 0);
-		currentValueRight = ForwardSpeed;
-		currentValueLeft = ForwardSpeed;
+
+    ForwardSpeed = sanitize(ForwardSpeed);
+
+	if(currentFwdLeft != ForwardSpeed ||
+			currentFwdRight != ForwardSpeed) {
+
+		currentFwdLeft = LEFT_FWD_MULT*ForwardSpeed;
+		currentFwdRight = ForwardSpeed;
+		sendMotorMessage( RIGHT_DRIVE_BIT | LEFT_DRIVE_BIT,
+				currentFwdRight, currentFwdLeft, 0, 0, 0, 0);
+
 	}
 }
 
 void ManageTurnThrusters() {
-	static int currentValueRear;
-	static int currentValueFront;
+    //This two take the commmands (AUTOMATIC mode) and convert them to speed values
+	//Turning command
+    CalcTurn();
 
-	int TurnThrust = CalcTurn();
-	int StrafThrust = CalcStraf();
+	//Strafing command
+	CalcStrafe();
 
-	int RearThrust = TurnThrust + StrafThrust;
-	int FrontThrust = TurnThrust - StrafThrust;
-
-	UpdateStrafVelocity();
+	int RearThrust = TurnSpeed + StrafeSpeed;
+	int FrontThrust = TurnSpeed - StrafeSpeed;
 
 	RearThrust = sanitize(RearThrust);
 	FrontThrust = sanitize(FrontThrust);
-	if(RearThrust != currentValueRear ||
-	   FrontThrust != currentValueFront) {
+
+	if(RearThrust != currentTurnRear ||
+	   FrontThrust != currentTurnFront) {
+
+        //Include multipliers to compensate for differences in the motor
+        currentTurnRear = RearThrust;
+		currentTurnFront = FrontThrust;
 
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
-				0, 0, RearThrust, FrontThrust, 0, 0);
-		currentValueRear = RearThrust;
-		currentValueFront = FrontThrust;
+				0, 0, currentTurnRear, currentTurnFront, 0, 0);
+
 	}
 }
 
 void ManageDepthThrusters() {
-	static int currentValueRear;
-	static int currentValueFront;
 
-	int DepthThrust = CalcDepth();
-	int PitchThrust = CalcPitch();
+	CalcDepth();
+	CalcPitch(); //Should be zero until the controller is written
 
-	int FrontThrust = DepthThrust + PitchThrust;
-	int RearThrust = DepthThrust - PitchThrust;
+	int FrontThrust = DepthSpeed + PitchSpeed;
+	int RearThrust = DepthSpeed - PitchSpeed;
 
-	if(true || RearThrust != currentValueRear ||
-			FrontThrust != currentValueFront) {
-		//printf("Depth %d %d\n", RearThrust, FrontThrust);
+	if(true || RearThrust != currentDepthRear ||
+			FrontThrust != currentDepthFront) {
+
+        //Include multipliers to compensate for differences in the motors
+		currentDepthRear = RearThrust;
+		currentDepthFront = FrontThrust;
+
 		sendMotorMessage(REAR_DEPTH_BIT | FRONT_DEPTH_BIT,
 				0, 0, 0, 0, RearThrust, FrontThrust);
-		currentValueRear = RearThrust;
-		currentValueFront = FrontThrust;
+
 	}
 }
 
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "HighLevelControl");
 	ros::NodeHandle nh;
-	ros::Publisher motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Control", 1);
-	motorPub = &motorPublisher;
-	ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
-	ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
+
+	motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Control", 1);//Should this be 10?
+	depthPublisher = nh.advertise<std_msgs::Float32>("Target_Depth", 10);
+	headingPublisher = nh.advertise<std_msgs::Float32>("Target_Heading", 10);
+
+	//ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
+	//ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
 	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 10, commandCallback);
 	ros::Subscriber PointSub = nh.subscribe("Center_On_Point", 10, CenterOnPointCallback);
 
@@ -298,6 +353,10 @@ int main(int argc, char** argv) {
 		ManageForwardThrusters();
 		ManageTurnThrusters();
 		ManageDepthThrusters();
+
+		//Could just prepare the currents on the Manage* and
+        //send one motor message.
+
 		ros::spinOnce();
 		usleep(10000);
 	}
