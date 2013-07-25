@@ -147,6 +147,7 @@ cv_bridge::CvImage forwardRotated, downwardRotated;
 Mat forwardSegmented, downwardSegmented;
 Mat forwardThreshold, downwardThreshold;
 DLT* pTree;
+int lastAvgHue=0, lastAvgSat=0, lastAvgBright=0;
 
 // FUNCTIONS
 
@@ -174,39 +175,28 @@ void initObjects() {
 				ANNOTATION_RADIUS,
 				2
 		));
-		objects.push_back(Object(
-				"buoys/green",
-                1,
-				CAMERA_FORWARD,
-				ANALYSIS_RECTANGLE,
-				1,
-				CONFIDENCE_CIRCLE,
-				Scalar(0, 255, 0), // Green
-				ANNOTATION_RADIUS,
-				3
-		));
-		objects.push_back(Object(
-				"buoys/yellow",
-                1,
-				CAMERA_FORWARD,
-				ANALYSIS_RECTANGLE,
-				1,
-				CONFIDENCE_CIRCLE,
-				Scalar(0, 255, 255), // Yellow
-				ANNOTATION_RADIUS,
-				4
-		));
-		objects.push_back(Object(
-				"obstacle_course",
-                1,
-				CAMERA_FORWARD,
-				ANALYSIS_RECTANGLE,
-				3,
-				CONFIDENCE_RECTANGLE,
-				Scalar(255, 0, 0), // Blue
-				ANNOTATION_ROTATION,
-				6
-		));
+		// objects.push_back(Object(
+		// 		"buoys/green",
+  //               1,
+		// 		CAMERA_FORWARD,
+		// 		ANALYSIS_RECTANGLE,
+		// 		1,
+		// 		CONFIDENCE_CIRCLE,
+		// 		Scalar(0, 255, 0), // Green
+		// 		ANNOTATION_RADIUS,
+		// 		3
+		// ));
+		// objects.push_back(Object(
+		// 		"buoys/yellow",
+  //               1,
+		// 		CAMERA_FORWARD,
+		// 		ANALYSIS_RECTANGLE,
+		// 		1,
+		// 		CONFIDENCE_CIRCLE,
+		// 		Scalar(0, 255, 255), // Yellow
+		// 		ANNOTATION_RADIUS,
+		// 		4
+		// ));
 		objects.push_back(Object(
 				"paths",
                 1,
@@ -216,19 +206,30 @@ void initObjects() {
 				CONFIDENCE_RECTANGLE,
 				Scalar(0, 128, 255), // Orange
 				ANNOTATION_ROTATION,
-				5
+				3
 		));
 		objects.push_back(Object(
-				"obstacle_course_downward",
+				"driving",
                 1,
-				CAMERA_DOWNWARD,
+				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
-				1,
+				3,
 				CONFIDENCE_RECTANGLE,
 				Scalar(255, 0, 0), // Blue
 				ANNOTATION_ROTATION,
-				7
+				4
 		));
+		// objects.push_back(Object(
+		// 		"red led buoy",
+  //               1,
+		// 		CAMERA_FORWARD,
+		// 		ANALYSIS_RECTANGLE,
+		// 		1,
+		// 		CONFIDENCE_RECTANGLE,
+		// 		Scalar(255, 0, 0), // Blue
+		// 		ANNOTATION_ROTATION,
+		// 		7
+		// ));
 }
 
 /*void normalizeValue(Mat& image, Mat& temp) {
@@ -379,7 +380,8 @@ void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
 
 //assuming i=y and j=x
 void objInRange(const Mat& segmented, Mat& threshold, const int offset)
-{	if (threshold.total() == 0) {
+{	int count=0, hue=0, sat=0, bright=0;
+	if (threshold.total() == 0) {
 		threshold.create(segmented.rows, segmented.cols, CV_8U);
 	}
 	for (int i = offset; i < threshold.rows; i += SAMPLE_SIZE) {
@@ -387,14 +389,22 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			Sample sample;
 			Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
 			sample.type=0;
-			sample.iAttr[0]=j;
-			sample.iAttr[1]=i;
-			sample.iAttr[2]=hsv[0];
-			sample.iAttr[3]=hsv[1];
-			sample.iAttr[4]=hsv[2];
+			sample.iAttr[0]=lastAvgHue;
+			sample.iAttr[1]=lastAvgSat;
+			sample.iAttr[2]=lastAvgBright;
+			sample.iAttr[3]=hsv[0];
+			sample.iAttr[4]=hsv[1];
+			sample.iAttr[5]=hsv[2];
+			hue+=hsv[0];
+			sat+=hsv[1];
+			bright+=hsv[2];
+			++count;
 			threshold.at<uint8_t>(i,j,0)=pTree->Classify(sample);		
 		}
 	}
+	lastAvgHue=hue/count;
+	lastAvgSat=sat/count;
+	lastAvgBright=bright/count;
 }
 
 bool inCircle(BlobAnalysis analysis, BlobTrack track)

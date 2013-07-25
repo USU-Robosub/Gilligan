@@ -14,13 +14,13 @@ using namespace std;
  * Helper functions                    *
  ***************************************/
 
-double CalcEntropy(Sample* data, int count) 
+double CalcEntropy(Sample* data, int count)
 {
 	vector<int> counts;
-	for(int i=0;i<count;++i) 
+	for(int i=0;i<count;++i)
 	{
 		Sample s = data[i];
-		if(s.type >= counts.size()) 
+		if(s.type >= counts.size())
 		{
 			counts.resize(s.type + 1);
 		}
@@ -35,16 +35,16 @@ double CalcEntropy(Sample* data, int count)
 	return entropy;
 }
 
-double CalcEntropy(const Sample* data, int count, int splitId, int splitVal) 
+double CalcEntropy(const Sample* data, int count, int splitId, int splitVal)
 {
 	vector<int> lowCount, highCount;
 	int lowSize=0, highSize=0;
-	for(int i=0;i<count;++i) 
+	for(int i=0;i<count;++i)
 	{
 		Sample s = data[i];
 		if(s.iAttr[splitId]>splitVal)
 		{
-			if(s.type >= highCount.size()) 
+			if(s.type >= highCount.size())
 			{
 				highCount.resize(s.type + 1);
 			}
@@ -53,7 +53,7 @@ double CalcEntropy(const Sample* data, int count, int splitId, int splitVal)
 		}
 		else
 		{
-			if(s.type >= lowCount.size()) 
+			if(s.type >= lowCount.size())
 			{
 				lowCount.resize(s.type + 1);
 			}
@@ -62,7 +62,7 @@ double CalcEntropy(const Sample* data, int count, int splitId, int splitVal)
 		}
 	}
 	double highEntropy = 0, lowEntropy=0;
-	for(int i = 0; i < highCount.size(); i++) 
+	for(int i = 0; i < highCount.size(); i++)
 	{
 		double prob = highCount[i] / (double)count;
 		if(prob > 0)
@@ -81,11 +81,11 @@ double CalcEntropy(const Sample* data, int count, int splitId, int splitVal)
 	return highEntropy*highSize/(double)count + lowEntropy*lowSize/(double)count;
 }
 
-Sample* splitOn(const Sample* data, int count, int id, int value, int &retSize, bool greater) 
+Sample* splitOn(const Sample* data, int count, int id, int value, int &retSize, bool greater)
 {
 	Sample* temp, *ret=new Sample[count];
 	retSize=0;
-	for(int i=0;i<count;++i) 
+	for(int i=0;i<count;++i)
 	{
 		Sample s = data[i];
 		if(s.iAttr[id] <= value ^ greater) //xor
@@ -105,30 +105,30 @@ This getBestSplit does not use async, it is serial
 */
 
 /*
-void getBestSplit(const Sample* data, int attr, int count, int& id, int& value) 
+void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 {
 	double lowestEntropyMeasure = 1000000.0;
 	id = 0;
 	value = 0;
 	//Test each split
-	for(int i = 0; i < attr; i++) 
+	for(int i = 0; i < attr; i++)
 	{
 		int biggestValue = 0;
-		for(int j=0;j<count;++j) 
+		for(int j=0;j<count;++j)
 		{
 			if(biggestValue < data[j].iAttr[i])
 			{
 				biggestValue = data[j].iAttr[i];
 			}
 		}
-		for(int curValue = 0; curValue < biggestValue; ++curValue) 
+		for(int curValue = 0; curValue < biggestValue; ++curValue)
 		{
 			int highSideSize=0, lowSideSize=0;
 			Sample* highSide = splitOn(data, count, i, curValue, highSideSize, true);
 			Sample* lowSide = splitOn(data, count, i, curValue, lowSideSize, false);
 			double entropy = CalcEntropy(highSide, highSideSize)*highSideSize/(double)count +
 				             CalcEntropy(lowSide, lowSideSize)*lowSideSize/(double)count;
-			if(entropy < lowestEntropyMeasure) 
+			if(entropy < lowestEntropyMeasure)
 			{
 				lowestEntropyMeasure = entropy;
 				id = i;
@@ -142,14 +142,14 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 */
 
 
-void getBestSplit(const Sample* data, int attr, int count, int& id, int& value) 
+void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 {
 	double lowestEntropyMeasure = 1000000.0;
 	id = 0;
 	value = 0;
 	//Test each split
 	vector<future<tuple<float, int, int>>> futs;
-	for(int i = 0; i < attr; i++) 
+	for(int i = 0; i < attr; i++)
 	{
 		futs.push_back(async(launch::async,
 			[=]()->tuple<float, int, int>
@@ -157,7 +157,7 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 				vector<future<tuple<float, int, int>>> subFuts;
 				//printf("Starting task %d of %d\n", i+1, attr);
 				int biggestValue = 0;
-				for(int j=0;j<count;++j) 
+				for(int j=0;j<count;++j)
 				{
 					if(biggestValue < data[j].iAttr[i])
 					{
@@ -171,7 +171,7 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 						{
 							double lowestEnt=1000000;
 							tuple<float, int, int> ret;
-							for(int curValue = ((j*biggestValue)/3); curValue < (((j+1)*biggestValue)/3); ++curValue) 
+							for(int curValue = ((j*biggestValue)/3); curValue < (((j+1)*biggestValue)/3); ++curValue)
 							{
 								//printf("Starting test %d of %d (task %d of %d)\n", curValue+1, biggestValue, i+1, attr);
 								int highSideSize=0, lowSideSize=0;
@@ -194,7 +194,7 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 					if(get<0>(tup) < ent)
 					{
 						ent=get<0>(tup);
-						ret=make_tuple(get<0>(tup), get<1>(tup), get<2>(tup));	
+						ret=make_tuple(get<0>(tup), get<1>(tup), get<2>(tup));
 					}
 				}
 				//printf("Done task %d of %d\n", i+1, attr);
@@ -217,21 +217,21 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 
 
 /*
-void getBestSplit(const Sample* data, int attr, int count, int& id, int& value) 
+void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 {
 	double lowestEntropyMeasure = 1000000.0;
 	id = 0;
 	value = 0;
 	//Test each split
 	vector<future<tuple<float, int, int>>> futs;
-	for(int i = 0; i < attr; i++) 
+	for(int i = 0; i < attr; i++)
 	{
 		futs.push_back(async(launch::async,
 			[=]()->tuple<float, int, int>
 			{
 				printf("Starting task %d of %d\n", i+1, attr);
 				int biggestValue = 0;
-				for(int j=0;j<count;++j) 
+				for(int j=0;j<count;++j)
 				{
 					if(biggestValue < data[j].iAttr[i])
 					{
@@ -240,7 +240,7 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 				}
 				double lowestEnt=1000000;
 				tuple<float, int, int> ret;
-				for(int curValue = 0; curValue < biggestValue; ++curValue) 
+				for(int curValue = 0; curValue < biggestValue; ++curValue)
 				{
 					printf("Starting test %d of %d (task %d of %d)\n", curValue+1, biggestValue, i+1, attr);
 					int highSideSize=0, lowSideSize=0;
@@ -277,17 +277,17 @@ void getBestSplit(const Sample* data, int attr, int count, int& id, int& value)
 /***************************************
  * Constructor                         *
  ***************************************/
-DLT::DLT(Sample* data, int count, int attr, int depth) 
+DLT::DLT(Sample* data, int count, int attr, int depth)
 {
 	double Entropy = CalcEntropy(data, count);
-	if(depth <= 0 || Entropy < EPSILON) 
+	if(depth <= 0 || Entropy < EPSILON)
 	{
 		printf("\nConstructing leaf node at height %d\n", depth);
 		vector<int> counts;
-		for(int i=0;i<count;++i) 
+		for(int i=0;i<count;++i)
 		{
 			Sample s = data[i];
-			if(s.type >= counts.size()) 
+			if(s.type >= counts.size())
 			{
 				counts.resize(s.type + 1);
 			}
@@ -297,7 +297,7 @@ DLT::DLT(Sample* data, int count, int attr, int depth)
 		lowSide = NULL;
 		highSide = NULL;
 		int max_count = 0;
-		for(int i = 0; i < counts.size(); ++i) 
+		for(int i = 0; i < counts.size(); ++i)
 		{
 			if(counts[i] > counts[max_count])
 				max_count = i;
@@ -305,8 +305,8 @@ DLT::DLT(Sample* data, int count, int attr, int depth)
 		splitVal = max_count;
 		delete data;
 		return;
-	} 
-	else 
+	}
+	else
 	{
 		printf("\nConstructing node at height %d\n", depth);
 		int highSideSize, lowSideSize;
