@@ -5,6 +5,7 @@
 #include "Robosub/HighLevelControl.h"
 #include <sys/time.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define OFF 0
 #define ON 1
@@ -49,7 +50,7 @@ So
 //output must be biased to go from 60 to 255
 float KP = .1;
 
-float MAX = 0.4; //This might saturate at a lot less than this
+float MAX = 0.5; //This might saturate at a lot less than this
 bool MODE = ON;
 
 float targetYaw = 0;
@@ -63,7 +64,7 @@ ros::Publisher motorControl;
 void mTargetHeadingCallback(const std_msgs::Float32::ConstPtr& msg) {
     //The input is an offset from the current direction
 
-	targetYaw = currYaw + msg->data;
+	targetYaw = fmod((currYaw + msg->data), 180);
 	printf("setting target heading to %f\n", targetYaw);
 }
 
@@ -82,19 +83,6 @@ void mEnabledCallback(const Robosub::ModuleEnableMsg::ConstPtr& msg) {
 		MODE = msg->State;
 }
 
-int makeSpeed(float percent)
-{
-    //The smallest output is 60
-    //The largets output is 255
-
-    //map from 100 to 255 and from 60 to 1 percent
-    if (fabs(percent)<0.01)
-        return 0;
-    return (percent - .01) * (255-60) / (1-.05) + 60;
-    //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-
-
-}
 
 void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
     if(MODE == OFF)
@@ -116,7 +104,7 @@ void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
         speed = -MAX;
 
 
-	setTurnSpeed(makeSpeed(speed));
+	setTurnSpeed(speed);
 }
 
 
