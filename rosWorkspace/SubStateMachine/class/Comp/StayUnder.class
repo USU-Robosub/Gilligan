@@ -1,3 +1,0 @@
-
-<Triggers>
-/SubDepth float < 2.0 triggers message /High_Level_Motion move Depth 2.0

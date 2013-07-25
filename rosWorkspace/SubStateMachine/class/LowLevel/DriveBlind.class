@@ -1,8 +1,0 @@
-
-<Inherits>
-CompRun
-<Setup>
-message /High_Level_Motion move Turn 45
-message /High_Level_Motion move Forward 100
-<Timers>
-After 100 s do transition Surface

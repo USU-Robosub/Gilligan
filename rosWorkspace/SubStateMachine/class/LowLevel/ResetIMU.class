@@ -1,8 +1,0 @@
-
-<Inherits>
-Safety
-<Setup>
-execute killall SubAttitudeResolver
-<Timers>
-After 1 s do execute rosrun SubAttitudeResolver SubAttitudeResolver /dev/controller_Imu
-After 5 s do transition StartComp

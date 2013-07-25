@@ -1,4 +1,0 @@
-<Inherits>
-PathTask
-<Triggers>
-/Task_Completion string any message triggers transition FollowPath

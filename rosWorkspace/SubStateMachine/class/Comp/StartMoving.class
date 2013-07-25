@@ -1,7 +1,0 @@
-
-<Inherits>
-CompRun
-<Setup>
-message /High_Level_Motion move Forward 10
-<Timers>
-After 5 s do transition GateTask

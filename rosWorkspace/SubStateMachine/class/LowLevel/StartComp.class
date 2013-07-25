@@ -1,8 +1,0 @@
-
-<Inherits>
-Safety
-<Setup>
-message /High_Level_Motion move Depth 3
-message /High_Level_Motion move Turn 0
-<Timers>
-After 5 s do transition DriveAtGate
