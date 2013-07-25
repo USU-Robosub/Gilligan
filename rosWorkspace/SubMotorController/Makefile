@@ -36,10 +36,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubMotorController
+CMAKE_SOURCE_DIR = /home/ij/Projects/RoboSub/soft/usu-robosub/rosWorkspace/SubMotorController
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubMotorController
+CMAKE_BINARY_DIR = /home/ij/Projects/RoboSub/soft/usu-robosub/rosWorkspace/SubMotorController
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -66,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubMotorController/CMakeFiles /opt/robosub/rosWorkspace/SubMotorController/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ij/Projects/RoboSub/soft/usu-robosub/rosWorkspace/SubMotorController/CMakeFiles /home/ij/Projects/RoboSub/soft/usu-robosub/rosWorkspace/SubMotorController/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubMotorController/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ij/Projects/RoboSub/soft/usu-robosub/rosWorkspace/SubMotorController/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

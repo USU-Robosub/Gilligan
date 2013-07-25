@@ -152,7 +152,7 @@ private:
       MAXIMUM_DEPTH = 14
    };
 
-   void sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn);
+   void sendMotorSpeedMsg(unsigned char motorMask, float leftDrive, float rightDrive, float frontDepth, float rearDepth, float frontTurn, float rearTurn);
    std::string getSelectedAlgorithm(void);
    void filterData(double data, double* buf, double& result);
 

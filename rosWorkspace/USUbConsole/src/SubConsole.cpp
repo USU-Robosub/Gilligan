@@ -13,7 +13,8 @@
 #include <sys/time.h>
 
 #include "SubConsole.hpp"
-#include "USUbConsole/MotorMessage.h"
+//#include "USUbConsole/MotorMessage.h"
+#include "Robosub/HighLevelControl.h"
 #include "SubImageRecognition/UpdateAlgorithm.h"
 #include "SubImageRecognition/ListAlgorithms.h"
 #include "SubImageRecognition/ImgRecThreshold.h"
@@ -148,7 +149,8 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pUi->rightCameraImageThumb->hide();
    m_pUi->downCameraImageThumb->hide();
 
-   m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
+   //m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
+   m_motorDriverPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 100);
    m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
    m_thresholdBoxPublisher = m_nodeHandle.advertise<SubImageRecognition::ImgRecThreshold>("Threshold_Box", 100);
    m_imageRecService = m_nodeHandle.serviceClient<SubImageRecognition::UpdateAlgorithm>("img_rec/update_algorithm");
@@ -171,7 +173,7 @@ SubConsole::SubConsole(QWidget* pParent)
 
    m_targetDepthSubscriber = m_nodeHandle.subscribe("Target_Depth",100, &SubConsole::targetDepthCallback,this);
    m_motorCurrentSubscriber = m_nodeHandle.subscribe("Motor_Current",100, &SubConsole::motorCurrentCallback,this);
-   m_camThresholdSubscriber = m_nodeHandle.subscribe("forward_camera/threshold", 100, &SubConsole::cameraThresholdCallback, this);
+   m_camThresholdSubscriber = m_nodeHandle.subscribe("forward_camera/threshold/compressed", 100, &SubConsole::cameraThresholdCallback, this);
    printf("Finished ROS topic publish and subscription initialization\n");
 
 
@@ -315,12 +317,12 @@ void SubConsole::readJoystickInput(void){
    int currentThrottleAxis = m_pJoystick->getAxis(3);
 
    unsigned char motorMask = 0;
-   short leftDriveValue = 0;
-   short rightDriveValue = 0;
-   short frontTurnValue = 0;
-   short rearTurnValue = 0;
-   short frontDepthValue = 0;
-   short rearDepthValue = 0;
+   float leftDriveValue = 0;
+   float rightDriveValue = 0;
+   float frontTurnValue = 0;
+   float rearTurnValue = 0;
+   float frontDepthValue = 0;
+   float rearDepthValue = 0;
 
    if (m_pJoystick->getButton(2))
    {
@@ -346,16 +348,16 @@ void SubConsole::readJoystickInput(void){
    if(m_lastXAxisValue != currentXAxis)   //Strafe
    {
        //Set the horizontal thrusters to opposite thrust to strafe
-       int turnSpeed = 255 * (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
+       float turnSpeed = (abs(currentXAxis) / (double)JOYSTICK_MAX_VALUE);
 
        if(currentXAxis > 0)  //Strafe right
        {
           frontTurnValue = turnSpeed * -1;
-          rearTurnValue = turnSpeed * 0.93;
+          rearTurnValue = turnSpeed;//* 0.93;
        }
        else if(currentXAxis < 0)//Strafe left
        {
-          frontTurnValue = turnSpeed * 0.85;
+          frontTurnValue = turnSpeed;// * 0.85;
           rearTurnValue = turnSpeed * -1;
        }
 
@@ -367,7 +369,7 @@ void SubConsole::readJoystickInput(void){
    if(m_lastYAxisValue != currentYAxis)   //Move forward/backwards
    {
       //Set the forward/reverse thrusters to same value to move forwards or backwards
-      int thrusterSpeed = 255 * (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
+      float thrusterSpeed = (abs(currentYAxis) / (double)JOYSTICK_MAX_VALUE);
 
       //A neg number means the stick is pushed forward, if positive we actually want reverse
       if(currentYAxis < 0)
@@ -389,12 +391,12 @@ void SubConsole::readJoystickInput(void){
    if(m_lastTwistValue != currentTwistAxis)  //Turn
    {
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
-      int thrusterSpeed = 255 * (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
+      float thrusterSpeed = (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
       if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
       {
-          frontTurnValue = thrusterSpeed * 0.85;
-          rearTurnValue = thrusterSpeed * 0.93;
+          frontTurnValue = thrusterSpeed;// * 0.85;
+          rearTurnValue = thrusterSpeed;// * 0.93;
 
       }
       else if(currentTwistAxis < 0)    //Turn left, set both thrusters to forward
@@ -429,7 +431,7 @@ void SubConsole::readJoystickInput(void){
       else
       {
           //Set the vertical thrusters to the same value to control depth
-          int thrusterSpeed = 255 * (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
+          float thrusterSpeed = (abs(currentThrottleAxis) / (double)JOYSTICK_MAX_VALUE);
 
           if(currentThrottleAxis < 0)
           {
@@ -451,6 +453,7 @@ void SubConsole::readJoystickInput(void){
    if(motorMask != 0x0)
    {
      sendMotorSpeedMsg(motorMask, leftDriveValue, rightDriveValue, frontDepthValue, rearDepthValue, frontTurnValue, rearTurnValue);
+     printf("Motot: F:%f, D:%f, T:%f", leftDriveValue, frontDepthValue, frontTurnValue);
    }
 }
 
@@ -526,19 +529,44 @@ void SubConsole::motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr &
  *
  * @param motorMask Bit mask with the motors to drive at the specified speed
  **/
-void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, short leftDrive, short rightDrive, short frontDepth, short rearDepth, short frontTurn, short rearTurn)
+void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, float leftDrive, float rightDrive, float frontDepth, float rearDepth, float frontTurn, float rearTurn)
 {
-   USUbConsole::MotorMessage motorMsg;
+    Robosub::HighLevelControl motorMsg;
+    if( motorMask & (LEFT_DRIVE_BIT|RIGHT_DRIVE_BIT) ){
+            //Send Forward
+            motorMsg.Direction = "Forward";
+            motorMsg.MotionType = "Manual";
+            motorMsg.Value = leftDrive;
 
-   motorMsg.mask = motorMask;
-   motorMsg.Left = leftDrive;
-   motorMsg.Right = rightDrive;
-   motorMsg.FrontDepth = frontDepth;
-   motorMsg.RearDepth = rearDepth;
-   motorMsg.FrontTurn = frontTurn;
-   motorMsg.RearTurn = rearTurn;
+            m_motorDriverPublisher.publish(motorMsg);
+    }//Forward
 
-   m_motorDriverPublisher.publish(motorMsg);
+    if( motorMask & (FRONT_DEPTH_BIT|REAR_DEPTH_BIT) ){
+            //Send Depth
+            motorMsg.Direction = "Depth";
+            motorMsg.MotionType = "Manual";
+            motorMsg.Value = frontDepth;
+
+            m_motorDriverPublisher.publish(motorMsg);
+    }//Depth
+
+    if( motorMask & (FRONT_TURN_BIT|REAR_TURN_BIT) ){
+        if((frontTurn*rearTurn) > 0){ //Same signs
+            //Send Turn
+            motorMsg.Direction = "Turn";
+            motorMsg.MotionType = "Manual";
+            motorMsg.Value = frontTurn;
+
+            m_motorDriverPublisher.publish(motorMsg);
+        }else{
+            //Send Strafe
+            motorMsg.Direction = "Strafe";
+            motorMsg.MotionType = "Manual";
+            motorMsg.Value = frontTurn;
+
+            m_motorDriverPublisher.publish(motorMsg);
+        }
+    }//Turn
 }
 
 

@@ -28,8 +28,11 @@ rosbuild_genmsg()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+#rosbuild_add_library(${PROJECT_NAME} motorFunc)
 
 rosbuild_add_executable(SubMotorController src/main.cpp src/motorController.cpp)
 rosbuild_add_executable(SubHighLevelMotorController src/HighLevelControl.cpp)
 
+
+#target_link_libraries(${PROJECT_NAME} motorFunc)
 target_link_libraries(${PROJECT_NAME} serial)

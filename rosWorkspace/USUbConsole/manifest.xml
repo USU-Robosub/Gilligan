@@ -13,6 +13,7 @@
   <depend package="sensor_msgs"/>
   <depend package="SubImageRecognition" />
   <depend package="SubMotorController" />
+  <depend package="Robosub" />
   <rosdep name="qt4"/>
 
    <export>

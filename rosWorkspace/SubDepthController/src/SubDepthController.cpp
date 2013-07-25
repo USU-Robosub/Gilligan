@@ -37,7 +37,7 @@ void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 void setDepthSpeed(float speed) {
     Robosub::HighLevelControl msg;
     msg.Direction = "Depth";
-    msg.MotionType = "Command";
+    msg.MotionType = "Manual";
     msg.Value = speed;
 
     motorControl.publish(msg);
@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "SubDepthController"); //No longer beta
 	ros::NodeHandle nh;
 
-	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
+	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 100);
 
 	ros::Subscriber curDepth = nh.subscribe("Sub_Depth", 1, mCurrentDepthCallback);
 	ros::Subscriber targetDepth = nh.subscribe("/Target_Depth", 1, mTargetDepthCallback);

@@ -81,6 +81,22 @@ void CenterOnPointCallback(Robosub::Point::ConstPtr msg) {
 	DepthMode = AUTOMATIC;
 	DepthCommand = (40 - msg->y) / 150.0;
 }
+
+int makeSpeed(float percent)
+{
+    //The smallest output is 60
+    //The largets output is 255
+
+    //map from 100 to 255 and from 60 to 1 percent
+    if (fabs(percent)<0.01)
+        return 0;
+    return (percent - .01) * (255-60) / (1-.05) + 60;
+    //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+
+}
+
+
 //Changed the previous word of Offset to Command
 //Changed the name Straf to Strafe EVERYWHERE
 //All the MANUAL inputs are [0,1]
@@ -90,7 +106,9 @@ AUTOMATIC ("Command") inputs differ:
 Forward: percentage [0,1];
 Turn: angle [-180,180];
 Strafe: percentage [0,1];
-
+Depth: distance [0,14]ft;
+Pitch: angle [-10,10];
+*/
 void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 	if(msg->Direction == "Forward" && msg->MotionType == "Command") {
 		ForwardMode = AUTOMATIC;
@@ -206,19 +224,6 @@ int sanitize(int speed) {
 	return speed;
 }
 
-int makeSpeed(float percent)
-{
-    //The smallest output is 60
-    //The largets output is 255
-
-    //map from 100 to 255 and from 60 to 1 percent
-    if (fabs(percent)<0.01)
-        return 0;
-    return (percent - .01) * (255-60) / (1-.05) + 60;
-    //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-
-
-}
 
 void setDepth(float input){
     std_msgs::Float32 msg;
@@ -354,7 +359,7 @@ int main(int argc, char** argv) {
 
 	//ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
 	//ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
-	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 10, commandCallback);
+	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 100, commandCallback);
 	ros::Subscriber PointSub = nh.subscribe("Center_On_Point", 10, CenterOnPointCallback);
 
 	while(ros::ok()) {

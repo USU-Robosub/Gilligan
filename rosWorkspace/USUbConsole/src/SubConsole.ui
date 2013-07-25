@@ -1145,7 +1145,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>255</number>
+           <number>1</number>
           </property>
           <property name="value">
            <number>0</number>
@@ -1214,7 +1214,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>255</number>
+           <number>1</number>
           </property>
           <property name="value">
            <number>0</number>
@@ -1260,7 +1260,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>255</number>
+           <number>1</number>
           </property>
           <property name="value">
            <number>0</number>
@@ -1306,7 +1306,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>255</number>
+           <number>1</number>
           </property>
           <property name="value">
            <number>0</number>
@@ -1362,7 +1362,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>255</number>
+           <number>1</number>
           </property>
           <property name="value">
            <number>0</number>
@@ -1447,7 +1447,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>255</number>
+           <number>1</number>
           </property>
           <property name="value">
            <number>0</number>
