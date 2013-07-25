@@ -1,0 +1,18 @@
+<package>
+  <description brief="SubHeading">
+
+     SubHeading
+
+  </description>
+  <author>Ivan Jimenez</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/SubHeading</url>
+
+  <depend package="std_msgs"/>
+  <depend package="roscpp"/>
+  <depend package="SubMotorController"/>
+  <!--<depend package="SubImageRecognition"/>-->
+</package>
+
+

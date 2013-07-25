@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
-#include "motor.h"
+#include "Robosub/HighLevelControl.h"
 #include <Robosub/ModuleEnableMsg.h>
 #include <sys/time.h>
 #include <stdlib.h>
@@ -27,9 +27,7 @@ bool MODE = ON;
 
 double pitch = 0.0;
 
-
-
-ros::Publisher depthMotor;
+ros::Publisher motorControl;
 
 void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 	targetDepth = msg->data;
@@ -37,32 +35,20 @@ void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 }
 
 void setDepthSpeed(float speed) {
-	speed *= 255;
-	int speedInt = speed; //truncate to an integer value
-	if(speedInt > 255)
-		speedInt = 255;
-	if(speedInt < -255)
-		speedInt = -255;
-//	setMotors(REAR_DEPTH_MOTOR_BIT | FRONT_DEPTH_MOTOR_BIT,  //<- bit mask
-//			0,        0,          //<- Drive motors (ignored because of mask)
-//			speedInt, speedInt,   //<- Depth motors
-//			0,        0           //<- Turn motors  (also ignored)
-//		);
-	setMotors(REAR_DEPTH_MOTOR_BIT | FRONT_DEPTH_MOTOR_BIT,
-			0,        0,
-			-speedInt, -speedInt,
-			0,        0
-		);
+    Robosub::HighLevelControl msg;
+    msg.Direction = "Depth";
+    msg.MotionType = "Command";
+    msg.Value = speed;
+
+    motorControl.publish(msg);
 }
+
 
 void mEnabledCallback(const Robosub::ModuleEnableMsg::ConstPtr& msg) {
-	if(msg->Module == "Simple_Depth")
+	if(msg->Module == "Simple_Depth") //Might need to change
 		MODE = msg->State;
 }
-//TODO Add the stabilizer: A PI controller?
-//TODO Make the stabilizer independent and add the output to the motor signal
-//TODO Make the stabilizer output differential (so it can add or substract from the motor signal)
-
+/*
 void mAttitudeCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
     if(MODE == OFF)
         return;
@@ -71,7 +57,7 @@ void mAttitudeCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
    //double roll = msg->data[0];
 
 }
-
+*/
 void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 	if(MODE == OFF)
 		return;
@@ -178,11 +164,14 @@ int main(int argc, char** argv) {
         KP = strtod(argv[2], NULL);
     }
 
-	ros::init(argc, argv, "SimpleDepthController_beta");
+	ros::init(argc, argv, "SubDepthController"); //No longer beta
 	ros::NodeHandle nh;
+
+	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
+
 	ros::Subscriber curDepth = nh.subscribe("Sub_Depth", 1, mCurrentDepthCallback);
 	ros::Subscriber targetDepth = nh.subscribe("/Target_Depth", 1, mTargetDepthCallback);
-	ros::Subscriber imuAttitude = nh.subscribe("/IMU_Attitude", 1, mAttitudeCallback);
+	//ros::Subscriber imuAttitude = nh.subscribe("/IMU_Attitude", 1, mAttitudeCallback);
 	ros::Subscriber enabled = nh.subscribe("/Module_Control", 1, mEnabledCallback);
 	ros::spin();
 }
