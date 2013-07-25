@@ -261,22 +261,22 @@ Points findBlob(Mat& image, int i, int j, int obj) {
 				i = point.y;
 				j = point.x;
 				if (i+SAMPLE_SIZE < image.rows
-								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == (obj) {
+								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i+SAMPLE_SIZE));
 						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (i-SAMPLE_SIZE >= 0
-								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == (obj) {
+								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i-SAMPLE_SIZE));
 						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (j+SAMPLE_SIZE < image.cols
-								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == (obj) {
+								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j+SAMPLE_SIZE, i));
 						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 0;
 				}
 				if (j-SAMPLE_SIZE >= 0 &&
-								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == (obj) {
+								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j-SAMPLE_SIZE, i));
 						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 0;
 				}
