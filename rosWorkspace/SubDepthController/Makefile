@@ -187,19 +187,6 @@ clean-test-results/fast:
 .PHONY : clean-test-results/fast
 
 #=============================================================================
-# Target rules for targets named motorFunc
-
-# Build rule for target.
-motorFunc: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 motorFunc
-.PHONY : motorFunc
-
-# fast build rule for target.
-motorFunc/fast:
-	$(MAKE) -f CMakeFiles/motorFunc.dir/build.make CMakeFiles/motorFunc.dir/build
-.PHONY : motorFunc/fast
-
-#=============================================================================
 # Target rules for targets named rosbuild_precompile
 
 # Build rule for target.
@@ -357,21 +344,6 @@ src/SubDepthController.s:
 	$(MAKE) -f CMakeFiles/SubDepthController.dir/build.make CMakeFiles/SubDepthController.dir/src/SubDepthController.s
 .PHONY : src/SubDepthController.s
 
-# target to build an object file
-src/motor.o:
-	$(MAKE) -f CMakeFiles/motorFunc.dir/build.make CMakeFiles/motorFunc.dir/src/motor.o
-.PHONY : src/motor.o
-
-# target to preprocess a source file
-src/motor.i:
-	$(MAKE) -f CMakeFiles/motorFunc.dir/build.make CMakeFiles/motorFunc.dir/src/motor.i
-.PHONY : src/motor.i
-
-# target to generate assembly for a file
-src/motor.s:
-	$(MAKE) -f CMakeFiles/motorFunc.dir/build.make CMakeFiles/motorFunc.dir/src/motor.s
-.PHONY : src/motor.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -386,7 +358,6 @@ help:
 	@echo "... SubDepthController"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
-	@echo "... motorFunc"
 	@echo "... rebuild_cache"
 	@echo "... rosbuild_precompile"
 	@echo "... rosbuild_premsgsrvgen"
@@ -402,9 +373,6 @@ help:
 	@echo "... src/SubDepthController.o"
 	@echo "... src/SubDepthController.i"
 	@echo "... src/SubDepthController.s"
-	@echo "... src/motor.o"
-	@echo "... src/motor.i"
-	@echo "... src/motor.s"
 .PHONY : help
 
 
