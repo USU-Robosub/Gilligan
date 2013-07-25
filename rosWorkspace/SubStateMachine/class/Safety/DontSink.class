@@ -1,3 +1,0 @@
-
-<Triggers>
-/Sub_Depth Float > 13 triggers message /High_Motor_Motion move Depth -2.0

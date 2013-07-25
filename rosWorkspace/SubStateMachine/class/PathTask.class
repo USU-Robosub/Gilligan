@@ -1,6 +1,3 @@
-
-<Inherits>
-CompRun
 <Setup>
 message /Module_Enable activate PathTask
 <TearDown>

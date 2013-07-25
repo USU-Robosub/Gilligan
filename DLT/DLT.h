@@ -3,8 +3,8 @@
 #include <string>
 #include <fstream>
 
-const int ATTR=5;
-const int DEPTH=4;
+const int ATTR=6;
+const int DEPTH=5;
 
 class Sample
 {

@@ -1,0 +1,2 @@
+<Triggers>
+/WaterSensor Int > 0 triggers transition EmergencySurface

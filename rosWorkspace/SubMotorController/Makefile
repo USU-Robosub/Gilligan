@@ -36,10 +36,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/NavigationControl
+CMAKE_SOURCE_DIR = /opt/robosub/rosWorkspace/SubMotorController
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/NavigationControl
+CMAKE_BINARY_DIR = /opt/robosub/rosWorkspace/SubMotorController
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -66,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/NavigationControl/CMakeFiles /opt/robosub/rosWorkspace/NavigationControl/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubMotorController/CMakeFiles /opt/robosub/rosWorkspace/SubMotorController/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/NavigationControl/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /opt/robosub/rosWorkspace/SubMotorController/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -94,19 +94,6 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
-
-#=============================================================================
-# Target rules for targets named NavigationControl
-
-# Build rule for target.
-NavigationControl: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 NavigationControl
-.PHONY : NavigationControl
-
-# fast build rule for target.
-NavigationControl/fast:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/build
-.PHONY : NavigationControl/fast
 
 #=============================================================================
 # Target rules for targets named ROSBUILD_genmsg_cpp
@@ -135,6 +122,19 @@ ROSBUILD_genmsg_lisp/fast:
 .PHONY : ROSBUILD_genmsg_lisp/fast
 
 #=============================================================================
+# Target rules for targets named ROSBUILD_genmsg_py
+
+# Build rule for target.
+ROSBUILD_genmsg_py: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 ROSBUILD_genmsg_py
+.PHONY : ROSBUILD_genmsg_py
+
+# fast build rule for target.
+ROSBUILD_genmsg_py/fast:
+	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_py.dir/build.make CMakeFiles/ROSBUILD_genmsg_py.dir/build
+.PHONY : ROSBUILD_genmsg_py/fast
+
+#=============================================================================
 # Target rules for targets named ROSBUILD_gensrv_cpp
 
 # Build rule for target.
@@ -161,17 +161,30 @@ ROSBUILD_gensrv_lisp/fast:
 .PHONY : ROSBUILD_gensrv_lisp/fast
 
 #=============================================================================
-# Target rules for targets named ROSBUILD_gensrv_py
+# Target rules for targets named SubHighLevelMotorController
 
 # Build rule for target.
-ROSBUILD_gensrv_py: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ROSBUILD_gensrv_py
-.PHONY : ROSBUILD_gensrv_py
+SubHighLevelMotorController: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 SubHighLevelMotorController
+.PHONY : SubHighLevelMotorController
 
 # fast build rule for target.
-ROSBUILD_gensrv_py/fast:
-	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_py.dir/build.make CMakeFiles/ROSBUILD_gensrv_py.dir/build
-.PHONY : ROSBUILD_gensrv_py/fast
+SubHighLevelMotorController/fast:
+	$(MAKE) -f CMakeFiles/SubHighLevelMotorController.dir/build.make CMakeFiles/SubHighLevelMotorController.dir/build
+.PHONY : SubHighLevelMotorController/fast
+
+#=============================================================================
+# Target rules for targets named SubMotorController
+
+# Build rule for target.
+SubMotorController: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 SubMotorController
+.PHONY : SubMotorController
+
+# fast build rule for target.
+SubMotorController/fast:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/build
+.PHONY : SubMotorController/fast
 
 #=============================================================================
 # Target rules for targets named clean-test-results
@@ -224,6 +237,19 @@ rospack_genmsg: cmake_check_build_system
 rospack_genmsg/fast:
 	$(MAKE) -f CMakeFiles/rospack_genmsg.dir/build.make CMakeFiles/rospack_genmsg.dir/build
 .PHONY : rospack_genmsg/fast
+
+#=============================================================================
+# Target rules for targets named rospack_genmsg_all
+
+# Build rule for target.
+rospack_genmsg_all: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 rospack_genmsg_all
+.PHONY : rospack_genmsg_all
+
+# fast build rule for target.
+rospack_genmsg_all/fast:
+	$(MAKE) -f CMakeFiles/rospack_genmsg_all.dir/build.make CMakeFiles/rospack_genmsg_all.dir/build
+.PHONY : rospack_genmsg_all/fast
 
 #=============================================================================
 # Target rules for targets named rospack_genmsg_libexe
@@ -317,34 +343,49 @@ tests/fast:
 .PHONY : tests/fast
 
 # target to build an object file
-src/NavigationControl.o:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/src/NavigationControl.o
-.PHONY : src/NavigationControl.o
+src/HighLevelControl.o:
+	$(MAKE) -f CMakeFiles/SubHighLevelMotorController.dir/build.make CMakeFiles/SubHighLevelMotorController.dir/src/HighLevelControl.o
+.PHONY : src/HighLevelControl.o
 
 # target to preprocess a source file
-src/NavigationControl.i:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/src/NavigationControl.i
-.PHONY : src/NavigationControl.i
+src/HighLevelControl.i:
+	$(MAKE) -f CMakeFiles/SubHighLevelMotorController.dir/build.make CMakeFiles/SubHighLevelMotorController.dir/src/HighLevelControl.i
+.PHONY : src/HighLevelControl.i
 
 # target to generate assembly for a file
-src/NavigationControl.s:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/src/NavigationControl.s
-.PHONY : src/NavigationControl.s
+src/HighLevelControl.s:
+	$(MAKE) -f CMakeFiles/SubHighLevelMotorController.dir/build.make CMakeFiles/SubHighLevelMotorController.dir/src/HighLevelControl.s
+.PHONY : src/HighLevelControl.s
 
 # target to build an object file
-src/NavigationControlMain.o:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/src/NavigationControlMain.o
-.PHONY : src/NavigationControlMain.o
+src/main.o:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/src/main.o
+.PHONY : src/main.o
 
 # target to preprocess a source file
-src/NavigationControlMain.i:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/src/NavigationControlMain.i
-.PHONY : src/NavigationControlMain.i
+src/main.i:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/src/main.i
+.PHONY : src/main.i
 
 # target to generate assembly for a file
-src/NavigationControlMain.s:
-	$(MAKE) -f CMakeFiles/NavigationControl.dir/build.make CMakeFiles/NavigationControl.dir/src/NavigationControlMain.s
-.PHONY : src/NavigationControlMain.s
+src/main.s:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/src/main.s
+.PHONY : src/main.s
+
+# target to build an object file
+src/motorController.o:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/src/motorController.o
+.PHONY : src/motorController.o
+
+# target to preprocess a source file
+src/motorController.i:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/src/motorController.i
+.PHONY : src/motorController.i
+
+# target to generate assembly for a file
+src/motorController.s:
+	$(MAKE) -f CMakeFiles/SubMotorController.dir/build.make CMakeFiles/SubMotorController.dir/src/motorController.s
+.PHONY : src/motorController.s
 
 # Help Target
 help:
@@ -352,18 +393,20 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... NavigationControl"
 	@echo "... ROSBUILD_genmsg_cpp"
 	@echo "... ROSBUILD_genmsg_lisp"
+	@echo "... ROSBUILD_genmsg_py"
 	@echo "... ROSBUILD_gensrv_cpp"
 	@echo "... ROSBUILD_gensrv_lisp"
-	@echo "... ROSBUILD_gensrv_py"
+	@echo "... SubHighLevelMotorController"
+	@echo "... SubMotorController"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... rosbuild_precompile"
 	@echo "... rosbuild_premsgsrvgen"
 	@echo "... rospack_genmsg"
+	@echo "... rospack_genmsg_all"
 	@echo "... rospack_genmsg_libexe"
 	@echo "... rospack_gensrv"
 	@echo "... test"
@@ -371,12 +414,15 @@ help:
 	@echo "... test-results"
 	@echo "... test-results-run"
 	@echo "... tests"
-	@echo "... src/NavigationControl.o"
-	@echo "... src/NavigationControl.i"
-	@echo "... src/NavigationControl.s"
-	@echo "... src/NavigationControlMain.o"
-	@echo "... src/NavigationControlMain.i"
-	@echo "... src/NavigationControlMain.s"
+	@echo "... src/HighLevelControl.o"
+	@echo "... src/HighLevelControl.i"
+	@echo "... src/HighLevelControl.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/motorController.o"
+	@echo "... src/motorController.i"
+	@echo "... src/motorController.s"
 .PHONY : help
 
 

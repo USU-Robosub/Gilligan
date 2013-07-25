@@ -1,5 +1,5 @@
-
 <Inherits>
+CompRun
 PathTask
 <Triggers>
 /Task_Completion string any message triggers transition BumpingBuoys

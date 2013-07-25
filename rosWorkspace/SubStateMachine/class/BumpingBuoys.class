@@ -1,7 +1,7 @@
-
-<Setup>
-message move Depth 2.5
 <Inherits>
 BuoyTask
+CompRun
+<Setup>
+message move Depth 2.5
 <Triggers>
 /Task_Completion string any message triggers transition Find2Path

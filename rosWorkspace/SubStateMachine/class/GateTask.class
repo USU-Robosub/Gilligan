@@ -1,6 +1,4 @@
 
-<Inherits>
-CompRun
 <Setup>
 message /Module_Enable activate GateTask
 <TearDown>
