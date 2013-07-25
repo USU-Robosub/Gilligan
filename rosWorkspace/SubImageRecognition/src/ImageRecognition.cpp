@@ -261,22 +261,22 @@ Points findBlob(Mat& image, int i, int j, int obj) {
 				i = point.y;
 				j = point.x;
 				if (i+SAMPLE_SIZE < image.rows
-								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == (obj) {
+								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i+SAMPLE_SIZE));
 						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (i-SAMPLE_SIZE >= 0
-								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == (obj) {
+								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i-SAMPLE_SIZE));
 						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (j+SAMPLE_SIZE < image.cols
-								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == (obj) {
+								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j+SAMPLE_SIZE, i));
 						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 0;
 				}
 				if (j-SAMPLE_SIZE >= 0 &&
-								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == (obj) {
+								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j-SAMPLE_SIZE, i));
 						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 0;
 				}
@@ -484,14 +484,14 @@ void genericCallback(
 				// Run applicable algorithms
 				if ((object.flags & FLAG_ENABLED) && object.camera == camera) {
 						//reduceNoise(threshold);
-						vector<Points> blobs = findBlobs(
-										threshold, offset, object.maxBlobs, object.enumType);
 						if (true) {
 								cv_bridge::CvImage temp;
 								temp.encoding = "mono8";
 								temp.image = threshold;
 								publisher.publish(temp.toImageMsg());
 						}
+						vector<Points> blobs = findBlobs(
+										threshold, offset, object.maxBlobs, object.enumType);
 						// Iterate through all blobs
 						for (unsigned int j = 0; j < blobs.size(); j++) {
 								vector<BlobAnalysis> analysisList =

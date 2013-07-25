@@ -222,6 +222,7 @@ def getAllClassesHelper(Class, used):
 			Data = temp[1]
 			print "Found section " + Type
 			if Type == "Inherits":
+				print "Currently class set =" + str(used)
 				Data = Data.split()
 				for thing in Data:
 					if thing in used:
