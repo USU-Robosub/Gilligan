@@ -1,0 +1,5 @@
+
+<Setup>
+/execute 
+<Triggers>
+message /chatter string Entering top state
