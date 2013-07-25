@@ -171,7 +171,7 @@ SubConsole::SubConsole(QWidget* pParent)
 
    m_targetDepthSubscriber = m_nodeHandle.subscribe("Target_Depth",100, &SubConsole::targetDepthCallback,this);
    m_motorCurrentSubscriber = m_nodeHandle.subscribe("Motor_Current",100, &SubConsole::motorCurrentCallback,this);
-   m_camThresholdSubscriber = m_nodeHandle.subscribe("forward_camera/threshold", 100, &SubConsole::cameraThresholdCallback, this);
+   m_camThresholdSubscriber = m_nodeHandle.subscribe("forward_camera/threshold/compressed", 100, &SubConsole::cameraThresholdCallback, this);
    printf("Finished ROS topic publish and subscription initialization\n");
 
 
