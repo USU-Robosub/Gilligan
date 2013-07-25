@@ -1,5 +1,5 @@
 
 <Setup>
-/execute 
-<Triggers>
-message /chatter string Entering top state
+message /chatter string Entering Top state
+<TearDown>
+message /chatter string Leaving Top state
