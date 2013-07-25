@@ -1,6 +1,0 @@
-<Setup>
-message /chatter string Entering StateChanger state
-<TearDown>
-message /chatter string Leaving StateChanger state
-<Triggers>
-/ChangeState string any message triggers transition ?MESSAGE

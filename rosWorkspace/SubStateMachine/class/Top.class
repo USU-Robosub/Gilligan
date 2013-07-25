@@ -1,0 +1,5 @@
+
+<Setup>
+message /chatter string Entering Top state
+<TearDown>
+message /chatter string Leaving Top state

@@ -1,5 +1,0 @@
-
-<Inherits>
-NonComp
-<Triggers>
-/Motor_State int8 = 1 triggers transition ResetIMU

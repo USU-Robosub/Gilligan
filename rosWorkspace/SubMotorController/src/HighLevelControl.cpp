@@ -71,7 +71,7 @@ void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 		ForwardMode = AUTOMATIC;
 		ForwardOffset = msg->Value;
 	} else if (msg->Direction == "Forward" && msg->MotionType == "Manual") {
-		ForwardMode = MANUAL;0
+		ForwardMode = MANUAL;
 		ForwardSpeed = msg->Value;
 
 	} else if(msg->Direction == "Turn" && msg->MotionType == "Offset") {

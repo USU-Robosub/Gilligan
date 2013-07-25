@@ -1,7 +1,0 @@
-
-<Setup>
-message /High_Level_Motion move Forward 25
-<Inherits>
-CompRun
-<Timers>
-After 30 s do transition DriveBlind

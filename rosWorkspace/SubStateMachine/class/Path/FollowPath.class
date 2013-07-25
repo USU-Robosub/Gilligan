@@ -1,4 +1,0 @@
-<Setup>
-message move Forward 200
-<Timers>
-After 3 s do transition FindPath

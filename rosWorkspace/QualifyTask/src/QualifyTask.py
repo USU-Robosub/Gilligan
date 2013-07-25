@@ -12,12 +12,12 @@ from threading import Thread
 from time import sleep
 
 FANCY_SLEEP_SLICE = 0.5
-TARGET_DEPTH = 3.0
+TARGET_DEPTH = 2.0
 SPEED_LEFT = 150
 SPEED_RIGHT = 200
 TIME_DELAY = 0
 TIME_DIVE = 4
-TIME_FORWARD = 10
+TIME_FORWARD = 100
 
 class QualifyTask:
 
