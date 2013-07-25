@@ -101,7 +101,9 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pPitchIndicator(NULL),
      m_pRollIndicator(NULL),
      targetDepth(0),
-     depth(0)
+     depth(0),
+     m_pCamThresholdData(NULL),
+     m_thresholdActive(false)
 //     error(0),
 //     speed(0),
 //     KI(0.02),
@@ -122,6 +124,7 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->connectButton, SIGNAL(clicked()), this, SLOT(joyConnect()));
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
+   connect(m_pUi->thresholdPipButton, SIGNAL(clicked()), this, SLOT(toggleThresholdPip()));
 //   connect(m_pUi->updateButton,SIGNAL(clicked()),this,SLOT(updateGains()));
 //   connect(m_pUi->toggleBoxThresholdButton, SIGNAL(clicked()), this, SLOT(toggleBoxThresholding()));
 //   connect(m_pUi->enableViewThresholdButton, SIGNAL(clicked()), this, SLOT(enableViewThresholds()));
@@ -168,6 +171,7 @@ SubConsole::SubConsole(QWidget* pParent)
 
    m_targetDepthSubscriber = m_nodeHandle.subscribe("Target_Depth",100, &SubConsole::targetDepthCallback,this);
    m_motorCurrentSubscriber = m_nodeHandle.subscribe("Motor_Current",100, &SubConsole::motorCurrentCallback,this);
+   m_camThresholdSubscriber = m_nodeHandle.subscribe("forward_camera/threshold", 100, &SubConsole::cameraThresholdCallback, this);
    printf("Finished ROS topic publish and subscription initialization\n");
 
 
@@ -859,6 +863,8 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::CompressedImage::Const
 
  void SubConsole::rightCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
  {
+    if(m_thresholdActive) //Avoid running if not needed
+        return;
     QImage image;
     QPixmap pixmap;
 
@@ -908,6 +914,34 @@ void SubConsole::downwardCameraCallback(const sensor_msgs::CompressedImage::Cons
 }
 
 /**
+ * @brief Reads the camera thresholds image and displays on the right camera box
+ * @param msg
+ **/
+void SubConsole::cameraThresholdCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
+{
+    if(!m_thresholdActive) //Avoid running if not needed
+        return;
+   QImage image;
+   QPixmap pixmap;
+
+   if(m_pCamThresholdData != NULL)
+   {
+       delete [] m_pCamThresholdData;
+   }
+
+   m_pCamThresholdData = new unsigned char[msg->data.size()];
+   std::copy(msg->data.begin(), msg->data.end(), m_pCamThresholdData);
+
+   image.loadFromData(m_pCamThresholdData, msg->data.size(), "JPG");
+   m_pUi->rightCameraImage->setPixmap(pixmap.fromImage(image.scaledToHeight(320), 0));
+
+   if(m_forwardPipEnabled)
+   {
+      m_pUi->rightCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+   }
+}
+
+/**
  * @brief Toggles the visibility of the downward picture-in-picture
  **/
 void SubConsole::toggleDownwardPiP(void)
@@ -942,6 +976,12 @@ void SubConsole::toggleForwardPiP(void)
         m_forwardPipEnabled = true;
     }
 }
+
+void SubConsole::toggleThresholdPip(void)
+{
+    m_thresholdActive = ~m_thresholdActive;
+}
+
 /*
 //Depth Controller Stuff
 void SubConsole::updateGains(void){

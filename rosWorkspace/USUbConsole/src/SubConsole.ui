@@ -2106,7 +2106,7 @@
      </size>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -2227,10 +2227,30 @@
        <string>PiP</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="thresholdPipButton">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>660</y>
+        <width>131</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>View Thresholds</string>
+      </property>
+     </widget>
      <zorder>leftCameraImage</zorder>
      <zorder>rightCameraImage</zorder>
      <zorder>downPipButton</zorder>
      <zorder>downCameraImageThumb</zorder>
+     <zorder>thresholdPipButton</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">

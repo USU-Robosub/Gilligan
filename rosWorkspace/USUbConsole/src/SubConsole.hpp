@@ -53,6 +53,7 @@ public:
    void rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void targetDepthCallback(const std_msgs::Float32::ConstPtr& msg);
    void motorCurrentCallback(const SubMotorController::MotorCurrentMsg::ConstPtr& msg);
+   void cameraThresholdCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
 
 private:
    Ui::SubConsole* m_pUi;                           //!< Pointer to UI object
@@ -82,6 +83,9 @@ private:
    ros::Subscriber m_rawAccelSubscriber;            //!< Subscribes to the IMU_Accel_Debug topic
    ros::Subscriber m_targetDepthSubscriber;
    ros::Subscriber m_motorCurrentSubscriber;
+   ros::Subscriber m_camThresholdSubscriber;
+
+
 
    int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
    int m_lastYAxisValue;            //!< Stores the last joystick y-axis value
@@ -125,6 +129,10 @@ private:
     float targetDepth;
     float depth;
 
+    //To know when the threshold is visible
+    unsigned char* m_pCamThresholdData;
+    bool m_thresholdActive;
+
 //   std::vector<SubImageRecognition::ImgRecAlgorithm> m_algorithmSettings;
 
    /**
@@ -155,6 +163,7 @@ private slots:
    void joyConnect(void);
    void toggleDownwardPiP(void);
    void toggleForwardPiP(void);
+   void toggleThresholdPip(void);
 //Image Record Algorithms
 //   void toggleBoxThresholding(void);
 //   void enableViewThresholds(void);
