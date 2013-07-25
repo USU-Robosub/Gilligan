@@ -484,14 +484,14 @@ void genericCallback(
 				// Run applicable algorithms
 				if ((object.flags & FLAG_ENABLED) && object.camera == camera) {
 						//reduceNoise(threshold);
-						vector<Points> blobs = findBlobs(
-										threshold, offset, object.maxBlobs, object.enumType);
 						if (true) {
 								cv_bridge::CvImage temp;
 								temp.encoding = "mono8";
 								temp.image = threshold;
 								publisher.publish(temp.toImageMsg());
 						}
+						vector<Points> blobs = findBlobs(
+										threshold, offset, object.maxBlobs, object.enumType);
 						// Iterate through all blobs
 						for (unsigned int j = 0; j < blobs.size(); j++) {
 								vector<BlobAnalysis> analysisList =
