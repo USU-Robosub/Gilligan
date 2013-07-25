@@ -359,7 +359,7 @@ int main(int argc, char** argv) {
 
 	//ros::Subscriber DepthSub = nh.subscribe("Sub_Depth", 1, updateDepth);
 	//ros::Subscriber AttitudeSub = nh.subscribe("IMU_Attitude", 1, updateAttitude);
-	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 10, commandCallback);
+	ros::Subscriber CommandSub = nh.subscribe("High_Level_Motion", 100, commandCallback);
 	ros::Subscriber PointSub = nh.subscribe("Center_On_Point", 10, CenterOnPointCallback);
 
 	while(ros::ok()) {

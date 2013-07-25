@@ -71,7 +71,7 @@ void mTargetHeadingCallback(const std_msgs::Float32::ConstPtr& msg) {
 void setTurnSpeed(float speed) {
   Robosub::HighLevelControl msg;
   msg.Direction = "Turn";
-  msg.MotionType = "Command";
+  msg.MotionType = "Manual";
   msg.Value = speed;
 
   motorControl.publish(msg);
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "SubHeading");
 	ros::NodeHandle nh;
 
-	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 10);
+	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 100);
 
 	ros::Subscriber targetDepth = nh.subscribe("/Target_Heading", 10, mTargetHeadingCallback);
 	ros::Subscriber imuAttitude = nh.subscribe("/IMU_Attitude", 100, mHeadingCallback);
