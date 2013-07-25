@@ -343,6 +343,8 @@ void Camera::start()
   if ((error = camPGR_.StartCapture(frameDone, (void *) this)) != PGRERROR_OK)
   { //frameDone, (void*) this)) != PGRERROR_OK) {
     ROS_ERROR (error.GetDescription ());
+	std::cerr << "Exiting camera initialization due to Isochronous error" << endl;
+	exit(1);
   }
   else
   {

@@ -1,7 +1,7 @@
 /**************************
 * Water Sensor Controller *
 * ************************/
-#include <Serial.h>
+//#include <Serial.h>
 
 #define BAUD 115200
 #define MIN_PACKET_LENGTH 2
@@ -11,6 +11,7 @@ int gDelay = 2000;
 
 void setup()
 {
+  
   Serial.begin(BAUD);
 }
 
