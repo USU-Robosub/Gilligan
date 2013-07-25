@@ -1,0 +1,3 @@
+
+<Triggers>
+/Motor_State int8 = 0 triggers transition Wait_Button

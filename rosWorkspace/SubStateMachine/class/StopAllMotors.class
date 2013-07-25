@@ -1,0 +1,7 @@
+
+<Setup>
+message /High_Level_Motion move Forward 0
+message /High_Level_Motion move Depth 0
+message /High_Level_Motion move Turn 0
+message /High_Level_Motion move Straf 0
+message /High_Level_Motion move Pitch 0

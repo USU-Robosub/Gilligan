@@ -1,0 +1,8 @@
+<Inherits>
+StateChanger
+<Setup>
+message /chatter string Entering subClass1 state
+<TearDown>
+message /chatter string Leaving subClass1 state
+<Triggers>
+/Send_0_to_Go_to_subClass2 int = 0 triggers transition subClass2

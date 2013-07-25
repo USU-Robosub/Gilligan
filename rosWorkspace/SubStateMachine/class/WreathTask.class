@@ -1,0 +1,7 @@
+
+<Inherits>
+Safety
+<Setup>
+message /Module_Enable activate WreathTask
+<TearDown>
+message /Module_Enable deactivate WreathTask

@@ -1,0 +1,15 @@
+<Inherits>
+Normal
+<Setup>
+message /Module_Control activation PathTask 1
+<TearDown>
+message /Control_Systems activation PathTask 0
+message /High_Level_Control HighControl "Forward" "Manual" 0
+message /High_Level_Control HighControl "Depth" "Offset" 0
+message /High_Level_Control HighControl "Straf" "Manual" 0
+message /High_Level_Control HighControl "Turn" "Manual" 0
+message /High_Level_Control HighControl "Pitch" "Manual" 0
+<Completion>
+Success transistion StateChanger
+Failure message /Error_Out string You failed me!
+Failure transistion StateChanger

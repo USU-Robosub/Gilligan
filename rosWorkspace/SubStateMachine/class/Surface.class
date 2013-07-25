@@ -1,0 +1,5 @@
+
+<Inherits>
+Safety
+<Setup>
+message /High_Level_Motion Depth -1000

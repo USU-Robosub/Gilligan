@@ -1,0 +1,7 @@
+
+<Inherits>
+CompRun
+<Setup>
+message /High_Level_Motion move Forward 100
+<Timers>
+After 1 s do transition LocateGate
