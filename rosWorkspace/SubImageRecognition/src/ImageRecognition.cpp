@@ -142,7 +142,7 @@ vector<BlobTrack> trackBlobs;
 int curFrame=0;
 
 int forwardOffset = 0, downwardOffset = 0;
-image_transport::Publisher forwardPublisher, downwardPublisher;
+image_transport::Publisher forwardPublisher, downwardPublisher, forwardThresh, downwardThresh;
 cv_bridge::CvImage forwardRotated, downwardRotated;
 Mat forwardSegmented, downwardSegmented;
 Mat forwardThreshold, downwardThreshold;
@@ -261,22 +261,22 @@ Points findBlob(Mat& image, int i, int j, int obj) {
 				i = point.y;
 				j = point.x;
 				if (i+SAMPLE_SIZE < image.rows
-								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == obj) {
+								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == (obj) {
 						blob.push_back(Point(j, i+SAMPLE_SIZE));
 						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (i-SAMPLE_SIZE >= 0
-								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == obj) {
+								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == (obj) {
 						blob.push_back(Point(j, i-SAMPLE_SIZE));
 						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (j+SAMPLE_SIZE < image.cols
-								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == obj) {
+								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == (obj) {
 						blob.push_back(Point(j+SAMPLE_SIZE, i));
 						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 0;
 				}
 				if (j-SAMPLE_SIZE >= 0 &&
-								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == obj) {
+								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == (obj) {
 						blob.push_back(Point(j-SAMPLE_SIZE, i));
 						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 0;
 				}
@@ -295,8 +295,8 @@ vector<Points> findBlobs(Mat& image,
 		vector<Points> allBlobs;
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-						if ((int)image.at<uint8_t>(i, j, 0) == obj) {
-								Points blob = findBlob(image, i, j, obj);
+						if ((int)image.at<uint8_t>(i, j, 0) == (obj*60)) {
+								Points blob = findBlob(image, i, j, (obj*60));
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
 								}
@@ -399,7 +399,7 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			sat+=hsv[1];
 			bright+=hsv[2];
 			++count;
-			threshold.at<uint8_t>(i,j,0)=pTree->Classify(sample);		
+			threshold.at<uint8_t>(i,j,0)=(pTree->Classify(sample)*60);		
 		}
 	}
 	lastAvgHue=hue/count;
@@ -454,7 +454,8 @@ void genericCallback(
 				Mat& segmented,
 				Mat& threshold,
 				const int offset,
-				const image_transport::Publisher& publisher) {
+				const image_transport::Publisher& publisher,
+				const image_transport::Publisher& threshPublisher) {
 		// Copy image from ROS format to OpenCV format
 		cv_bridge::CvImageConstPtr cvImage = cv_bridge::toCvShare(rosImage, "bgr8");
 
@@ -485,7 +486,7 @@ void genericCallback(
 						//reduceNoise(threshold);
 						vector<Points> blobs = findBlobs(
 										threshold, offset, object.maxBlobs, object.enumType);
-						if (object.flags & FLAG_PUBLISH_THRESHOLD) {
+						if (true) {
 								cv_bridge::CvImage temp;
 								temp.encoding = "mono8";
 								temp.image = threshold;
@@ -531,13 +532,13 @@ void genericCallback(
 
 void forwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 		genericCallback(CAMERA_FORWARD, rosImage, forwardRotated, forwardSegmented,
-						forwardThreshold, forwardOffset, forwardPublisher);
+						forwardThreshold, forwardOffset, forwardPublisher, forwardThresh);
 		forwardOffset = (forwardOffset + 1) % SAMPLE_SIZE;
 }
 
 void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 		genericCallback(CAMERA_DOWNWARD, rosImage, downwardRotated, downwardSegmented,
-						downwardThreshold, downwardOffset, downwardPublisher);
+						downwardThreshold, downwardOffset, downwardPublisher, downwardThresh);
 		downwardOffset = (downwardOffset + 1) % SAMPLE_SIZE;
 }
 
@@ -551,6 +552,8 @@ int main(int argc, char **argv) {
 
 	forwardPublisher = imageTransport.advertise("forward_camera/image_raw", 1);
 	downwardPublisher = imageTransport.advertise("downward_camera/image_raw", 1);
+	forwardThresh = imageTransport.advertise("forward_camera/threshold", 1);
+	downwardThresh = imageTransport.advertise("downward_camera/threshold", 1);
 
 	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("/stereo/left/image_raw", 1, forwardCallback);
 	image_transport::Subscriber downwardSubscriber = imageTransport.subscribe("image_raw", 1, downwardCallback);
