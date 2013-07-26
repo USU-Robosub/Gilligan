@@ -453,7 +453,7 @@ void SubConsole::readJoystickInput(void){
    if(motorMask != 0x0)
    {
      sendMotorSpeedMsg(motorMask, leftDriveValue, rightDriveValue, frontDepthValue, rearDepthValue, frontTurnValue, rearTurnValue);
-     printf("Motot: F:%f, D:%f, T:%f", leftDriveValue, frontDepthValue, frontTurnValue);
+     //printf("Motot: F:%f, D:%f, T:%f", leftDriveValue, frontDepthValue, frontTurnValue);
    }
 }
 
@@ -758,7 +758,7 @@ void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
  **/
 void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-   m_battAverage.Update(msg->data[0] - 0.5f);
+   m_battAverage.Update(msg->data[0] - 0.5f); //We seem to be reading .5V more
    m_pUi->voltageLineEdit->setText(QString::number(m_battAverage.Value()));
    m_currAverage.Update(msg->data[1]);//The sensor seems to be uncalibrated
    m_pUi->currentLineEdit->setText(QString::number(m_currAverage.Value()));
@@ -1007,7 +1007,7 @@ void SubConsole::toggleForwardPiP(void)
 
 void SubConsole::toggleThresholdPip(void)
 {
-    m_thresholdActive = ~m_thresholdActive;
+    m_thresholdActive = !m_thresholdActive;
 }
 
 /*
