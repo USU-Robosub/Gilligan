@@ -250,35 +250,35 @@ void reduceNoise(Mat& image) {
 		dilate(image, image, elementRect, point, 2);
 }
 
-Points findBlob(Mat& image, int i, int j, Scalar obj) {
+Points findBlob(Mat& image, int i, int j, int obj) {
 		unsigned int index = 0;
 		Points blob;
 		Point point(j, i);
 		blob.push_back(point);
-		image.at<Scalar>(i, j) = Scalar(0,0,0);
+		image.at<uint8_t>(i, j, 0) = 0;
 		while (index < blob.size()) {
 				point = blob[index];
 				i = point.y;
 				j = point.x;
 				if (i+SAMPLE_SIZE < image.rows
-								&& image.at<Scalar>(i+SAMPLE_SIZE, j) == obj) {
+								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i+SAMPLE_SIZE));
-						image.at<Scalar>(i+SAMPLE_SIZE, j) = Scalar(0,0,0);
+						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (i-SAMPLE_SIZE >= 0
-								&& image.at<Scalar>(i-SAMPLE_SIZE, j) == obj) {
+								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i-SAMPLE_SIZE));
-						image.at<Scalar>(i-SAMPLE_SIZE, j) = Scalar(0,0,0);
+						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 0;
 				}
 				if (j+SAMPLE_SIZE < image.cols
-								&& image.at<Scalar>(i, j+SAMPLE_SIZE) == obj) {
+								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j+SAMPLE_SIZE, i));
-						image.at<Scalar>(i, j+SAMPLE_SIZE) = Scalar(0,0,0);
+						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 0;
 				}
 				if (j-SAMPLE_SIZE >= 0 &&
-								image.at<Scalar>(i, j-SAMPLE_SIZE) == obj) {
+								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j-SAMPLE_SIZE, i));
-						image.at<Scalar>(i, j-SAMPLE_SIZE) = Scalar(0,0,0);
+						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 0;
 				}
 				index++;
 		}
@@ -290,12 +290,12 @@ bool compareBlobs(Points& blob0, Points& blob1) {
 }
 
 vector<Points> findBlobs(Mat& image,
-				const int offset, const unsigned int maxBlobs, Scalar obj) {
+				const int offset, const unsigned int maxBlobs, int obj) {
 		// First get all blobs that are at least the minimum size
 		vector<Points> allBlobs;
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-						if (image.at<Scalar>(i, j) == obj) {
+						if ((int)image.at<uint8_t>(i, j, 0) == obj) {
 								Points blob = findBlob(image, i, j, obj);
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
@@ -400,11 +400,11 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			bright+=hsv[2];
 			++count;
 			int temp=pTree->Classify(sample);
-			threshold.at<Scalar>(i,j)=(temp ? objects[temp-1].annotationColor : Scalar(0,0,0));
-			// if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
-			// {
-   //              rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
-			// }
+			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*10+200) : 0);
+			if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
+			{
+                rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
+			}
 		}
 	}
 	lastAvgHue=hue/count;
@@ -491,13 +491,13 @@ void genericCallback(
 						//reduceNoise(threshold);
 						if (true) {
 								cv_bridge::CvImage temp;
-								temp.encoding = sensor_msgs::image_encodings::BGR8;
+								temp.encoding = "mono8";
 								temp.image = threshold;
 								threshPublisher.publish(temp.toImageMsg());
 						}
                         int tempenum=object.enumType;
 						vector<Points> blobs = findBlobs(
-										threshold, offset, object.maxBlobs, object.annotationColor);
+										threshold, offset, object.maxBlobs, (tempenum ? (tempenum*10+200) : 0));
 						// Iterate through all blobs
 						for (unsigned int j = 0; j < blobs.size(); j++) {
 								vector<BlobAnalysis> analysisList =
