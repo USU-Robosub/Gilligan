@@ -149,17 +149,8 @@ Mat forwardThreshold, downwardThreshold;
 DLT* pTree;
 int lastAvgHue=0, lastAvgSat=0, lastAvgBright=0, curOrange=0;
 bool pizzaCheck=false;
-Object pizzaObj	(
-					"pizza_box",
-	                1,
-					CAMERA_FORWARD,
-					ANALYSIS_RECTANGLE,
-					2,
-					CONFIDENCE_RECTANGLE,
-					Scalar(0, 255, 255),
-					ANNOTATION_ROTATION,
-					255
-				);
+Object* pizzaObj;	
+
 
 // FUNCTIONS
 
@@ -242,6 +233,20 @@ void initObjects() {
 		// 		ANNOTATION_ROTATION,
 		// 		7
 		// ));
+
+
+        pizzaObj=new Object(
+					"pizza_box",
+	                1,
+					CAMERA_FORWARD,
+					ANALYSIS_RECTANGLE,
+					2,
+					CONFIDENCE_RECTANGLE,
+					Scalar(0, 255, 255),
+					ANNOTATION_ROTATION,
+					255
+				);
+
 }
 
 /*void normalizeValue(Mat& image, Mat& temp) {
@@ -564,14 +569,14 @@ void genericCallback(
 		if(pizzaCheck&&curOrange>200)
 		{
 
-			vector<Points> orangeBlobs=findBlobs(threshold, offset, 1, pizzaObj.enumType);
+			vector<Points> orangeBlobs=findBlobs(threshold, offset, 1, pizzaObj->enumType);
 			for(int i=0;i<orangeBlobs.size();++i)
 			{
-				vector<BlobAnalysis> analysisList = analyzeBlob(pizzaObj, orangeBlobs[i], rotated.image);
+				vector<BlobAnalysis> analysisList = analyzeBlob(*pizzaObj, orangeBlobs[i], rotated.image);
 				for (unsigned int k = 0; k < analysisList.size(); k++) 
 				{
 					BlobAnalysis analysis = analysisList[k];
-					if (trackBlob(analysis, pizzaObj.enumType))
+					if (trackBlob(analysis, pizzaObj->enumType))
 					{
 						SubImageRecognition::ImgRecObject msg;
 						msg.stamp = ros::Time::now();
@@ -581,10 +586,10 @@ void genericCallback(
 						msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
 						msg.width = analysis.width;
 						msg.height = analysis.height;
-						msg.confidence = computeConfidence(pizzaObj, analysis);
-						pizzaObj.publisher.publish(msg);
+						msg.confidence = computeConfidence(*pizzaObj, analysis);
+						pizzaObj->publisher.publish(msg);
 						// Annotate image
-						annotateImage(rotated.image, pizzaObj, analysis);
+						annotateImage(rotated.image, *pizzaObj, analysis);
 					}
 				}
 			}
