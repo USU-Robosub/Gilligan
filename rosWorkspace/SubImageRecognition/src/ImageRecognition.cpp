@@ -26,7 +26,7 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 4;
-const unsigned int MIN_POINTS = 75;
+const unsigned int MIN_POINTS = 300;
 const float MIN_CONFIDENCE = 0.5;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
@@ -46,7 +46,7 @@ const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
 
 const int FRAME_MARGIN_OF_ERROR=3;
-const int TRACKING_MOVEMENT_TOLERANCE=300;
+const int TRACKING_MOVEMENT_TOLERANCE=500;
 
 // DEFINITIONS
 
@@ -250,35 +250,35 @@ void reduceNoise(Mat& image) {
 		dilate(image, image, elementRect, point, 2);
 }
 
-Points findBlob(Mat& image, int i, int j, int obj) {
+Points findBlob(Mat& image, int i, int j, Scalar obj) {
 		unsigned int index = 0;
 		Points blob;
 		Point point(j, i);
 		blob.push_back(point);
-		image.at<uint8_t>(i, j, 0) = 0;
+		image.at<Scalar>(i, j) = Scalar(0,0,0);
 		while (index < blob.size()) {
 				point = blob[index];
 				i = point.y;
 				j = point.x;
 				if (i+SAMPLE_SIZE < image.rows
-								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == obj) {
+								&& image.at<Scalar>(i+SAMPLE_SIZE, j) == obj) {
 						blob.push_back(Point(j, i+SAMPLE_SIZE));
-						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 0;
+						image.at<Scalar>(i+SAMPLE_SIZE, j) = Scalar(0,0,0);
 				}
 				if (i-SAMPLE_SIZE >= 0
-								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == obj) {
+								&& image.at<Scalar>(i-SAMPLE_SIZE, j) == obj) {
 						blob.push_back(Point(j, i-SAMPLE_SIZE));
-						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 0;
+						image.at<Scalar>(i-SAMPLE_SIZE, j) = Scalar(0,0,0);
 				}
 				if (j+SAMPLE_SIZE < image.cols
-								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == obj) {
+								&& image.at<Scalar>(i, j+SAMPLE_SIZE) == obj) {
 						blob.push_back(Point(j+SAMPLE_SIZE, i));
-						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 0;
+						image.at<Scalar>(i, j+SAMPLE_SIZE) = Scalar(0,0,0);
 				}
 				if (j-SAMPLE_SIZE >= 0 &&
-								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == obj) {
+								image.at<Scalar>(i, j-SAMPLE_SIZE) == obj) {
 						blob.push_back(Point(j-SAMPLE_SIZE, i));
-						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 0;
+						image.at<Scalar>(i, j-SAMPLE_SIZE) = Scalar(0,0,0);
 				}
 				index++;
 		}
@@ -290,12 +290,12 @@ bool compareBlobs(Points& blob0, Points& blob1) {
 }
 
 vector<Points> findBlobs(Mat& image,
-				const int offset, const unsigned int maxBlobs, int obj) {
+				const int offset, const unsigned int maxBlobs, Scalar obj) {
 		// First get all blobs that are at least the minimum size
 		vector<Points> allBlobs;
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-						if ((int)image.at<uint8_t>(i, j, 0) == obj) {
+						if (image.at<Scalar>(i, j) == obj) {
 								Points blob = findBlob(image, i, j, obj);
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
@@ -400,11 +400,11 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			bright+=hsv[2];
 			++count;
 			int temp=pTree->Classify(sample);
-			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*10+200) : 0);
-			if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
-			{
-                rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
-			}
+			threshold.at<Scalar>(i,j)=(temp ? objects[temp-1].annotationColor : Scalar(0,0,0));
+			// if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
+			// {
+   //              rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
+			// }
 		}
 	}
 	lastAvgHue=hue/count;
@@ -491,13 +491,13 @@ void genericCallback(
 						//reduceNoise(threshold);
 						if (true) {
 								cv_bridge::CvImage temp;
-								temp.encoding = "mono8";
+								temp.encoding = sensor_msgs::image_encodings::BGR8;
 								temp.image = threshold;
 								threshPublisher.publish(temp.toImageMsg());
 						}
                         int tempenum=object.enumType;
 						vector<Points> blobs = findBlobs(
-										threshold, offset, object.maxBlobs, (tempenum ? (tempenum*10+200) : 0));
+										threshold, offset, object.maxBlobs, object.annotationColor);
 						// Iterate through all blobs
 						for (unsigned int j = 0; j < blobs.size(); j++) {
 								vector<BlobAnalysis> analysisList =
@@ -511,23 +511,26 @@ void genericCallback(
                                         if(true)
 										{
 												// Publish information
-												SubImageRecognition::ImgRecObject msg;
-												msg.stamp = time;
-												msg.id = k;
-												msg.center_x = analysis.center_x - rotated.image.cols / 2;
-												msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-												msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
-												msg.width = analysis.width;
-												msg.height = analysis.height;
-												msg.confidence = computeConfidence(object, analysis);
-												object.publisher.publish(msg);
-												// Annotate image
-												annotateImage(rotated.image, object, analysis);
+												int tempConfidence=computeConfidence(object, analysis);
+												if(tempConfidence > MIN_CONFIDENCE)
+												{
+													SubImageRecognition::ImgRecObject msg;
+													msg.stamp = time;
+													msg.id = k;
+													msg.center_x = analysis.center_x - rotated.image.cols / 2;
+													msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+													msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
+													msg.width = analysis.width;
+													msg.height = analysis.height;
+													msg.confidence = tempConfidence;
+													object.publisher.publish(msg);
+													// Annotate image
+													annotateImage(rotated.image, object, analysis);
+												}
 										}
 
 								}
 						}
-					//	cout<<"Blobs: "<<blobs.size()<<" Tracks: "<<trackBlobs.size()<<endl;
 				}
 		}
 
