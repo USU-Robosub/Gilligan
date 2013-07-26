@@ -147,7 +147,19 @@ cv_bridge::CvImage forwardRotated, downwardRotated;
 Mat forwardSegmented, downwardSegmented;
 Mat forwardThreshold, downwardThreshold;
 DLT* pTree;
-int lastAvgHue=0, lastAvgSat=0, lastAvgBright=0;
+int lastAvgHue=0, lastAvgSat=0, lastAvgBright=0, curOrange=0;
+bool pizzaCheck=false;
+Object pizzaObj	(
+					"pizza_box",
+	                1,
+					CAMERA_FORWARD,
+					ANALYSIS_RECTANGLE,
+					2,
+					CONFIDENCE_RECTANGLE,
+					Scalar(0, 255, 255),
+					ANNOTATION_ROTATION,
+					255
+				);
 
 // FUNCTIONS
 
@@ -255,7 +267,8 @@ Points findBlob(Mat& image, int i, int j, int obj) {
 		Points blob;
 		Point point(j, i);
 		blob.push_back(point);
-		image.at<uint8_t>(i, j, 0) = 0;
+		int doneThresh = (obj==1||obj==3) ? 255 : 0;
+		image.at<uint8_t>(i, j, 0)=doneThresh;
 		while (index < blob.size()) {
 				point = blob[index];
 				i = point.y;
@@ -263,22 +276,22 @@ Points findBlob(Mat& image, int i, int j, int obj) {
 				if (i+SAMPLE_SIZE < image.rows
 								&& image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i+SAMPLE_SIZE));
-						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0) = 0;
+						image.at<uint8_t>(i+SAMPLE_SIZE, j, 0)=doneThresh;
 				}
 				if (i-SAMPLE_SIZE >= 0
 								&& image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) == obj) {
 						blob.push_back(Point(j, i-SAMPLE_SIZE));
-						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0) = 0;
+						image.at<uint8_t>(i-SAMPLE_SIZE, j, 0)=doneThresh;
 				}
 				if (j+SAMPLE_SIZE < image.cols
 								&& image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j+SAMPLE_SIZE, i));
-						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0) = 0;
+						image.at<uint8_t>(i, j+SAMPLE_SIZE, 0)=doneThresh;
 				}
 				if (j-SAMPLE_SIZE >= 0 &&
 								image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) == obj) {
 						blob.push_back(Point(j-SAMPLE_SIZE, i));
-						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0) = 0;
+						image.at<uint8_t>(i, j-SAMPLE_SIZE, 0)=doneThresh;
 				}
 				index++;
 		}
@@ -295,7 +308,7 @@ vector<Points> findBlobs(Mat& image,
 		vector<Points> allBlobs;
 		for (int i = offset; i < image.rows; i += SAMPLE_SIZE) {
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
-						if ((int)image.at<uint8_t>(i, j, 0) == obj) {
+						if (image.at<uint8_t>(i, j, 0) == obj) {
 								Points blob = findBlob(image, i, j, obj);
 								if (blob.size() >= MIN_POINTS) {
 										allBlobs.push_back(blob);
@@ -381,6 +394,7 @@ void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
 //assuming i=y and j=x
 void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 {	int count=0, hue=0, sat=0, bright=0;
+	curOrange=0;
 	if (threshold.total() == 0) {
 		threshold.create(segmented.rows, segmented.cols, CV_8U);
 	}
@@ -401,10 +415,14 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			++count;
 			int temp=pTree->Classify(sample);
 			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*10+200) : 0);
-			if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
+			if(temp==1||temp==3)
 			{
-                rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
+				++curOrange;
 			}
+			// if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
+			// {
+   //              rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
+			// }
 		}
 	}
 	lastAvgHue=hue/count;
@@ -484,17 +502,18 @@ void genericCallback(
 
 		// Iterate through all objects
 		objInRange(segmented, threshold, offset);
+		if (true) 
+		{
+			cv_bridge::CvImage temp;
+			temp.encoding = "mono8";
+			temp.image = threshold;
+			threshPublisher.publish(temp.toImageMsg());
+		}
 		for (unsigned int i = 0; i < objects.size(); i++) {
 				Object object = objects[i];
 				// Run applicable algorithms
 				if ((object.flags & FLAG_ENABLED) && object.camera == camera) {
 						//reduceNoise(threshold);
-						if (true) {
-								cv_bridge::CvImage temp;
-								temp.encoding = "mono8";
-								temp.image = threshold;
-								threshPublisher.publish(temp.toImageMsg());
-						}
                         int tempenum=object.enumType;
 						vector<Points> blobs = findBlobs(
 										threshold, offset, object.maxBlobs, (tempenum ? (tempenum*10+200) : 0));
@@ -507,9 +526,13 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
                            
-									//	if (trackBlob(analysis, object.enumType)) 
-                                        if(true)
+                                        //if(true)
+										if (trackBlob(analysis, object.enumType)) 
 										{
+											if(object.enumType==1||object.enumType==3)
+											{
+												pizzaCheck=false;
+											}
 												// Publish information
 												int tempConfidence=computeConfidence(object, analysis);
 												if(tempConfidence > MIN_CONFIDENCE)
@@ -528,10 +551,43 @@ void genericCallback(
 													annotateImage(rotated.image, object, analysis);
 												}
 										}
+										else if(object.enumType==1||object.enumType==3)
+										{
+											pizzaCheck=true;
+										}
 
 								}
 						}
 				}
+		}
+
+		if(pizzaCheck&&curOrange>200)
+		{
+
+			vector<Points> orangeBlobs=findBlobs(threshold, offset, 1, pizzaObj.enumType);
+			for(int i=0;i<orangeBlobs.size();++i)
+			{
+				vector<BlobAnalysis> analysisList = analyzeBlob(pizzaObj, orangeBlobs[i], rotated.image);
+				for (unsigned int k = 0; k < analysisList.size(); k++) 
+				{
+					BlobAnalysis analysis = analysisList[k];
+					if (trackBlob(analysis, pizzaObj.enumType))
+					{
+						SubImageRecognition::ImgRecObject msg;
+						msg.stamp = ros::Time::now();
+						msg.id = k;
+						msg.center_x = analysis.center_x - rotated.image.cols / 2;
+						msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+						msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
+						msg.width = analysis.width;
+						msg.height = analysis.height;
+						msg.confidence = computeConfidence(pizzaObj, analysis);
+						pizzaObj.publisher.publish(msg);
+						// Annotate image
+						annotateImage(rotated.image, pizzaObj, analysis);
+					}
+				}
+			}
 		}
 
 		// Publish annotated image
@@ -564,7 +620,7 @@ int main(int argc, char **argv) {
 	forwardThresh = imageTransport.advertise("forward_camera/threshold", 1);
 	downwardThresh = imageTransport.advertise("downward_camera/threshold", 1);
 
-	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("/stereo/left/image_raw", 1, forwardCallback);
+	image_transport::Subscriber forwardSubscriber = imageTransport.subscribe("/stereo/right/image_raw", 1, forwardCallback);
 	image_transport::Subscriber downwardSubscriber = imageTransport.subscribe("image_raw", 1, downwardCallback);
 
 	initObjects();

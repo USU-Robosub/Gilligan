@@ -31,7 +31,7 @@ using namespace std;
 void test(DLT tree, sqlite3 *db, int count)
 {
 	sqlite3_stmt *statement;
-	sqlite3_prepare_v2(db, "select avgHue, avgSat, avgBright, imageData.hue, imageData.saturation, imageData.brightness, imageData.tag from frameData join imageData where frameData.id=imageData.frame;", -1, &statement, 0);
+	sqlite3_prepare_v2(db, "select avgSat, avgBright, imageData.hue, imageData.saturation, imageData.brightness, imageData.tag from frameData join imageData where frameData.id=imageData.frame;", -1, &statement, 0);
 	int cols = sqlite3_column_count(statement);
 	int result = 0, progress=0, good=0;
 	while(true)
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 		sqlite3_step(statement);
 		count=atoi((char*)sqlite3_column_text(statement, 0));
 		data=new Sample[count];
-		sqlite3_prepare_v2(db, "select avgHue, avgSat, avgBright, imageData.hue, imageData.saturation, imageData.brightness, imageData.tag from frameData join imageData where frameData.id=imageData.frame;", -1, &statement, 0);
+		sqlite3_prepare_v2(db, "select avgSat, avgBright, imageData.hue, imageData.saturation, imageData.brightness, imageData.tag from frameData join imageData where frameData.id=imageData.frame;", -1, &statement, 0);
 		int cols = sqlite3_column_count(statement);
 		int result = 0, progress=0;
 		while(true)
