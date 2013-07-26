@@ -393,7 +393,7 @@ void SubConsole::readJoystickInput(void){
       //Set the horizontal thrusters to the same direction/velocity to rotate sub
       float thrusterSpeed = (abs(currentTwistAxis) / (double)JOYSTICK_MAX_VALUE);
 
-      if(currentTwistAxis > 0)  //Turn right, set both thrusters to reverse
+      if(currentTwistAxis >= 0)  //Turn right, set both thrusters to reverse
       {
           frontTurnValue = thrusterSpeed;// * 0.85;
           rearTurnValue = thrusterSpeed;// * 0.93;
@@ -532,10 +532,10 @@ void SubConsole::motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr &
 void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, float leftDrive, float rightDrive, float frontDepth, float rearDepth, float frontTurn, float rearTurn)
 {
     Robosub::HighLevelControl motorMsg;
+    motorMsg.MotionType = "Manual";
     if( motorMask & (LEFT_DRIVE_BIT|RIGHT_DRIVE_BIT) ){
             //Send Forward
             motorMsg.Direction = "Forward";
-            motorMsg.MotionType = "Manual";
             motorMsg.Value = leftDrive;
 
             m_motorDriverPublisher.publish(motorMsg);
@@ -544,26 +544,36 @@ void SubConsole::sendMotorSpeedMsg(unsigned char motorMask, float leftDrive, flo
     if( motorMask & (FRONT_DEPTH_BIT|REAR_DEPTH_BIT) ){
             //Send Depth
             motorMsg.Direction = "Depth";
-            motorMsg.MotionType = "Manual";
+
             motorMsg.Value = frontDepth;
 
             m_motorDriverPublisher.publish(motorMsg);
     }//Depth
 
     if( motorMask & (FRONT_TURN_BIT|REAR_TURN_BIT) ){
-        if((frontTurn*rearTurn) > 0){ //Same signs
+        float pre = (frontTurn*rearTurn);
+        if(pre>0.0){ //Same signs
             //Send Turn
             motorMsg.Direction = "Turn";
-            motorMsg.MotionType = "Manual";
+
             motorMsg.Value = frontTurn;
 
             m_motorDriverPublisher.publish(motorMsg);
-        }else{
+        }else if(pre<0.0){ //Oposite signs
             //Send Strafe
             motorMsg.Direction = "Strafe";
-            motorMsg.MotionType = "Manual";
+
             motorMsg.Value = frontTurn;
 
+            m_motorDriverPublisher.publish(motorMsg);
+        }else{ //pre==0
+            motorMsg.Direction = "Turn";
+
+            motorMsg.Value = 0;
+
+            m_motorDriverPublisher.publish(motorMsg);
+
+            motorMsg.Direction = "Strafe";
             m_motorDriverPublisher.publish(motorMsg);
         }
     }//Turn

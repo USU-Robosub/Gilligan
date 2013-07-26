@@ -48,7 +48,7 @@ So
 //How much thurst needs to be applied per degree of rotation
 //This number should yield a command [0,1] though the
 //output must be biased to go from 60 to 255
-float KP = .1;
+float KP = .01;
 
 float MAX = 0.5; //This might saturate at a lot less than this
 bool MODE = ON;
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 
 	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 100);
 
-	ros::Subscriber targetDepth = nh.subscribe("/Target_Heading", 10, mTargetHeadingCallback);
+	ros::Subscriber target = nh.subscribe("/Target_Heading", 10, mTargetHeadingCallback);
 	ros::Subscriber imuAttitude = nh.subscribe("/IMU_Attitude", 100, mHeadingCallback);
 	ros::Subscriber enabled = nh.subscribe("/Module_Control", 1, mEnabledCallback);
 	ros::spin();

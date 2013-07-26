@@ -31,7 +31,7 @@ ros::Publisher motorControl;
 
 void mTargetDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 	targetDepth = msg->data;
-	printf("setting target depth to %f\n", targetDepth);
+	//printf("setting target depth to %f\n", targetDepth);
 }
 
 void setDepthSpeed(float speed) {
@@ -150,8 +150,8 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
         speed = -1;
 
 
-	setDepthSpeed(speed);
-	//printf("D:%f C:%f E:%f P:%f I:%f speed:%f T:%f\n", depth, targetDepth,error, p, y, speed, t);
+	setDepthSpeed(-speed);
+	//printf("\r`speed:%2.5f", -speed);
 }
 
 int main(int argc, char** argv) {
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 	motorControl = nh.advertise<Robosub::HighLevelControl>("High_Level_Motion", 100);
 
 	ros::Subscriber curDepth = nh.subscribe("Sub_Depth", 1, mCurrentDepthCallback);
-	ros::Subscriber targetDepth = nh.subscribe("/Target_Depth", 1, mTargetDepthCallback);
+	ros::Subscriber targetDepth = nh.subscribe("/Target_Depth", 10, mTargetDepthCallback);
 	//ros::Subscriber imuAttitude = nh.subscribe("/IMU_Attitude", 1, mAttitudeCallback);
 	ros::Subscriber enabled = nh.subscribe("/Module_Control", 1, mEnabledCallback);
 	ros::spin();

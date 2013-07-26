@@ -4,7 +4,6 @@
 #include "Robosub/HighLevelControl.h"
 #include "Robosub/Point.h"
 #include "SubMotorController/MotorMessage.h"
-
 #include <string>
 
 using namespace std;
@@ -90,7 +89,8 @@ int makeSpeed(float percent)
     //map from 100 to 255 and from 60 to 1 percent
     if (fabs(percent)<0.01)
         return 0;
-    return (percent - .01) * (255-60) / (1-.05) + 60;
+    int p = (percent) * (255-60);
+    return p>0?p+60:p-60;
     //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 
 
@@ -213,9 +213,9 @@ void UpdateStrafeVelocity() {
 */
 int sanitize(int speed) {
 
-	if(speed > 0 && speed < 60)
+	if(speed >=0 && speed < 60)
 		speed = 0;
-	else if (speed < 0 && speed > -60)
+	else if (speed <0 && speed > -60)
 		speed = 0;
 	if(speed > 255)
 		return 255;
@@ -336,7 +336,7 @@ void ManageDepthThrusters() {
 	int FrontThrust = DepthSpeed + PitchSpeed;
 	int RearThrust = DepthSpeed - PitchSpeed;
 
-	if(true || RearThrust != currentDepthRear ||
+	if(RearThrust != currentDepthRear ||
 			FrontThrust != currentDepthFront) {
 
         //Include multipliers to compensate for differences in the motors
