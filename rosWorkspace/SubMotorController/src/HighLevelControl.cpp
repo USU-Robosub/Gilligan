@@ -214,9 +214,9 @@ void UpdateStrafeVelocity() {
 int sanitize(int speed) {
 
 	if(speed > 0 && speed < 60)
-		speed = 40;
+		speed = 0;
 	else if (speed < 0 && speed > -60)
-		speed = -40;
+		speed = 0;
 	if(speed > 255)
 		return 255;
 	if(speed < -255)
@@ -353,7 +353,7 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "HighLevelControl");
 	ros::NodeHandle nh;
 
-	motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Control", 1);//Should this be 10?
+	motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Control", 100);//Should this be 10?
 	depthPublisher = nh.advertise<std_msgs::Float32>("Target_Depth", 10);
 	headingPublisher = nh.advertise<std_msgs::Float32>("Target_Heading", 10);
 
