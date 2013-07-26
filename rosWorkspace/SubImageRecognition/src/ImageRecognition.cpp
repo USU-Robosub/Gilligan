@@ -400,7 +400,11 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			bright+=hsv[2];
 			++count;
 			int temp=pTree->Classify(sample);
-			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*30+123) : 0);		
+			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*10+200) : 0);
+			if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
+			{
+                rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
+			}
 		}
 	}
 	lastAvgHue=hue/count;
@@ -493,7 +497,7 @@ void genericCallback(
 						}
                         int tempenum=object.enumType;
 						vector<Points> blobs = findBlobs(
-										threshold, offset, object.maxBlobs, (tempenum ? (tempenum*30+123) : 0));
+										threshold, offset, object.maxBlobs, (tempenum ? (tempenum*10+200) : 0));
 						// Iterate through all blobs
 						for (unsigned int j = 0; j < blobs.size(); j++) {
 								vector<BlobAnalysis> analysisList =
