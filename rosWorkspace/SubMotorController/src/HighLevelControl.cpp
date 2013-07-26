@@ -20,9 +20,9 @@ const double FORWARD_DRAG_CONST = .99;
 const double STRAF_SPEED_CONST = .0000004;
 const double STRAF_DRAG_CONST = .98;
 
-const double LEFT_FWD_MULT = 0.75;
-const double REAR_TURN_MULT = 0.9;
-const double FRONT_TURN_MULT = 0.85;
+const double LEFT_FWD_MULT = 0.78;
+const double REAR_TURN_MULT = .9; //right
+const double FRONT_TURN_MULT = .85; //left
 
 enum Mode {
 	MANUAL,
@@ -251,7 +251,7 @@ void CalcTurn() {
         //Prepare and set Target_Heading and let the
 		//controller take care of it
         setHeading(TurnCommand); //This sets TurnSpeed
-		printf("Command = %f Speed = %i\n", TurnCommand, TurnSpeed);
+		//printf("Command = %f Speed = %i\n", TurnCommand, TurnSpeed);
 	}
 }
 
@@ -320,12 +320,24 @@ void ManageTurnThrusters() {
 	   FrontThrust != currentTurnFront) {
 
         //Include multipliers to compensate for differences in the motor
-        currentTurnRear = RearThrust*REAR_TURN_MULT;
-		currentTurnFront = FrontThrust*FRONT_TURN_MULT;
+        //Strafe left: rear is faster than front
+        //When rear is <0 multiply front
+        //when front is <0 multiply rear
+        if (RearThrust<0){ //LEFT
+            currentTurnRear = RearThrust;
+            currentTurnFront = FrontThrust*FRONT_TURN_MULT;
+        }else if (FrontThrust<0){ //RIGHT
+            currentTurnRear = RearThrust*REAR_TURN_MULT;
+            currentTurnFront = FrontThrust;
+	   }else{
+            currentTurnRear = RearThrust;
+            currentTurnFront = FrontThrust;
+	   }
 
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
 				0, 0, currentTurnRear, currentTurnFront, 0, 0);
-
+//left rear <0
+//right front <0
 	}
 }
 
