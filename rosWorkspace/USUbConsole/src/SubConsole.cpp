@@ -42,6 +42,17 @@
 #define E_LINE 8
 #define S_LINE 9
 #define D_LINE 10
+/*
+void ActiveLineEdit::focusInEvent(QFocusEvent* e)
+{
+    if (e->reason() == Qt::MouseFocusReason)
+    {
+      // The mouse trigerred the event
+    }
+
+    // You might also call the parent method.
+    QLineEdit::focusInEvent(e);
+}*/
 
 /*
  * @brief SubConsole ctor which sets up timers and connect signals/slots
@@ -56,7 +67,7 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pJoystick(new Joystick()),
      m_nodeHandle(),
      m_motorDriverPublisher(),
-     m_depthPublisher(),
+     //m_depthPublisher(),
      m_thresholdBoxPublisher(),
      m_torpedoPublisher(),
      m_imageRecService(),
@@ -103,6 +114,8 @@ SubConsole::SubConsole(QWidget* pParent)
      m_pRollIndicator(NULL),
      targetDepth(0),
      depth(0),
+     targetHeading(0),
+     m_headingActive(false),
      m_pCamThresholdData(NULL),
      m_thresholdActive(false)
 //     error(0),
@@ -126,6 +139,8 @@ SubConsole::SubConsole(QWidget* pParent)
    connect(m_pUi->downPipButton, SIGNAL(clicked()), this, SLOT(toggleDownwardPiP()));
    connect(m_pUi->forwardPipButton, SIGNAL(clicked()), this, SLOT(toggleForwardPiP()));
    connect(m_pUi->thresholdPipButton, SIGNAL(clicked()), this, SLOT(toggleThresholdPip()));
+   connect(m_pUi->targetHeadingLineEdit, SIGNAL(returnPressed()), this, SLOT(on_targetHeadingLineEdit_returnPressed()));
+   connect(m_pUi->headingEditCheckBox, SIGNAL(stateChanged(int)), this, SLOT(on_headingEditCheckBox_stateChanged(int)));
 //   connect(m_pUi->updateButton,SIGNAL(clicked()),this,SLOT(updateGains()));
 //   connect(m_pUi->toggleBoxThresholdButton, SIGNAL(clicked()), this, SLOT(toggleBoxThresholding()));
 //   connect(m_pUi->enableViewThresholdButton, SIGNAL(clicked()), this, SLOT(enableViewThresholds()));
@@ -151,7 +166,7 @@ SubConsole::SubConsole(QWidget* pParent)
 
    //m_motorDriverPublisher = m_nodeHandle.advertise<USUbConsole::MotorMessage>("Motor_Control", 100);
    m_motorDriverPublisher = m_nodeHandle.advertise<Robosub::HighLevelControl>("High_Level_Motion", 100);
-   m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
+   //m_depthPublisher = m_nodeHandle.advertise<std_msgs::Float32>("Target_Depth", 100);
    m_thresholdBoxPublisher = m_nodeHandle.advertise<SubImageRecognition::ImgRecThreshold>("Threshold_Box", 100);
    m_imageRecService = m_nodeHandle.serviceClient<SubImageRecognition::UpdateAlgorithm>("img_rec/update_algorithm");
    m_listAlgorithmService = m_nodeHandle.serviceClient<SubImageRecognition::ListAlgorithms>("img_rec/list_algorithms");
@@ -163,17 +178,19 @@ SubConsole::SubConsole(QWidget* pParent)
    m_pressureSubscriber = m_nodeHandle.subscribe("Pressure_Data", 100, &SubConsole::pressureDataCallback, this);
    m_depthSubscriber = m_nodeHandle.subscribe("Sub_Depth", 100, &SubConsole::depthCallback, this);
    //m_forwardCameraSubscriber = m_nodeHandle.subscribe("/forward_camera/image_raw/compressed", 100, &SubConsole::forwardCameraCallback, this);
-   m_leftCameraSubscriber = m_nodeHandle.subscribe("forward_camera/image_raw/compressed", 100, &SubConsole::leftCameraCallback, this);
-   m_rightCameraSubscriber = m_nodeHandle.subscribe("stereo/right/image_raw/compressed", 100, &SubConsole::rightCameraCallback, this);
+   m_leftCameraSubscriber = m_nodeHandle.subscribe("stereo/left/image_raw/compressed", 100, &SubConsole::leftCameraCallback, this);
+   m_rightCameraSubscriber = m_nodeHandle.subscribe("forward_camera/image_raw/compressed", 100, &SubConsole::rightCameraCallback, this);
    m_downwardCameraSubscriber = m_nodeHandle.subscribe("/downward_camera/image_compressed/compressed", 100, &SubConsole::downwardCameraCallback, this);
    m_voltageCurrentSubscriber = m_nodeHandle.subscribe("Computer_Cur_Volt", 100, &SubConsole::currentVoltageCallback, this);
    m_errorLogSubscriber = m_nodeHandle.subscribe("Error_Log", 100, &SubConsole::errorLogCallback, this);
    m_rawAccelSubscriber = m_nodeHandle.subscribe("IMU_Accel_Debug", 100, &SubConsole::rawAccelCallback, this);
-   m_motorStatusSubscriber = m_nodeHandle.subscribe("Motor_Control", 100, &SubConsole::motorStatusCallback, this);
+   m_motorControlSubscriber = m_nodeHandle.subscribe("Motor_Control", 100, &SubConsole::motorControlCallback, this);
 
    m_targetDepthSubscriber = m_nodeHandle.subscribe("Target_Depth",100, &SubConsole::targetDepthCallback,this);
    m_motorCurrentSubscriber = m_nodeHandle.subscribe("Motor_Current",100, &SubConsole::motorCurrentCallback,this);
    m_camThresholdSubscriber = m_nodeHandle.subscribe("forward_camera/threshold/compressed", 100, &SubConsole::cameraThresholdCallback, this);
+   m_motorStateSubscriber = m_nodeHandle.subscribe("Motor_State",1, &SubConsole::motorStateCallback,this);
+   m_targetHeadingSubscriber = m_nodeHandle.subscribe("Target_Heading",100, &SubConsole::targetHeadingCallback,this);
    printf("Finished ROS topic publish and subscription initialization\n");
 
 
@@ -418,13 +435,15 @@ void SubConsole::readJoystickInput(void){
           currentThrottleAxis += JOYSTICK_MAX_VALUE;
 
           float desiredDepth = MAXIMUM_DEPTH * (currentThrottleAxis / (double)(JOYSTICK_MAX_VALUE * 2));
-          std_msgs::Float32 depthMsg;
+          Robosub::HighLevelControl depthMsg;
 
-          depthMsg.data = desiredDepth;
+          depthMsg.Direction = "Depth";
+          depthMsg.MotionType = "Command";
+          depthMsg.Value = desiredDepth;
 
           //m_pUi->targetDepthLineEdit->setText(QString::number(desiredDepth));
 
-          m_depthPublisher.publish(depthMsg);
+          m_motorDriverPublisher.publish(depthMsg);
           //Depth Controller Stuff
           //targetDepth = desiredDepth;
       }
@@ -453,7 +472,7 @@ void SubConsole::readJoystickInput(void){
    if(motorMask != 0x0)
    {
      sendMotorSpeedMsg(motorMask, leftDriveValue, rightDriveValue, frontDepthValue, rearDepthValue, frontTurnValue, rearTurnValue);
-     //printf("Motot: F:%f, D:%f, T:%f", leftDriveValue, frontDepthValue, frontTurnValue);
+     //printf("Motor: F:%f, D:%f, T:%f", leftDriveValue, frontDepthValue, frontTurnValue);
    }
 }
 
@@ -465,7 +484,7 @@ void SubConsole::handleRosCallbacks(void)
     ros::spinOnce();
 }
 
-void SubConsole::motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr &msg){
+void SubConsole::motorControlCallback(const USUbConsole::MotorMessage::ConstPtr &msg){
     //update the motor graphs values
 
 
@@ -600,6 +619,8 @@ void SubConsole::imuDataCallback(const std_msgs::Float32MultiArray::ConstPtr& ms
 
    m_pUi->rollLineEdit->setText(QString::number(m_rollAverage.Value()));
    m_pRollIndicator->setAngle(m_rollAverage.Value());
+
+   //Add heding plots here
 }
 
 /**
@@ -647,84 +668,8 @@ void SubConsole::depthCallback(const std_msgs::Float32::ConstPtr& msg)
 
    //Added for Depth Controller gain adjustment
     depth = m_depthAverage.Value();//msg->data;
-   float error = 0;
-   //Error calculation
-    //	if(depth - targetDepth > 1.5)
-    //		error = 1;
-    //	else if(depth - targetDepth < -1.5)
-    //		error = -1;
-    //	else
-   error = depth - targetDepth;
-   /*
-   if (fabs(error)<0.02){ //Could change
-       error = 0; //maintain the trust
-       //yOld = 0; //Should help avoid drift caused for small differences
-       //eOld = 0;
-   }*/
-   /*if (fabs(error)<0.2){
-       KP=.3;
-   }
-   else{
-       KP = m_pUi->propLineEdit->text().toFloat();
-   }*/
-   /*
-   if (targetDepth<0.05 && error<0.1) //Reset integrator if at the surface
-       yOld = 0;
+   float error = depth - targetDepth;
 
-   //Proportional
-
-   float p;
-
-   if (error>0){ //Be more gentle on recovering if it went too deep
-       p = KP*error*.05;
-   }else{
-       p = KP*error;
-   }
-   //Integral
-   if (yOld==0 && eOld==0){
-       //reset timer
-       gettimeofday(&tOld,0);
-   }
-
-   gettimeofday(&tNow,0);
-
-   float t;
-   t = tNow.tv_sec - tOld.tv_sec;
-   t += (tNow.tv_usec - tOld.tv_usec)/1000000.0;
-
-   float y = yOld + KI*t/2*(error+eOld); //should be <1?
-
-
-   if(fabs(y)>iMax){
-       y = y>0?iMax:-iMax; //Max out the integrator
-   }
-
-
-   if (error==0)
-       y = yOld;
-
-   //TODO Might need to setup an integrator reset (but when?)
-
-   //Update buffers
-   yOld = y;
-   eOld = error;
-   tOld.tv_sec = tNow.tv_sec;
-   tOld.tv_usec = tNow.tv_usec;
-
-   speed = p+y;
-   if (speed > 1)
-       speed = 1;
-   else if(speed < -1)
-       speed = -1;
-
-   short speedInt = speed*255;
-   //sendMotorSpeedMsg(REAR_DEPTH_BIT | FRONT_DEPTH_BIT,
-   //                   0,        0,
-   //                   -speedInt, -speedInt,
-   //                   0,        0
-   //               );
-    */
-   // calculate two new data points:
  #if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
    double key = 0;
  #else
@@ -784,8 +729,7 @@ void SubConsole::currentVoltageCallback(const std_msgs::Float32MultiArray::Const
      QString txt = QString::fromStdString(msg->data);
 
      if(txt.contains("BUTN", Qt::CaseSensitive)){
-         if(!m_pUi->killSwitchCheckBox->isChecked())
-            m_pUi->killSwitchCheckBox->setCheckState(Qt::Checked);
+
          return; //Avoid printing this line
      }
      QDate date = QDate::currentDate();
@@ -872,7 +816,9 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::CompressedImage::Const
   **/
 
  void SubConsole::leftCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
- {
+{
+    if(m_thresholdActive) //Avoid running if not needed
+        return;
     QImage image;
     QPixmap pixmap;
 
@@ -901,8 +847,7 @@ void SubConsole::forwardCameraCallback(const sensor_msgs::CompressedImage::Const
 
  void SubConsole::rightCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg)
  {
-    if(m_thresholdActive) //Avoid running if not needed
-        return;
+
     QImage image;
     QPixmap pixmap;
 
@@ -971,11 +916,11 @@ void SubConsole::cameraThresholdCallback(const sensor_msgs::CompressedImage::Con
    std::copy(msg->data.begin(), msg->data.end(), m_pCamThresholdData);
 
    image.loadFromData(m_pCamThresholdData, msg->data.size(), "JPG");
-   m_pUi->rightCameraImage->setPixmap(pixmap.fromImage(image.scaledToHeight(320), 0));
+   m_pUi->leftCameraImage->setPixmap(pixmap.fromImage(image.scaledToHeight(320), 0));
 
    if(m_forwardPipEnabled)
    {
-      m_pUi->rightCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
+      m_pUi->leftCameraImageThumb->setPixmap(pixmap.fromImage(image.scaledToHeight(144), 0));
    }
 }
 
@@ -1034,13 +979,20 @@ void SubConsole::updateGains(void){
 
 }
 */
-void SubConsole::   targetDepthCallback(const std_msgs::Float32::ConstPtr& msg){
+void SubConsole::targetDepthCallback(const std_msgs::Float32::ConstPtr& msg){
     m_pUi->targetDepthLineEdit->setText(QString::number(msg->data));
 
     //Depth Controller Stuff
     targetDepth = msg->data;
 }
 
+void SubConsole::targetHeadingCallback(const std_msgs::Float32::ConstPtr& msg){
+    if(!m_headingActive)
+        m_pUi->targetHeadingLineEdit->setText(QString::number(msg->data));
+
+    //For plotting
+    targetHeading  = msg->data;
+}
 
 void SubConsole::motorCurrentCallback(const SubMotorController::MotorCurrentMsg::ConstPtr &msg){
     //Update the current boxes as they arrive
@@ -1065,6 +1017,18 @@ void SubConsole::motorCurrentCallback(const SubMotorController::MotorCurrentMsg:
     }
 
 }
+
+void SubConsole::motorStateCallback(const std_msgs::UInt8::ConstPtr  &msg){
+    bool killed = !msg->data;
+    if(killed && !m_pUi->killSwitchCheckBox->isChecked())
+        m_pUi->killSwitchCheckBox->setCheckState(Qt::Checked);
+    if(!killed && m_pUi->killSwitchCheckBox->isChecked())
+        m_pUi->killSwitchCheckBox->setCheckState(Qt::Unchecked);
+
+
+
+}
+
 
 //Image Record Algorithms
 
@@ -1200,3 +1164,24 @@ void SubConsole::imageRecDownThresholdBoxDrawn(void)
     }
 }
 */
+
+void SubConsole::on_targetHeadingLineEdit_returnPressed()
+{
+    Robosub::HighLevelControl msg;
+
+    msg.Direction = "Turn";
+    msg.MotionType = "Command";
+    msg.Value = m_pUi->targetHeadingLineEdit->text().toFloat();
+
+    m_motorDriverPublisher.publish(msg);
+    m_headingActive = false;
+    m_pUi->headingEditCheckBox->setCheckState(Qt::Unchecked);
+
+}
+
+
+void SubConsole::on_headingEditCheckBox_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked)
+        m_headingActive = true;
+}

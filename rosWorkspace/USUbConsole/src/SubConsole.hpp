@@ -28,7 +28,17 @@
 namespace Ui
 {
   class SubConsole;
+  //class ActiveLineEdit;
 }
+/*
+class ActiveLineEdit : public QLineEdit
+{
+    Q_OBJECT
+
+    protected:
+
+    void focusInEvent(QFocusEvent* e);
+};*/
 
 class SubConsole : public QMainWindow
 {
@@ -48,12 +58,14 @@ public:
    void downwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
    void currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void errorLogCallback(const std_msgs::String::ConstPtr& msg);
-   void motorStatusCallback(const USUbConsole::MotorMessage::ConstPtr& msg);
+   void motorControlCallback(const USUbConsole::MotorMessage::ConstPtr& msg);
    //TODO add the a subscriber and callback for the Raw acceleration topic
    void rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void targetDepthCallback(const std_msgs::Float32::ConstPtr& msg);
    void motorCurrentCallback(const SubMotorController::MotorCurrentMsg::ConstPtr& msg);
    void cameraThresholdCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
+   void motorStateCallback(const std_msgs::UInt8::ConstPtr& msg);
+   void targetHeadingCallback(const std_msgs::Float32::ConstPtr& msg);
 
 private:
    Ui::SubConsole* m_pUi;                           //!< Pointer to UI object
@@ -62,7 +74,7 @@ private:
    Joystick* m_pJoystick;                           //!< Joystick++ library object
    ros::NodeHandle m_nodeHandle;                    //!< ROS node handle
    ros::Publisher m_motorDriverPublisher;           //!< Publishes the Motor_Driver_Depth topic
-   ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
+   //ros::Publisher m_depthPublisher;                 //!< Publishes the Target_Depth topic
    ros::Publisher m_thresholdBoxPublisher;          //!< Publishes the Threshold_Box topic
    ros::Publisher m_torpedoPublisher;               //!< Publishes the Torpedo_Launch topic
    ros::ServiceClient m_imageRecService;            //!< Publishes to the image recognition topic
@@ -79,12 +91,13 @@ private:
    ros::Subscriber m_voltageCurrentSubscriber;      //!< Subscribes to the Computer_Cur_Volt topic
    ros::Subscriber m_errorLogSubscriber;            //!< Subscribes to the Error_Log topic
 
-   ros::Subscriber m_motorStatusSubscriber;         //!< Subscribes to the Motor_Control topic
+   ros::Subscriber m_motorControlSubscriber;         //!< Subscribes to the Motor_Control topic
    ros::Subscriber m_rawAccelSubscriber;            //!< Subscribes to the IMU_Accel_Debug topic
    ros::Subscriber m_targetDepthSubscriber;
    ros::Subscriber m_motorCurrentSubscriber;
    ros::Subscriber m_camThresholdSubscriber;
-
+   ros::Subscriber m_motorStateSubscriber;
+   ros::Subscriber m_targetHeadingSubscriber;
 
 
    int m_lastXAxisValue;            //!< Stores the last joystick x-axis value
@@ -129,6 +142,8 @@ private:
     float targetDepth;
     float depth;
 
+    float targetHeading;
+    bool m_headingActive; //To know when we're writing on the box
     //To know when the threshold is visible
     unsigned char* m_pCamThresholdData;
     bool m_thresholdActive;
@@ -171,6 +186,9 @@ private slots:
 //   void imageRecThresholdBoxDrawn(void);
 //   void imageRecDownThresholdBoxDrawn(void);
 
+   void on_targetHeadingLineEdit_returnPressed();
+   //void on_targetHeadingLineEdit_cursorPositionChanged(int arg1, int arg2);
+   void on_headingEditCheckBox_stateChanged(int arg1);
 };
 
 #endif // SUBCONSOLE_HPP

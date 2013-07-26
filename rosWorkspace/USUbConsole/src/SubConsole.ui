@@ -68,7 +68,7 @@
       <x>510</x>
       <y>14</y>
       <width>463</width>
-      <height>815</height>
+      <height>765</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -86,7 +86,7 @@
        <property name="maximumSize">
         <size>
          <width>461</width>
-         <height>146</height>
+         <height>160</height>
         </size>
        </property>
        <property name="title">
@@ -338,6 +338,149 @@
               <width>80</width>
               <height>80</height>
              </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_23">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>22</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Heading</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="headingEditCheckBox">
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="targetHeadingLineEdit">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_25">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>22</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Depth</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="targetDepthLineEdit">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_24">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>22</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Inclination</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="targetPitchLineEdit">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>0.0</string>
             </property>
            </widget>
           </item>
@@ -663,19 +806,6 @@
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_8">
-              <item>
-               <widget class="QLineEdit" name="targetDepthLineEdit">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>22</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>0.0</string>
-                </property>
-               </widget>
-              </item>
               <item>
                <widget class="QLineEdit" name="depthLineEdit">
                 <property name="maximumSize">
@@ -1088,13 +1218,25 @@
        <property name="maximumSize">
         <size>
          <width>461</width>
-         <height>146</height>
+         <height>125</height>
         </size>
        </property>
        <property name="title">
         <string>Motor Status</string>
        </property>
        <layout class="QGridLayout" name="gridLayout">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <property name="horizontalSpacing">
+         <number>0</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>4</number>
+        </property>
         <item row="7" column="0" colspan="2">
          <widget class="QLabel" name="label_6">
           <property name="text">
@@ -1902,7 +2044,10 @@
            </palette>
           </property>
           <property name="mouseTracking">
-           <bool>true</bool>
+           <bool>false</bool>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
           </property>
           <property name="text">
            <string>KILLED</string>
@@ -2044,15 +2189,21 @@
        <property name="maximumSize">
         <size>
          <width>461</width>
-         <height>150</height>
+         <height>120</height>
         </size>
        </property>
        <property name="title">
         <string>Error Log</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="topMargin">
-         <number>4</number>
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
         </property>
         <item>
          <widget class="QPlainTextEdit" name="errorLogTextEdit">
@@ -2112,7 +2263,7 @@
      <attribute name="title">
       <string>Forward Camera</string>
      </attribute>
-     <widget class="QLabel" name="leftCameraImage">
+     <widget class="QLabel" name="rightCameraImage">
       <property name="geometry">
        <rect>
         <x>30</x>
@@ -2146,7 +2297,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <property name="text">
-       <string>Left</string>
+       <string>Right</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -2177,7 +2328,7 @@
        <string/>
       </property>
      </widget>
-     <widget class="QLabel" name="rightCameraImage">
+     <widget class="QLabel" name="leftCameraImage">
       <property name="geometry">
        <rect>
         <x>30</x>
@@ -2246,8 +2397,8 @@
        <string>View Thresholds</string>
       </property>
      </widget>
-     <zorder>leftCameraImage</zorder>
      <zorder>rightCameraImage</zorder>
+     <zorder>leftCameraImage</zorder>
      <zorder>downPipButton</zorder>
      <zorder>downCameraImageThumb</zorder>
      <zorder>thresholdPipButton</zorder>
@@ -2456,6 +2607,9 @@
      </widget>
     </widget>
    </widget>
+   <zorder>layoutWidget</zorder>
+   <zorder>tabWidget</zorder>
+   <zorder>label_23</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
