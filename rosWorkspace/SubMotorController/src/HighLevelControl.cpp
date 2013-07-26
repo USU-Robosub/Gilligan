@@ -21,7 +21,8 @@ const double STRAF_SPEED_CONST = .0000004;
 const double STRAF_DRAG_CONST = .98;
 
 const double LEFT_FWD_MULT = 0.75;
-const double TRN_MULT = 1;
+const double REAR_TURN_MULT = 0.9;
+const double FRONT_TURN_MULT = 0.85;
 
 enum Mode {
 	MANUAL,
@@ -309,8 +310,8 @@ void ManageTurnThrusters() {
 	//Strafing command
 	CalcStrafe();
 
-	int RearThrust = TurnSpeed + StrafeSpeed;
-	int FrontThrust = TurnSpeed - StrafeSpeed;
+	int RearThrust = TurnSpeed - StrafeSpeed;
+	int FrontThrust = TurnSpeed + StrafeSpeed;
 
 	RearThrust = sanitize(RearThrust);
 	FrontThrust = sanitize(FrontThrust);
@@ -319,8 +320,8 @@ void ManageTurnThrusters() {
 	   FrontThrust != currentTurnFront) {
 
         //Include multipliers to compensate for differences in the motor
-        currentTurnRear = RearThrust;
-		currentTurnFront = FrontThrust;
+        currentTurnRear = RearThrust*REAR_TURN_MULT;
+		currentTurnFront = FrontThrust*FRONT_TURN_MULT;
 
 		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
 				0, 0, currentTurnRear, currentTurnFront, 0, 0);
