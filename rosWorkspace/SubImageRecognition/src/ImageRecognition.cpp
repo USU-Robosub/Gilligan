@@ -11,6 +11,7 @@
 #include <vector>
 #include <fstream>
 #include <math.h>
+#include <sstream>
 
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
@@ -26,8 +27,8 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 4;
-const unsigned int MIN_POINTS = 300;
-const float MIN_CONFIDENCE = 0.5;
+const unsigned int MIN_POINTS = 275;
+const float MIN_CONFIDENCE = 0.1;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
 
@@ -46,7 +47,7 @@ const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
 
 const int FRAME_MARGIN_OF_ERROR=3;
-const int TRACKING_MOVEMENT_TOLERANCE=500;
+const int TRACKING_MOVEMENT_TOLERANCE=200000;
 
 // DEFINITIONS
 
@@ -375,8 +376,10 @@ float computeConfidence(Object& object, BlobAnalysis& a) {
 		}
 }
 
-void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
+void annotateImage(Mat& image, Object& object, BlobAnalysis& a, float confidence) {
 		int r, x, y;
+		stringstream text;
+		text<<"Confidence: "<<confidence;
 		switch (object.annotationType) {
 		case ANNOTATION_ROTATION:
 				x = (int) (a.height / 2.0 * cos(a.rotation));
@@ -393,6 +396,7 @@ void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
 								object.annotationColor, 2, CV_AA);
 				break;
 		}
+		putText(image, text.str(), Point(a.center_x +5, a.center_y+5), 1, 3, Scalar(255, 255, 255));
 }
 
 
@@ -408,12 +412,12 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			Sample sample;
 			Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
 			sample.type=0;
-			sample.iAttr[0]=lastAvgHue;
-			sample.iAttr[1]=lastAvgSat;
-			sample.iAttr[2]=lastAvgBright;
-			sample.iAttr[3]=hsv[0];
-			sample.iAttr[4]=hsv[1];
-			sample.iAttr[5]=hsv[2];
+			//sample.iAttr[0]=lastAvgHue;
+			sample.iAttr[0]=lastAvgSat;
+			sample.iAttr[1]=lastAvgBright;
+			sample.iAttr[2]=hsv[0];
+			sample.iAttr[3]=hsv[1];
+			sample.iAttr[4]=hsv[2];
 			hue+=hsv[0];
 			sat+=hsv[1];
 			bright+=hsv[2];
@@ -531,17 +535,19 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
                            
-                                        //if(true)
-										if (trackBlob(analysis, object.enumType)) 
+										// if (trackBlob(analysis, object.enumType)) 
+                                        if(true)
 										{
 											if(object.enumType==1||object.enumType==3)
 											{
 												pizzaCheck=false;
 											}
 												// Publish information
-												int tempConfidence=computeConfidence(object, analysis);
-												if(tempConfidence > MIN_CONFIDENCE)
+												float tempConfidence=computeConfidence(object, analysis);
+												//if(t1empConfidence > MIN_CONFIDENCE)
+												if(true)
 												{
+													cout<<"Publishing blob "<<object.enumType<<" size "<<analysis.size<<endl;
 													SubImageRecognition::ImgRecObject msg;
 													msg.stamp = time;
 													msg.id = k;
@@ -553,7 +559,7 @@ void genericCallback(
 													msg.confidence = tempConfidence;
 													object.publisher.publish(msg);
 													// Annotate image
-													annotateImage(rotated.image, object, analysis);
+													annotateImage(rotated.image, object, analysis, tempConfidence);
 												}
 										}
 										else if(object.enumType==1||object.enumType==3)
@@ -580,16 +586,17 @@ void genericCallback(
 					{
 						SubImageRecognition::ImgRecObject msg;
 						msg.stamp = ros::Time::now();
+						float tempConfidence=computeConfidence(*pizzaObj, analysis);
 						msg.id = k;
 						msg.center_x = analysis.center_x - rotated.image.cols / 2;
 						msg.center_y = rotated.image.rows / 2 - analysis.center_y;
 						msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
 						msg.width = analysis.width;
 						msg.height = analysis.height;
-						msg.confidence = computeConfidence(*pizzaObj, analysis);
+						msg.confidence = tempConfidence;
 						pizzaObj->publisher.publish(msg);
 						// Annotate image
-						annotateImage(rotated.image, *pizzaObj, analysis);
+						annotateImage(rotated.image, *pizzaObj, analysis, tempConfidence);
 					}
 				}
 			}
@@ -613,7 +620,7 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 }
 
 int main(int argc, char **argv) {
-	fstream file("/opt/robosub/rosWorkspace/SubImageRecognition/tree.tree");
+	fstream file("/opt/robosub/usu-robosub/rosWorkspace/SubImageRecognition/tree.tree");
 	pTree = new DLT(file);
 
 	ros::init(argc, argv, "ImageRecognition");
