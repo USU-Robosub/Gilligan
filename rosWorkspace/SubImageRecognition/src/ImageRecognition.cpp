@@ -28,7 +28,7 @@ using namespace std;
 
 const int SAMPLE_SIZE = 4;
 const unsigned int MIN_POINTS = 275;
-const float MIN_CONFIDENCE = 0.1;
+const float MIN_CONFIDENCE = 0.3;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
 
@@ -458,7 +458,7 @@ bool trackBlob(BlobAnalysis analysis, int type)
 				trackBlobs[i].y=analysis.center_y;
 				trackBlobs[i].lastSeen=curFrame;
 				++trackBlobs[i].lifetime;
-				return FRAME_MARGIN_OF_ERROR>=trackBlobs[i].lifetime;
+				return FRAME_MARGIN_OF_ERROR<=trackBlobs[i].lifetime;
 			}
 		}
 	}
@@ -535,19 +535,17 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
                            
-										// if (trackBlob(analysis, object.enumType)) 
-                                        if(true)
+                                        // if(true)
+										float tempConfidence=computeConfidence(object, analysis);
+										if(tempConfidence > MIN_CONFIDENCE)
 										{
-											if(object.enumType==1||object.enumType==3)
+											if(trackBlob(analysis, object.enumType)) 
 											{
-												pizzaCheck=false;
-											}
-												// Publish information
-												float tempConfidence=computeConfidence(object, analysis);
-												//if(t1empConfidence > MIN_CONFIDENCE)
-												if(true)
+												if(object.enumType==1||object.enumType==3)
 												{
-													cout<<"Publishing blob "<<object.enumType<<" size "<<analysis.size<<endl;
+													pizzaCheck=false;
+												}
+													//cout<<"Publishing blob: "<<object.enumType<<" size: "<<analysis.size<<"confidence: "<<tempConfidence<<endl;
 													SubImageRecognition::ImgRecObject msg;
 													msg.stamp = time;
 													msg.id = k;
@@ -560,12 +558,13 @@ void genericCallback(
 													object.publisher.publish(msg);
 													// Annotate image
 													annotateImage(rotated.image, object, analysis, tempConfidence);
-												}
-										}
-										else if(object.enumType==1||object.enumType==3)
-										{
-											pizzaCheck=true;
-										}
+								
+											}
+											else if(object.enumType==1||object.enumType==3)
+											{
+												pizzaCheck=true;
+											}
+									}
 
 								}
 						}
@@ -620,7 +619,7 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 }
 
 int main(int argc, char **argv) {
-	fstream file("/opt/robosub/usu-robosub/rosWorkspace/SubImageRecognition/tree.tree");
+	fstream file("/opt/robosub/rosWorkspace/SubImageRecognition/tree.tree");
 	pTree = new DLT(file);
 
 	ros::init(argc, argv, "ImageRecognition");
