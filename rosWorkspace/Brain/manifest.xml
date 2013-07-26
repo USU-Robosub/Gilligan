@@ -1,0 +1,18 @@
+<package>
+  <description brief="Brain">
+
+     Brain
+
+  </description>
+  <author>Christopher Blay, Gabriel West</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/Brain</url>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+  <depend package="Robosub"/>
+  <depend package="SubMotorController"/>
+
+</package>
+
+
