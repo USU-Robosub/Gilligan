@@ -26,7 +26,7 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 4;
-const unsigned int MIN_POINTS = 75;
+const unsigned int MIN_POINTS = 300;
 const float MIN_CONFIDENCE = 0.5;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
@@ -46,7 +46,7 @@ const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
 
 const int FRAME_MARGIN_OF_ERROR=3;
-const int TRACKING_MOVEMENT_TOLERANCE=300;
+const int TRACKING_MOVEMENT_TOLERANCE=500;
 
 // DEFINITIONS
 
@@ -511,23 +511,26 @@ void genericCallback(
                                         if(true)
 										{
 												// Publish information
-												SubImageRecognition::ImgRecObject msg;
-												msg.stamp = time;
-												msg.id = k;
-												msg.center_x = analysis.center_x - rotated.image.cols / 2;
-												msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-												msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
-												msg.width = analysis.width;
-												msg.height = analysis.height;
-												msg.confidence = computeConfidence(object, analysis);
-												object.publisher.publish(msg);
-												// Annotate image
-												annotateImage(rotated.image, object, analysis);
+												int tempConfidence=computeConfidence(object, analysis);
+												if(tempConfidence > MIN_CONFIDENCE)
+												{
+													SubImageRecognition::ImgRecObject msg;
+													msg.stamp = time;
+													msg.id = k;
+													msg.center_x = analysis.center_x - rotated.image.cols / 2;
+													msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+													msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
+													msg.width = analysis.width;
+													msg.height = analysis.height;
+													msg.confidence = tempConfidence;
+													object.publisher.publish(msg);
+													// Annotate image
+													annotateImage(rotated.image, object, analysis);
+												}
 										}
 
 								}
 						}
-					//	cout<<"Blobs: "<<blobs.size()<<" Tracks: "<<trackBlobs.size()<<endl;
 				}
 		}
 
