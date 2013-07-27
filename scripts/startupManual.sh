@@ -46,8 +46,8 @@ rosrun SubImuController SubImuController /dev/controller_Imu > /home/robosub/Sub
 
 # Start the motor controllers
 echo "Start the motor controller"
-rosrun SubMotorController SubMotorController &  
-
+roslaunch SubMotorController MotorController.launch &  
+rosrun SubMotorController SubHighLevelMotorController &
 
 # Start the high level contorl
 #rosrun SubMotorController SubHighLevelMotorController &  
@@ -68,7 +68,7 @@ rosrun SubTranslators DepthTranslator &
 echo "Start depth controller"
 # Simple Depth Controller maintains a target depth
 #rosrun subSim simpleDepth &  
-
+rosrun SubDepthController SubDepthController &
 # Simple Heading Controller maintains a target heading
 #rosrun subSim simpleHeading &  
 

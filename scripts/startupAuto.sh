@@ -25,15 +25,16 @@ sleep 2
 
 # Start camera drivers
 echo "Start camera drivers" >&3
-roslaunch pgr_camera_driver camera_node.launch camera_node:=left camera_name:='stereo/left' serialnumber:=13021177 calibration_file:='file:///opt/robosub/rosWorkspace/pgr_camera_driver/stereo_intrinsics.ini' &
+#roslaunch pgr_camera_driver camera_node.launch camera_node:=left camera_name:='stereo/left' serialnumber:=13021177 calibration_file:='file:///opt/robosub/rosWorkspace/pgr_camera_driver/stereo_intrinsics.ini' &
 roslaunch pgr_camera_driver camera_node.launch camera_node:=right camera_name:='stereo/right' serialnumber:=12460898 calibration_file:='file:///opt/robosub/rosWorkspace/pgr_camera_driver/stereo_intrinsics.ini' &
 
 
 ##Run stereo image processing
 
-ROS_NAMESPACE=stereo rosrun stereo_image_proc stereo_image_proc &
+##ROS_NAMESPACE=stereo rosrun stereo_image_proc stereo_image_proc &
 
-roslaunch SubCameraDriver camera.launch &  
+#We want to launch the driver first.
+##roslaunch SubCameraDriver camera.launch &  
 
 # Start the sensor board
 echo "Start the sensor board" >&3
@@ -50,7 +51,7 @@ roslaunch SubMotorController MotorController.launch &
 
 
 # Start the high level contorl
-#rosrun SubMotorController SubHighLevelMotorController &  
+rosrun SubMotorController SubHighLevelMotorController &  
 
 # Start the moboTemp module
 #rosrun moboTemp moboTemp &  
@@ -60,10 +61,9 @@ echo "Start depth translator" >&3
 rosrun SubTranslators DepthTranslator &  
 
 #echo "Start state machine" >&3
-#rosrun SubStateMachine SubStateMachine.py &  
-#rosrun GateTask GateTask &  
-#rosrun PathTask PathTask &  
-#rosrun BuoyTask BuoyTask RED YELLOW &  
+rosrun PathTask PathTask.py &
+
+rosrun Brain Brain.py &
 
 echo "Start depth controller"
 # Simple Depth Controller maintains a target depth
@@ -79,7 +79,7 @@ sleep 4
 echo "Republish camera topics" >&3
 # Republish cameras as compressed for recording
 
-/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=/stereo/left/image_raw compressed out:=/stereo/left/image_compressed &  
+#/opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=/stereo/left/image_raw compressed out:=/stereo/left/image_compressed &  
 
 /opt/ros/fuerte/stacks/image_common/image_transport/bin/republish raw in:=/stereo/right/image_raw compressed out:=/stereo/right/image_compressed &  
 
@@ -118,7 +118,10 @@ echo "Calibrating depth to zero">&3
 rostopic pub /Calibrate_Depth std_msgs/Float32 -1 -- 0.0 &
 disown $!
 
-rosrun QualifyTask QualifyTask.py &
+guvcview
+sleep 2
+
+roslaunch SubCameraDriver camera.launch &
 
 sleep 2
 

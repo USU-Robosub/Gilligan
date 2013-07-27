@@ -1,7 +1,0 @@
-
-<Inherits>
-Top
-<Setup>
-message /chatter string Entering Bot1 state
-<TearDown>
-message /chatter string Leaving Bot1 state

@@ -3,18 +3,14 @@ import roslib; roslib.load_manifest('Brain')
 import rospy
 import smach
 import smach_ros
+import threading
+
 
 from std_msgs.msg import UInt8
 from Robosub.msg import HighLevelControl
 
-
-def move(direction, motion_type, value):
-    move.msg.Direction = direction
-    move.msg.MotionType = motion_type
-    move.msg.Value = value
-    move.pub.publish(move.msg)
-move.pub = rospy.Publisher('/High_Level_Motion', HighLevelControl)
-move.msg = HighLevelControl()
+from missions import QualifyPathMission as Mission
+from utils import move
 
 
 class Idle(smach_ros.MonitorState):
@@ -22,7 +18,9 @@ class Idle(smach_ros.MonitorState):
         super(Idle, self).__init__('/Motor_State', UInt8, self.cb)
         self.shouldStartMission = False
     def execute(self, userdata):
-        move('Depth', 'Manual', 0)
+        move('Depth', 'Command', 0)
+        move('Forward', 'Command', 0)
+        move('Turn', 'Manual', 0)
         return super(Idle, self).execute(userdata)
     def cb(self, userdata, msg):
         if msg.data == 1:
@@ -63,25 +61,13 @@ class SurfaceMonitor(smach.State):
         return 'preempted'
 
 
-class Mission(smach.State):
-    def __init__(self):
-        super(Mission, self).__init__(outcomes=['succeeded', 'failed', 'preempted'])
-    def execute(self, userdata):
-        move('Depth', 'Manual', 3)
-        for i in range(4):
-            if self.preempt_requested():
-                self.service_preempt()
-                return 'preempted'
-            rospy.sleep(1)
-        return 'succeeded'
-
-
 if __name__ == '__main__':
     rospy.init_node('Brain')
 
     def child_term_cb(outcome_map):
         return ('Mission' in outcome_map and outcome_map['Mission'] == 'succeeded'
-                or 'MissionMonitor' in outcome_map and outcome_map['MissionMonitor'] == 'invalid')
+                or 'MissionMonitor' in outcome_map and outcome_map['MissionMonitor'] == 'invalid'
+                or 'CompToggle' in outcome_map and outcome_map['CompToggle'] == 'preempted')
 
     sm_comp_run = smach.Concurrence(outcomes=['succeeded', 'failed', 'preempted'],
                                     default_outcome='preempted',
@@ -103,7 +89,8 @@ if __name__ == '__main__':
                                                                     'preempted': 'Idle'})
 
     sm_global = smach.Concurrence(outcomes=['preempted'],
-                                  default_outcome='preempted')
+                                  default_outcome='preempted',
+                                  child_termination_cb=child_term_cb)
     with sm_global:
         smach.Concurrence.add('Safety', Safety())
         smach.Concurrence.add('CompToggle', sm_comp_toggle)
