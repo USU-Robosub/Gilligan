@@ -20,7 +20,7 @@ const double FORWARD_DRAG_CONST = .99;
 const double STRAF_SPEED_CONST = .0000004;
 const double STRAF_DRAG_CONST = .98;
 
-const double LEFT_FWD_MULT = 0.75;
+const double LEFT_FWD_MULT = 0.78;
 const double REAR_TURN_MULT = 0.9;
 const double FRONT_TURN_MULT = 0.85;
 
