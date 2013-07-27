@@ -69,7 +69,7 @@ void mCurrentDepthCallback(const std_msgs::Float32::ConstPtr& msg) {
 	//Error calculation
 	error = depth - targetDepth;
 
-	if (error > 0.5 && depth < 1){ //Force full speed to get out of the surface
+	if (error > 0.5 && depth < 1 ){ //Force full speed to get out of the surface
         speed = -1;
         yOld = 0;
 		eOld = 0;

@@ -9,7 +9,7 @@ class PathTask(smach.State):
         super(PathTask, self).__init__(outcomes=['succeeded', 'preempted'])
         self.is_complete = False
     def execute(self, userdata):
-        self.pub = rospy.Publisher('/Module_Control', ModuleEnableMsg)
+        self.pub = rospy.Publisher('/Module_Enable', ModuleEnableMsg)
         self.sub = rospy.Subscriber('/Task_Completion', String, self.task_complete)
         msg = ModuleEnableMsg()
         msg.Module = 'PathTask'
@@ -32,4 +32,5 @@ class PathTask(smach.State):
         msg.State = False
         self.pub.publish(msg)
     def task_complete(self, msg):
-        self.is_complete = True
+        if msg.data == "PathTask":
+            self.is_complete = True

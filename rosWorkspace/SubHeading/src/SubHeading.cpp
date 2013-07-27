@@ -133,7 +133,7 @@ void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
 
 	//Just for keeping track, publish the negative of the error as the new target
 
-	//mSetTargetHeading(-error);
+//	mSetTargetHeading(-error);
 
 
 	//printf("Turn speed: %f\n", speed);

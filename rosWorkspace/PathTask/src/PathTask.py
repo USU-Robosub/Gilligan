@@ -21,18 +21,19 @@ class PathTask:
     MOTOR_STRAFE = 'Straf'
     MOTOR_TURN = 'Turn'
     
-    SCALE_FORWARD = 0.08
-    SCALE_STRAFE = 0.1
-    SCALE_TURN = 0.06
+    SCALE_FORWARD = 0.0017
+    SCALE_STRAFE = 0.01
+    SCALE_TURN = 1 / 180.0
     
     SUCCESS_GOAL = 10
     
     TH_ROT = 1
-    TH_X = 25
-    TH_Y = 30
+    TH_X = 50
+    TH_Y = 50
     
     def __init__(self):
-        self.direction = 'left'
+        self.can_turn = True
+        self.direction = 'right'
         self.enabled = False
         self.last_motor_change = 0
         self.paths = []
@@ -46,6 +47,7 @@ class PathTask:
                 'Module_Enable', ModuleEnableMsg, self.module_enable_cb)
         self.sub_path_direction = rospy.Subscriber(
                 'Path_Direction', String, self.path_direction_cb)
+        self.success_counter = 0
         self.thread = Thread(target=self.motor_watcher)
         self.thread.daemon = True
         self.thread.start()
@@ -62,7 +64,7 @@ class PathTask:
             did_something |= True
         else:
             self.publish_motor(self.MOTOR_FORWARD, 0)
-        if path.rotation > self.TH_ROT or path.rotation < -self.TH_ROT:
+        if self.can_turn and (path.rotation > self.TH_ROT or path.rotation < -self.TH_ROT):
             self.publish_motor(self.MOTOR_TURN, path.rotation * self.SCALE_TURN)
             did_something |= True
         else:
@@ -73,9 +75,15 @@ class PathTask:
         else:
             self.success_counter += 1
             if self.success_counter >= self.SUCCESS_GOAL:
-                self.task_complete(True)
+                if self.can_turn:
+                    self.task_complete(True)
+                else:
+                    self.can_turn = True
+                    self.success_counter = 0
     
     def image_recognition_cb(self, path):
+        if not self.enabled:
+            return
         if len(self.paths) and path.id == 0:
             self.align_to_path(self.select_correct_path())
             self.paths = []
@@ -83,12 +91,16 @@ class PathTask:
     
     def module_enable_cb(self, msg):
         if msg.Module == 'PathTask':
+            self.can_turn = False
             self.enabled = msg.State
             self.paths = []
             self.success_counter = 0
             self.last_motor_change = 0
             if not self.enabled:
                 self.stop_motors()
+                rospy.loginfo("PathTask Disabled")
+            else:
+                rospy.loginfo("PathTask Enabled")
     
     def motor_watcher(self):
         while True:
