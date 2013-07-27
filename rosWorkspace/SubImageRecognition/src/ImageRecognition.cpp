@@ -11,6 +11,7 @@
 #include <vector>
 #include <fstream>
 #include <math.h>
+#include <sstream>
 
 #include "SubImageRecognition/ImgRecAlgorithm.h"
 #include "SubImageRecognition/ImgRecObject.h"
@@ -26,7 +27,7 @@ using namespace std;
 // CONSTANTS
 
 const int SAMPLE_SIZE = 4;
-const unsigned int MIN_POINTS = 300;
+const unsigned int MIN_POINTS = 200;
 const float MIN_CONFIDENCE = 0.5;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
@@ -46,7 +47,7 @@ const int ANNOTATION_ROTATION = 0;
 const int ANNOTATION_RADIUS = 1;
 
 const int FRAME_MARGIN_OF_ERROR=3;
-const int TRACKING_MOVEMENT_TOLERANCE=500;
+const int TRACKING_MOVEMENT_TOLERANCE=200000;
 
 // DEFINITIONS
 
@@ -138,6 +139,8 @@ public:
 
 vector<Object> objects;
 vector<BlobTrack> trackBlobs;
+vector<bool> objectTracking;
+vector<DLT> trees;
 
 int curFrame=0;
 
@@ -146,20 +149,10 @@ image_transport::Publisher forwardPublisher, downwardPublisher, forwardThresh, d
 cv_bridge::CvImage forwardRotated, downwardRotated;
 Mat forwardSegmented, downwardSegmented;
 Mat forwardThreshold, downwardThreshold;
-DLT* pTree;
-int lastAvgHue=0, lastAvgSat=0, lastAvgBright=0, curOrange=0;
+int lastAvgHue=0, lastAvgSat=0, lastAvgBright=0;
 bool pizzaCheck=false;
-Object pizzaObj	(
-					"pizza_box",
-	                1,
-					CAMERA_FORWARD,
-					ANALYSIS_RECTANGLE,
-					2,
-					CONFIDENCE_RECTANGLE,
-					Scalar(0, 255, 255),
-					ANNOTATION_ROTATION,
-					255
-				);
+Object* pizzaObj;	
+
 
 // FUNCTIONS
 
@@ -176,6 +169,8 @@ void initObjects() {
 				ANNOTATION_ROTATION,
 				1
 		));
+		objectTracking.push_back(true);
+
 		objects.push_back(Object(
 				"buoys/red",
                 1,
@@ -187,6 +182,7 @@ void initObjects() {
 				ANNOTATION_RADIUS,
 				2
 		));
+		objectTracking.push_back(true);
 		// objects.push_back(Object(
 		// 		"buoys/green",
   //               1,
@@ -220,8 +216,9 @@ void initObjects() {
 				ANNOTATION_ROTATION,
 				3
 		));
+		objectTracking.push_back(true);
 		objects.push_back(Object(
-				"driving",
+				"parking",
                 1,
 				CAMERA_FORWARD,
 				ANALYSIS_RECTANGLE,
@@ -231,6 +228,7 @@ void initObjects() {
 				ANNOTATION_ROTATION,
 				4
 		));
+		objectTracking.push_back(true);
 		// objects.push_back(Object(
 		// 		"red led buoy",
   //               1,
@@ -242,6 +240,21 @@ void initObjects() {
 		// 		ANNOTATION_ROTATION,
 		// 		7
 		// ));
+
+
+        pizzaObj=new Object(
+					"pizza_box",
+	                1,
+					CAMERA_FORWARD,
+					ANALYSIS_RECTANGLE,
+					2,
+					CONFIDENCE_RECTANGLE,
+					Scalar(0, 255, 255),
+					ANNOTATION_ROTATION,
+					255
+				);
+        objectTracking.push_back(false);
+
 }
 
 /*void normalizeValue(Mat& image, Mat& temp) {
@@ -370,8 +383,10 @@ float computeConfidence(Object& object, BlobAnalysis& a) {
 		}
 }
 
-void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
+void annotateImage(Mat& image, Object& object, BlobAnalysis& a, float confidence) {
 		int r, x, y;
+		stringstream text;
+		text<<"Confidence: "<<confidence;
 		switch (object.annotationType) {
 		case ANNOTATION_ROTATION:
 				x = (int) (a.height / 2.0 * cos(a.rotation));
@@ -388,13 +403,14 @@ void annotateImage(Mat& image, Object& object, BlobAnalysis& a) {
 								object.annotationColor, 2, CV_AA);
 				break;
 		}
+		putText(image, text.str(), Point(a.center_x +5, a.center_y+5), 1, 3, Scalar(255, 255, 255));
 }
 
 
 //assuming i=y and j=x
-void objInRange(const Mat& segmented, Mat& threshold, const int offset)
-{	int count=0, hue=0, sat=0, bright=0;
-	curOrange=0;
+void objInRange(const Mat& segmented, Mat& threshold, const int offset, int index)
+{	//cout<<"Threshing\n";
+	int count=0, hue=0, sat=0, bright=0;
 	if (threshold.total() == 0) {
 		threshold.create(segmented.rows, segmented.cols, CV_8U);
 	}
@@ -403,22 +419,18 @@ void objInRange(const Mat& segmented, Mat& threshold, const int offset)
 			Sample sample;
 			Vec3b hsv = segmented.at<cv::Vec3b>(i, j);
 			sample.type=0;
-			sample.iAttr[0]=lastAvgHue;
-			sample.iAttr[1]=lastAvgSat;
-			sample.iAttr[2]=lastAvgBright;
-			sample.iAttr[3]=hsv[0];
-			sample.iAttr[4]=hsv[1];
-			sample.iAttr[5]=hsv[2];
+			//sample.iAttr[0]=lastAvgHue;
+			sample.iAttr[0]=lastAvgSat;
+			sample.iAttr[1]=lastAvgBright;
+			sample.iAttr[2]=hsv[0];
+			sample.iAttr[3]=hsv[1];
+			sample.iAttr[4]=hsv[2];
 			hue+=hsv[0];
 			sat+=hsv[1];
 			bright+=hsv[2];
 			++count;
-			int temp=pTree->Classify(sample);
+			int temp=trees[index].Classify(sample);
 			threshold.at<uint8_t>(i,j,0)=(temp ? (temp*10+200) : 0);
-			if(temp==1||temp==3)
-			{
-				++curOrange;
-			}
 			// if(temp && i<threshold.rows-SAMPLE_SIZE && j<threshold.cols-SAMPLE_SIZE)
 			// {
    //              rectangle(threshold, Rect(j,i,SAMPLE_SIZE, SAMPLE_SIZE), (temp*10+200)); 
@@ -449,7 +461,7 @@ bool trackBlob(BlobAnalysis analysis, int type)
 				trackBlobs[i].y=analysis.center_y;
 				trackBlobs[i].lastSeen=curFrame;
 				++trackBlobs[i].lifetime;
-				return FRAME_MARGIN_OF_ERROR>=trackBlobs[i].lifetime;
+				return FRAME_MARGIN_OF_ERROR<=trackBlobs[i].lifetime;
 			}
 		}
 	}
@@ -501,16 +513,18 @@ void genericCallback(
 		//cvtColor(segmented, rotated.image, CV_HSV2BGR);
 
 		// Iterate through all objects
-		objInRange(segmented, threshold, offset);
-		if (true) 
-		{
-			cv_bridge::CvImage temp;
-			temp.encoding = "mono8";
-			temp.image = threshold;
-			threshPublisher.publish(temp.toImageMsg());
-		}
 		for (unsigned int i = 0; i < objects.size(); i++) {
+			if(objectTracking[i])
+			{
 				Object object = objects[i];
+				objInRange(segmented, threshold, offset, i);
+				if (true) 
+				{
+					cv_bridge::CvImage temp;
+					temp.encoding = "mono8";
+					temp.image = threshold;
+					threshPublisher.publish(temp.toImageMsg());
+				}
 				// Run applicable algorithms
 				if ((object.flags & FLAG_ENABLED) && object.camera == camera) {
 						//reduceNoise(threshold);
@@ -526,66 +540,31 @@ void genericCallback(
 								for (unsigned int k = 0; k < analysisList.size(); k++) {
 										BlobAnalysis analysis = analysisList[k];
                            
-                                        //if(true)
-										if (trackBlob(analysis, object.enumType)) 
+                                        // if(true)
+										float tempConfidence=computeConfidence(object, analysis);
+										if(tempConfidence > MIN_CONFIDENCE)
 										{
-											if(object.enumType==1||object.enumType==3)
+											if(trackBlob(analysis, object.enumType)) 
 											{
-												pizzaCheck=false;
+												//cout<<"Publishing blob: "<<object.enumType<<" size: "<<analysis.size<<" confidence: "<<tempConfidence<<endl;
+												SubImageRecognition::ImgRecObject msg;
+												msg.stamp = time;
+												msg.id = k;
+												msg.center_x = analysis.center_x - rotated.image.cols / 2;
+												msg.center_y = rotated.image.rows / 2 - analysis.center_y;
+												msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
+												msg.width = analysis.width;
+												msg.height = analysis.height;
+												msg.confidence = tempConfidence;
+												object.publisher.publish(msg);
+												// Annotate image
+												annotateImage(rotated.image, object, analysis, tempConfidence);
+								
 											}
-												// Publish information
-												int tempConfidence=computeConfidence(object, analysis);
-												if(tempConfidence > MIN_CONFIDENCE)
-												{
-													SubImageRecognition::ImgRecObject msg;
-													msg.stamp = time;
-													msg.id = k;
-													msg.center_x = analysis.center_x - rotated.image.cols / 2;
-													msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-													msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
-													msg.width = analysis.width;
-													msg.height = analysis.height;
-													msg.confidence = tempConfidence;
-													object.publisher.publish(msg);
-													// Annotate image
-													annotateImage(rotated.image, object, analysis);
-												}
-										}
-										else if(object.enumType==1||object.enumType==3)
-										{
-											pizzaCheck=true;
 										}
 
 								}
 						}
-				}
-		}
-
-		if(pizzaCheck&&curOrange>200)
-		{
-
-			vector<Points> orangeBlobs=findBlobs(threshold, offset, 1, pizzaObj.enumType);
-			for(int i=0;i<orangeBlobs.size();++i)
-			{
-				vector<BlobAnalysis> analysisList = analyzeBlob(pizzaObj, orangeBlobs[i], rotated.image);
-				for (unsigned int k = 0; k < analysisList.size(); k++) 
-				{
-					BlobAnalysis analysis = analysisList[k];
-					if (trackBlob(analysis, pizzaObj.enumType))
-					{
-						SubImageRecognition::ImgRecObject msg;
-						msg.stamp = ros::Time::now();
-						msg.id = k;
-						msg.center_x = analysis.center_x - rotated.image.cols / 2;
-						msg.center_y = rotated.image.rows / 2 - analysis.center_y;
-						msg.rotation = (analysis.rotation + M_PI / 2.0) * 180.0 / M_PI;
-						msg.width = analysis.width;
-						msg.height = analysis.height;
-						msg.confidence = computeConfidence(pizzaObj, analysis);
-						pizzaObj.publisher.publish(msg);
-						// Annotate image
-						annotateImage(rotated.image, pizzaObj, analysis);
-					}
 				}
 			}
 		}
@@ -608,8 +587,22 @@ void downwardCallback(const sensor_msgs::ImageConstPtr& rosImage) {
 }
 
 int main(int argc, char **argv) {
-	fstream file("/opt/robosub/rosWorkspace/SubImageRecognition/tree.tree");
-	pTree = new DLT(file);
+	fstream file;
+	file.open("/opt/robosub/rosWorkspace/SubImageRecognition/gate.tree");
+	trees.push_back(DLT(file));
+	file.close();
+	file.open("/opt/robosub/rosWorkspace/SubImageRecognition/redbuoy.tree");
+	trees.push_back(DLT(file));
+	file.close();
+	file.open("/opt/robosub/rosWorkspace/SubImageRecognition/path.tree");
+	trees.push_back(DLT(file));
+	file.close();
+	file.open("/opt/robosub/rosWorkspace/SubImageRecognition/parking.tree");
+	trees.push_back(DLT(file));
+	file.close();
+	file.open("/opt/robosub/rosWorkspace/SubImageRecognition/pizzabox.tree");
+	trees.push_back(DLT(file));
+	file.close();
 
 	ros::init(argc, argv, "ImageRecognition");
 	ros::NodeHandle nodeHandle;
