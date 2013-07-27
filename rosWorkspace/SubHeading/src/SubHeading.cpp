@@ -48,33 +48,38 @@ So
 //How much thurst needs to be applied per degree of rotation
 //This number should yield a command [0,1] though the
 //output must be biased to go from 60 to 255
-float KP = .01;
+float KP = .02;
 
 float MAX = 0.5; //This might saturate at a lot less than this
 bool MODE = ON;
 
+float targetHeading = 0; //This holds what was passed (a heading relative to the current yaw)
 float targetYaw = 0;
 float currYaw = 0.0;
 float error = 0;
+bool isMoving = false;
 
 
 
 ros::Publisher motorControl;
 
-void mTargetHeadingCallback(const std_msgs::Float32::ConstPtr& msg) {
-    //The input is an offset from the current direction
+void mSetTurnSpeed(float speed) {
+    Robosub::HighLevelControl msg;
+    msg.Direction = "Turn";
+    msg.MotionType = "Manual";
+    msg.Value = speed;
 
-	targetYaw = fmod((currYaw + msg->data), 180);
-	printf("setting target heading to %f\n", targetYaw);
+    motorControl.publish(msg);
 }
 
-void setTurnSpeed(float speed) {
-  Robosub::HighLevelControl msg;
-  msg.Direction = "Turn";
-  msg.MotionType = "Manual";
-  msg.Value = speed;
+void mSetTargetHeading(float target){
+    Robosub::HighLevelControl msg;
 
-  motorControl.publish(msg);
+      msg.Direction = "Turn";
+      msg.MotionType = "Command";
+      msg.Value = target;
+
+      motorControl.publish(msg);
 }
 
 void mEnabledCallback(const Robosub::ModuleEnableMsg::ConstPtr& msg) {
@@ -84,8 +89,28 @@ void mEnabledCallback(const Robosub::ModuleEnableMsg::ConstPtr& msg) {
 }
 
 
+void mTargetHeadingCallback(const std_msgs::Float32::ConstPtr& msg) {
+    //The input is an offset from the current direction
+    if (msg->data != targetHeading){
+        targetYaw = fmod((currYaw + msg->data), 180);
+        printf("setting target heading to %f\n", targetYaw);
+        targetHeading = msg->data;
+    }
+}
+
+
+
+void mReadForwardStatus(const Robosub::HighLevelControl::ConstPtr& msg){
+    if(msg->Direction == "Forward" && msg->MotionType == "Command" ){
+        if(fabs(msg->Value) > 0.05)
+            isMoving = true;
+        else
+            isMoving = false;
+    }
+}
+
 void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
-    if(MODE == OFF)
+    if(MODE == OFF || !isMoving)
         return;
     currYaw = msg->data[2];
     //This needs to compensate for "natural" drifting
@@ -104,7 +129,14 @@ void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
         speed = -MAX;
 
 
-	setTurnSpeed(speed);
+	mSetTurnSpeed(-speed);
+
+	//Just for keeping track, publish the negative of the error as the new target
+
+	//mSetTargetHeading(-error);
+
+
+	//printf("Turn speed: %f\n", speed);
 }
 
 
@@ -118,5 +150,12 @@ int main(int argc, char** argv) {
 	ros::Subscriber target = nh.subscribe("/Target_Heading", 10, mTargetHeadingCallback);
 	ros::Subscriber imuAttitude = nh.subscribe("/IMU_Attitude", 100, mHeadingCallback);
 	ros::Subscriber enabled = nh.subscribe("/Module_Control", 1, mEnabledCallback);
+	ros::Subscriber movement =nh.subscribe("/High_Level_Motion", 100, mReadForwardStatus);
 	ros::spin();
+/*
+    //Debug
+    while(ros::ok()){
+        ros::spinOnce();
+        usleep(100000);
+    }*/
 }
