@@ -1,4 +1,6 @@
 
+<Inherits>
+CompRun
 <Setup>
 message /Module_Enable activate QualifyTask
 <TearDown>
