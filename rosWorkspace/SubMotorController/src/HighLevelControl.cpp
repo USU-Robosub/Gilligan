@@ -25,6 +25,8 @@ const double STRAF_DRAG_CONST = .98;
 const double LEFT_FWD_MULT = 0.78;
 const double REAR_TURN_MULT = .8928; //right
 const double FRONT_TURN_MULT = .83; //left
+double RIGHT_PIVOT_MULT = 1.0; //Multiplier to change the pivot point to be under the camera
+double LEFT_PIVOT_MULT = 1.0;
 
 enum Mode {
 	MANUAL,
@@ -39,6 +41,7 @@ Mode TurnMode = MANUAL;
 Mode DepthMode = MANUAL;
 Mode YawMode = MANUAL;
 Mode PitchMode = MANUAL;
+Mode PivotMode = MANUAL;
 
 //Speeds come from the controllers
 int ForwardSpeed = 0;
@@ -47,6 +50,7 @@ int TurnSpeed = 0;
 int DepthSpeed = 0;
 int YawSpeed = 0;
 int PitchSpeed = 0;
+int PivotSpeed = 0;
 
 //Commands come from the tasks
 double ForwardCommand = 0;
@@ -70,6 +74,8 @@ int currentTurnRear = 0;
 int currentTurnFront = 0;
 int currentDepthRear = 0;
 int currentDepthFront = 0;
+int currentPivotRear = 0;
+int currentPivotFront = 0;
 
 bool DepthInMotion = false;
 
@@ -156,6 +162,13 @@ void commandCallback(Robosub::HighLevelControl::ConstPtr msg) {
 		PitchMode = MANUAL;
 		PitchSpeed = makeSpeed(msg->Value);
 
+    /*} else if(msg->Direction == "Pivot" && msg->MotionType == "Command") {
+		PitchMode = AUTOMATIC;
+		PitchCommand = msg->Value;*/
+	} else if (msg->Direction == "Pivot" && msg->MotionType == "Manual") {
+		PivotMode = MANUAL;
+		PivotSpeed = makeSpeed(msg->Value);
+		
 	} else {
 		printf("Unknown Direction: %s and Mode: %s\n", msg->Direction.c_str(), msg->MotionType.c_str());
 	}
@@ -366,10 +379,41 @@ void ManageDepthThrusters() {
 	}
 }
 
+void ManagePivotThrusters(){
+    int FrontThrust = PivotSpeed; //Choose which stays.
+    int RearThrust = PivotSpeed;
+
+    if(RearThrust != currentPivotRear ||
+			FrontThrust != currentPivotFront) {
+
+        //Include multipliers to compensate for differences in the motors
+		//currentPivotRear = RearThrust;
+		//currentPivotFront = FrontThrust;
+		if (RearThrust<0){ //LEFT
+            currentPivotRear = RearThrust;
+            currentPivotFront = FrontThrust*RIGHT_PIVOT_MULT;
+        }else if (FrontThrust<0){ //RIGHT
+            currentPivotRear = RearThrust;
+            currentPivotFront = FrontThrust*LEFT_PIVOT_MULT;
+        }
+
+		sendMotorMessage(REAR_TURN_BIT | FRONT_TURN_BIT,
+				0, 0, currentPivotRear, currentPivotFront, 0, 0);
+
+	}
+}
+
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "HighLevelControl");
 	ros::NodeHandle nh;
 
+    if (argc>1){
+        RIGHT_PIVOT_MULT = strtod(argv[1], NULL);
+    }
+    if (argc>2){
+        LEFT_PIVOT_MULT = strtod(argv[2], NULL);
+    }
+    
 	motorPublisher = nh.advertise<SubMotorController::MotorMessage>("Motor_Control", 100);//Should this be 10?
 	depthPublisher = nh.advertise<std_msgs::Float32>("Target_Depth", 10);
 	headingPublisher = nh.advertise<std_msgs::Float32>("Target_Heading", 10);
@@ -383,6 +427,7 @@ int main(int argc, char** argv) {
 		ManageForwardThrusters();
 		ManageTurnThrusters();
 		ManageDepthThrusters();
+//		ManagePivotThrusters();
 
 		//Could just prepare the currents on the Manage* and
         //send one motor message.
