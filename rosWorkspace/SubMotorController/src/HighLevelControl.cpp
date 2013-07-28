@@ -15,6 +15,8 @@ using namespace std;
 #define FRONT_TURN_BIT  0x10
 #define REAR_TURN_BIT   0x20
 
+#define TARGET_ZERO -500
+
 const double FORWARD_SPEED_CONST = .0000006;
 const double FORWARD_DRAG_CONST = .99;
 const double STRAF_SPEED_CONST = .0000004;
@@ -247,10 +249,11 @@ void CalcTurn() {
     //with drift, it means heading of zero may change
 
     //If AUTOMATIC, it sends the command to the Heading Controller
-	if(TurnMode == AUTOMATIC) {
+	if(TurnMode == AUTOMATIC && TurnCommand != TARGET_ZERO) {
         //Prepare and set Target_Heading and let the
 		//controller take care of it
         setHeading(TurnCommand); //This sets TurnSpeed
+		TurnCommand = TARGET_ZERO;
 		//printf("Command = %f Speed = %i\n", TurnCommand, TurnSpeed);
 	}
 }
@@ -264,10 +267,11 @@ void CalcStrafe() {
 }
 
 void CalcDepth() {
-	if(DepthMode == AUTOMATIC) {
+	if(DepthMode == AUTOMATIC && DepthCommand != TARGET_ZERO) {
 		//Prepare and set Target_Depth and let the
 		//controller take care of it
         setDepth(DepthCommand);
+		DepthCommand = TARGET_ZERO;
 	}
 }
 
