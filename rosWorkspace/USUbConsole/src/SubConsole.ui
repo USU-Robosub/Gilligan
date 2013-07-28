@@ -1286,11 +1286,14 @@
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
+          <property name="minimum">
+           <number>60</number>
+          </property>
           <property name="maximum">
            <number>255</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>59</number>
           </property>
           <property name="textVisible">
            <bool>true</bool>
@@ -1355,11 +1358,14 @@
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
+          <property name="minimum">
+           <number>60</number>
+          </property>
           <property name="maximum">
            <number>255</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>59</number>
           </property>
           <property name="textVisible">
            <bool>true</bool>
@@ -1401,11 +1407,14 @@
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
+          <property name="minimum">
+           <number>60</number>
+          </property>
           <property name="maximum">
            <number>255</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>59</number>
           </property>
           <property name="textVisible">
            <bool>true</bool>
@@ -1447,11 +1456,14 @@
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
+          <property name="minimum">
+           <number>60</number>
+          </property>
           <property name="maximum">
            <number>255</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>59</number>
           </property>
           <property name="textVisible">
            <bool>true</bool>
@@ -1503,11 +1515,14 @@
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
+          <property name="minimum">
+           <number>60</number>
+          </property>
           <property name="maximum">
            <number>255</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>59</number>
           </property>
           <property name="textVisible">
            <bool>true</bool>
@@ -1588,11 +1603,14 @@
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
+          <property name="minimum">
+           <number>60</number>
+          </property>
           <property name="maximum">
            <number>255</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>59</number>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -2607,9 +2625,6 @@
      </widget>
     </widget>
    </widget>
-   <zorder>layoutWidget</zorder>
-   <zorder>tabWidget</zorder>
-   <zorder>label_23</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
