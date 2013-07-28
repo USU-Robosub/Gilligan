@@ -20,7 +20,7 @@
 #include "std_msgs/String.h"
 #include "sensor_msgs/CompressedImage.h"
 #include "SubImageRecognition/ImgRecAlgorithm.h"
-#include "USUbConsole/MotorMessage.h"
+#include "SubMotorController/MotorMessage.h"
 #include "SubMotorController/MotorCurrentMsg.h"
 #include "qcustomplot.h"
 
@@ -58,7 +58,7 @@ public:
    void downwardCameraCallback(const sensor_msgs::CompressedImage::ConstPtr& msg);
    void currentVoltageCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void errorLogCallback(const std_msgs::String::ConstPtr& msg);
-   void motorControlCallback(const USUbConsole::MotorMessage::ConstPtr& msg);
+   void motorControlCallback(const SubMotorController::MotorMessage::ConstPtr& msg);
    //TODO add the a subscriber and callback for the Raw acceleration topic
    void rawAccelCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
    void targetDepthCallback(const std_msgs::Float32::ConstPtr& msg);

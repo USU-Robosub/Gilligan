@@ -1,4 +1,4 @@
-#include <QPoint>
+﻿#include <QPoint>
 #include <QDesktopWidget>
 #include <QImage>
 #include <QImageReader>
@@ -484,21 +484,18 @@ void SubConsole::handleRosCallbacks(void)
     ros::spinOnce();
 }
 
-void SubConsole::motorControlCallback(const USUbConsole::MotorMessage::ConstPtr &msg){
+void SubConsole::motorControlCallback(const SubMotorController::MotorMessage::ConstPtr &msg){
     //update the motor graphs values
 
 
-     m_leftFwdMotorVal      = msg->mask & LEFT_DRIVE_BIT  ? msg->Left       :   m_leftFwdMotorVal;
-     m_rightFwdMotorVal     = msg->mask & RIGHT_DRIVE_BIT ? msg->Right      :   m_rightFwdMotorVal;
-     m_frontDepthMotorVal   = msg->mask & FRONT_DEPTH_BIT ? msg->FrontDepth :   m_frontDepthMotorVal;
-     m_rearDepthMotorVal    = msg->mask & REAR_DEPTH_BIT  ? msg->RearDepth  :   m_rearDepthMotorVal;
-     m_frontTurnMotorVal    = msg->mask & FRONT_TURN_BIT  ? msg->FrontTurn  :   m_frontTurnMotorVal;
-     m_rearTurnMotorVal     = msg->mask & REAR_TURN_BIT   ? msg->RearTurn   :   m_rearTurnMotorVal;
+     m_leftFwdMotorVal      = abs(msg->Left)>60      ?   msg->Left   :   60;
+     m_rightFwdMotorVal     = abs(msg->Right)>60     ?   msg->Right  :   60;
+     m_frontDepthMotorVal   = abs(msg->FrontDepth)>60?   msg->FrontDepth:60;
+     m_rearDepthMotorVal    = abs(msg->RearDepth)>60 ?   msg->RearDepth: 60;
+     m_frontTurnMotorVal    = abs(msg->FrontTurn)>60 ?   msg->RearTurn:  60;
+     m_rearTurnMotorVal     = abs(msg->RearTurn)>60  ?   msg->RearTurn:  60;
 
-     //Maybe I don't need these and can just write it straight to the graph
-     //Unless the values have to be manipulated, then a function needs to be called
-
-
+     //printf("%i, %i, %i, %i, %i, %i\n", msg->Left, msg->Right, msg->FrontDepth, msg->RearDepth, msg->FrontTurn, msg->RearTurn);
 
      m_pUi->leftThrustBar->setValue(abs(m_leftFwdMotorVal));
      if(m_leftFwdMotorVal<0)
