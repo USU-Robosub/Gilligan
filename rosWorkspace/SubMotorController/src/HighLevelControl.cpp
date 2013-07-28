@@ -23,8 +23,8 @@ const double STRAF_SPEED_CONST = .0000004;
 const double STRAF_DRAG_CONST = .98;
 
 const double LEFT_FWD_MULT = 0.78;
-const double REAR_TURN_MULT = .9; //right
-const double FRONT_TURN_MULT = .85; //left
+const double REAR_TURN_MULT = .8928; //right
+const double FRONT_TURN_MULT = .83; //left
 
 enum Mode {
 	MANUAL,

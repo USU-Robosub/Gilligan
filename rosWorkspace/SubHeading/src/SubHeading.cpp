@@ -111,6 +111,8 @@ void mReadForwardStatus(const Robosub::HighLevelControl::ConstPtr& msg){
         else{
             isMoving = false;
 		    printf("Disabling\n");
+			//send a zero
+		mSetTurnSpeed(0);	
 		}
     }
 }
