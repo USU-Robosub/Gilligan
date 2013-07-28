@@ -21,3 +21,42 @@ def QualifyPathMission():
                                 transitions={'succeeded':'PathTask'})
         smach.StateMachine.add('PathTask', tasks.PathTask())
     return sm
+    
+def PathMission():
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
+    with sm:
+        smach.StateMachine.add('PathTask', tasks.PathTask())
+    return sm
+
+def QualifyPathBuoyMission():
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
+    with sm:
+        smach.StateMachine.add('QualifyTask', tasks.QualifyTask(),
+                                transitions={'succeeded':'PathTask'})
+        smach.StateMachine.add('PathTask', tasks.PathTask(),
+                                transitions={'succeeded':'BuoyTask'})
+        smach.StateMachine.add('BuoyTask', tasks.BuoyTask())
+    return sm
+    
+    
+def BuoyMission():
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
+    with sm:
+        smach.StateMachine.add('BuoyTask', tasks.BuoyTask())
+    return sm
+    
+def PracticeMission():
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
+    with sm:
+        smach.StateMachine.add('QualifyTask', tasks.MoveToNextPath(),
+                                transitions={'succeeded':'PathTask1'})
+        smach.StateMachine.add('PathTask1', tasks.PathTask(),
+                                transitions={'succeeded':'BuoyTask'})
+        smach.StateMachine.add('MoveToNextPath', tasks.MoveToNextPath(),
+                                transitions={'succeeded':'BuoyTask'})
+        smach.StateMachine.add('BuoyTask', tasks.BuoyTask(),
+                                transitions={'succeeded':'MoveToNextPath2'})
+        smach.StateMachine.add('MoveToNextPath2', tasks.MoveToNextPath(),
+                                transitions={'succeeded':'PathTask2'})
+        smach.StateMachine.add('PathTask2', tasks.PathTask())
+    return sm

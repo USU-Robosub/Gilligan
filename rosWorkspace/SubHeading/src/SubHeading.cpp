@@ -48,9 +48,9 @@ So
 //How much thurst needs to be applied per degree of rotation
 //This number should yield a command [0,1] though the
 //output must be biased to go from 60 to 255
-float KP = .02;
+float KP = .035;
 
-float MAX = 0.5; //This might saturate at a lot less than this
+float MAX = 0.25; //This might saturate at a lot less than this
 bool MODE = ON;
 
 float targetHeading = 0; //This holds what was passed (a heading relative to the current yaw)
@@ -91,28 +91,35 @@ void mEnabledCallback(const Robosub::ModuleEnableMsg::ConstPtr& msg) {
 
 void mTargetHeadingCallback(const std_msgs::Float32::ConstPtr& msg) {
     //The input is an offset from the current direction
-    if (msg->data != targetHeading){
+    //if (msg->data != targetHeading){
         targetYaw = fmod((currYaw + msg->data), 180);
-        printf("setting target heading to %f\n", targetYaw);
+        //printf("setting target heading to %f\n", targetYaw);
         targetHeading = msg->data;
-    }
+    //}
 }
 
 
 
 void mReadForwardStatus(const Robosub::HighLevelControl::ConstPtr& msg){
-    if(msg->Direction == "Forward" && msg->MotionType == "Command" ){
-        if(fabs(msg->Value) > 0.05)
+	if(msg->Direction == "Forward" && msg->MotionType == "Command" ){
+		printf("Got msg: ");
+        if(fabs(msg->Value) > 0.05){
             isMoving = true;
-        else
+
+		    printf("Enabling\n");
+		}
+        else{
             isMoving = false;
+		    printf("Disabling\n");
+		}
     }
 }
 
 void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
-    if(MODE == OFF || !isMoving)
+    if(MODE == OFF)
         return;
     currYaw = msg->data[2];
+	if(isMoving){
     //This needs to compensate for "natural" drifting
 	error = currYaw - targetYaw;
 
@@ -133,10 +140,12 @@ void mHeadingCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
 
 	//Just for keeping track, publish the negative of the error as the new target
 
-	//mSetTargetHeading(-error);
+    mSetTargetHeading(-error);
 
 
-	//printf("Turn speed: %f\n", speed);
+	//printf("New turn speed: %f, for curr: %f, target: %f, error %f\n", speed, currYaw, targetYaw, error);
+
+	}
 }
 
 

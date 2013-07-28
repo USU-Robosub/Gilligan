@@ -28,7 +28,9 @@ using namespace std;
 
 const int SAMPLE_SIZE = 4;
 const unsigned int MIN_POINTS = 200;
+const unsigned int MIN_POINTS_PATH = 400;
 const float MIN_CONFIDENCE = 0.5;
+const float MIN_PATH_CONFIDENCE = 0.7;
 
 const char NAMESPACE_ROOT[] = "img_rec/";
 
@@ -323,7 +325,7 @@ vector<Points> findBlobs(Mat& image,
 				for (int j = offset; j < image.cols; j += SAMPLE_SIZE) {
 						if (image.at<uint8_t>(i, j, 0) == obj) {
 								Points blob = findBlob(image, i, j, obj);
-								if (blob.size() >= MIN_POINTS) {
+								if (blob.size() >= ((obj==3) ? MIN_POINTS_PATH : MIN_POINTS)) {
 										allBlobs.push_back(blob);
 								}
 						}
@@ -542,11 +544,12 @@ void genericCallback(
                            
                                         // if(true)
 										float tempConfidence=computeConfidence(object, analysis);
-										if(tempConfidence > MIN_CONFIDENCE)
+										if(tempConfidence > ((object.enumType==3) ? MIN_PATH_CONFIDENCE : MIN_CONFIDENCE))
 										{
 											if(trackBlob(analysis, object.enumType)) 
 											{
-												//cout<<"Publishing blob: "<<object.enumType<<" size: "<<analysis.size<<" confidence: "<<tempConfidence<<endl;
+												// if(object.enumType==3)
+												//  	cout<<"Publishing blob: "<<object.enumType<<" size: "<<analysis.size<<" confidence: "<<tempConfidence<<endl;
 												SubImageRecognition::ImgRecObject msg;
 												msg.stamp = time;
 												msg.id = k;

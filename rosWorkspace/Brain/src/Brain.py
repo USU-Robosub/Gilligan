@@ -9,7 +9,7 @@ import threading
 from std_msgs.msg import UInt8
 from Robosub.msg import HighLevelControl
 
-from missions import QualifyPathMission as Mission
+from missions import PracticeMission as Mission
 from utils import move
 
 

@@ -71,7 +71,7 @@ echo "Start depth controller"
 rosrun SubDepthController SubDepthController &
 # Simple Heading Controller maintains a target heading
 #rosrun subSim simpleHeading &  
-
+rosrun SubHeading SubHeading &
 sleep 4
 
 ## Stage 3
@@ -105,13 +105,13 @@ sleep 2
 
 
 # Save compressed cameras and resulting recognition info in a bag
-#rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bagleft/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/v
-echo Starting camera bag
+#rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag left/image_compressed left/image_compressed/compressed right/image_compressed right/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/v
+#echo Starting camera bag
 rosbag record -O /home/robosub/bags/cameras.`date +%Y%m%d%H%M`.bag /stereo/right/image_compressed/compressed /stereo/left/image_compressed/compressed downward_camera/image_compressed/compressed image_recognition/forward/buoys image_recognition/forward/gate image_recognition/downward/orange_rectangles &  
 
-echo Starting sensor bag
+#echo Starting sensor bag
 # Save sensor data in a bag
-rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Accel_Debug IMU_Gyro_Debug Mobo_Temp Motor_Control Motor_State Motor_Current Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest &  
+rosbag record -O /home/robosub/bags/sensors.`date +%Y%m%d%H%M`.bag Calibrate_Depth Computer_Cur_Volt Controller_Box_Temp Error_Log IMU_Attitude IMU_Accel_Debug IMU_Gyro_Debug Mobo_Temp Motor_Control Motor_State Motor_Current Pressure_Data Sub_Depth Target_Depth Water_Detected Points_Of_Interest High_Level_Control Target_Heading & 
 
 echo "Calibrating depth to zero">&3
 # Calibrate the current pressure as 0

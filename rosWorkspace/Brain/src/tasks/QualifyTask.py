@@ -21,7 +21,7 @@ class QualifyTask(smach.State):
                 self.service_preempt()
                 return 'preempted'
             rospy.sleep(1)
-        move('Forward', 'Command', 0.0)
+        move('Forward', 'Command', .25)
         for i in range(self.GO_FORWARD_TIMEOUT):
             if self.preempt_requested():
                 self.service_preempt()
