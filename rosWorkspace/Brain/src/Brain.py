@@ -9,8 +9,8 @@ import threading
 from std_msgs.msg import UInt8
 from Robosub.msg import HighLevelControl
 
-from missions import PracticeMission as Mission
-from utils import move
+from missions import PracticeBuoyMission as Mission
+from utils import turn, dive, forward
 
 
 class Idle(smach_ros.MonitorState):
@@ -18,9 +18,10 @@ class Idle(smach_ros.MonitorState):
         super(Idle, self).__init__('/Motor_State', UInt8, self.cb)
         self.shouldStartMission = False
     def execute(self, userdata):
-        move('Depth', 'Command', 0)
-        move('Forward', 'Command', 0)
-        move('Turn', 'Manual', 0)
+        turn(0)
+        dive(0)
+        forward(0)
+        rospy.loginfo("motors should be reset now...")
         return super(Idle, self).execute(userdata)
     def cb(self, userdata, msg):
         if msg.data == 1:

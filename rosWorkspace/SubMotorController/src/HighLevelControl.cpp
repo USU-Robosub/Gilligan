@@ -427,7 +427,8 @@ int main(int argc, char** argv) {
 		ManageForwardThrusters();
 		ManageTurnThrusters();
 		ManageDepthThrusters();
-//		ManagePivotThrusters();
+	//	ManagePivotThrusters();
+
 
 		//Could just prepare the currents on the Manage* and
         //send one motor message.
