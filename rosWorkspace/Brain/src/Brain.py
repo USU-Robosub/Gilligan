@@ -9,7 +9,8 @@ import threading
 from std_msgs.msg import UInt8
 from Robosub.msg import HighLevelControl
 
-from missions import PracticeBuoyMission as Mission
+from missions import QualifyPathMission as Mission
+#from missions import PracticeBuoyMission as Mission
 from utils import turn, dive, forward
 
 
