@@ -1,11 +1,7 @@
 import smach
 import rospy
-
 import tasks
-
 from utils import move
-
-
 
 
 def QualifyMission():
@@ -13,15 +9,16 @@ def QualifyMission():
     with sm:
         smach.StateMachine.add('QualifyTask', tasks.QualifyTask())
     return sm
-    
+
 def QualifyPathMission():
     sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
     with sm:
         smach.StateMachine.add('QualifyTask', tasks.QualifyTask(),
-                                transitions={'succeeded':'PathTask'})
+                                transitions={'found_path': 'PathTask',
+                                'timed_out': 'PathTask'})
         smach.StateMachine.add('PathTask', tasks.PathTask())
     return sm
-    
+
 def PathMission():
     sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
     with sm:
@@ -37,14 +34,14 @@ def QualifyPathBuoyMission():
                                 transitions={'succeeded':'BuoyTask'})
         smach.StateMachine.add('BuoyTask', tasks.BuoyTask())
     return sm
-    
-    
+
+
 def PracticeBuoyMission():
     sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
     with sm:
         smach.StateMachine.add('BuoyTask', tasks.BuoyTask())
     return sm
-    
+
 def PracticeMission():
     sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
     with sm:
@@ -77,4 +74,4 @@ def CompMission():
         smach.StateMachine.add('PathTask2', tasks.PathTask())
     return sm
 
-    
+
