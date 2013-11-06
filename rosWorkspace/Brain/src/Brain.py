@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import roslib; roslib.load_manifest('Brain')
 import rospy
 import smach
