@@ -7,11 +7,10 @@ from utils import turn, forward, dive, strafe
 
 class NewPathTask(smach.State):
     def __init__(self):
-        super(NewPathTask, self).__init__(outcomes=['succeeded', 'preempted', 'timedout'])
+        super(NewPathTask, self).__init__(outcomes=['succeeded', 'preempted', 'timeout'])
         self.is_complete=False
         self.foundObj=False
         self.timeout=100
-        # TODO fix center coords
     def extendTimeout(self):
         self.timeout= self.timeout if self.timeout<30 else 30
     def objCallback(self, msg):
@@ -20,6 +19,8 @@ class NewPathTask(smach.State):
         forward(0)
         self.centerOnPath(msg)
     def execute(self, userdata):
+        self.pub = rospy.Publisher('/Module_Enable', ModuleEnableMsg)
+        self.sub = rospy.Subscriber('/Task_Completion', String, self.task_complete)
         self.objSub = rospy.Subscriber('img_rec/paths', ImgRecObject, self.objCallback)
         msg = ModuleEnableMsg()
         msg.Module = 'NewPathTask'
@@ -38,7 +39,7 @@ class NewPathTask(smach.State):
             rospy.sleep(1)
             self.timeout-=1
         self.disable_task()
-        return 'timedout'
+        return 'timeout'
     def disable_task(self):
         msg = ModuleEnableMsg()
         msg.Module = 'NewPathTask'
@@ -49,13 +50,13 @@ class NewPathTask(smach.State):
             self.is_complete = True
     def centerX(self, msg):
         if abs(msg.center_x) > 30:
-            strafe(-(msg.center_x/200))
+            strafe(-(msg.center_x/300))
             return False
         strafe(0)
         return True
     def centerY(self, msg):
         if abs(msg.center_y) > 30:
-            forward(-(msg.center_y/300))
+            forward(-(msg.center_y/400))
             return False
         forward(0)
         return True
@@ -67,4 +68,4 @@ class NewPathTask(smach.State):
             turn(0)
             self.is_complete=True
         else:
-            turn(-(msg.rotation/90))
+            turn(-(msg.rotation/92))
