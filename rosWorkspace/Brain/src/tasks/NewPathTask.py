@@ -5,9 +5,9 @@ from SubImageRecognition.msg import ImgRecObject
 from Robosub.msg import ModuleEnableMsg
 from utils import turn, forward, dive, strafe
 
-class PathTask(smach.State):
+class NewPathTask(smach.State):
     def __init__(self):
-        super(PathTask, self).__init__(outcomes=['succeeded', 'preempted', 'timedout'])
+        super(NewPathTask, self).__init__(outcomes=['succeeded', 'preempted', 'timedout'])
         self.is_complete=False
         self.foundObj=False
         self.timeout=100
@@ -22,7 +22,7 @@ class PathTask(smach.State):
     def execute(self, userdata):
         self.objSub = rospy.Subscriber('img_rec/paths', ImgRecObject, self.objCallback)
         msg = ModuleEnableMsg()
-        msg.Module = 'PathTask'
+        msg.Module = 'NewPathTask'
         msg.State = True
         self.pub.publish(msg)
         dive(4)
@@ -41,11 +41,11 @@ class PathTask(smach.State):
         return 'timedout'
     def disable_task(self):
         msg = ModuleEnableMsg()
-        msg.Module = 'PathTask'
+        msg.Module = 'NewPathTask'
         msg.State = False
         self.pub.publish(msg)
     def task_complete(self, msg):
-        if msg.data == "PathTask":
+        if msg.data == "NewPathTask":
             self.is_complete = True
     def centerX(self, msg):
         if abs(msg.center_x) > 30:
