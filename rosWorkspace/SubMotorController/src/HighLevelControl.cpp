@@ -22,7 +22,7 @@ const double FORWARD_DRAG_CONST = .99;
 const double STRAF_SPEED_CONST = .0000004;
 const double STRAF_DRAG_CONST = .98;
 
-const double LEFT_FWD_MULT = 0.78;
+const double LEFT_FWD_MULT = 1;//was 0.78
 const double REAR_TURN_MULT = .8928; //right
 const double FRONT_TURN_MULT = .83; //left
 double RIGHT_PIVOT_MULT = 1.0; //Multiplier to change the pivot point to be under the camera
