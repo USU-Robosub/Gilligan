@@ -31,6 +31,12 @@ def NewPathMission():
         smach.StateMachine.add('NewPathTask', tasks.NewPathTask())
     return sm
 
+def NewBuoyMission():
+    sm = smach.StateMachine(outcomes=['succeeded', 'timeout', 'preempted'])
+    with sm:
+        smach.StateMachine.add('NewBuoyTask',tasks.NewBuoyTask)
+    return sm
+
 def QualifyPathBuoyMission():
     sm = smach.StateMachine(outcomes=['succeeded', 'failed', 'preempted'])
     with sm:
