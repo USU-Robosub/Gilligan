@@ -11,13 +11,13 @@ from utils import dive, turn, forward, strafe, ScanNarrow, move
 
 class NewBuoyTask(smach.State):
     def __init__(self):
-        super(NewBuoyTask, self)._init__(outcomes=['succeeded','preempted','timeout'])
-        self.buoyHit=False
-        self.timeout=100
+        super(NewBuoyTask, self)._init__(outcomes=['succeeded', 'preempted', 'timeout'])
+        self.buoyHit = False
+        self.timeout = 100
     def extendTimeout(self):
         if(self.timeout < 30):
             self.timeout = 30
-    def execute(self,userdata):
+    def execute(self, userdata):
         self.publisher = rospy.Publisher('/Module_Enable', ModuleEnableMsg)
         self.subscriber = rospy.Subscriber('/Task_Completion', String, self.taskCompleted)
         self.buoySubscriber = rospy.Subscriber('img_rec/buoys/red', ImgRecObject, self.buoyLoc)
@@ -27,7 +27,7 @@ class NewBuoyTask(smach.State):
         msg.State = True
         self.publisher.publish(msg)
         #keep trying until preempted, success, or timeout
-        while self.timeout>0:
+        while self.timeout > 0:
             if self.buoyHit:
                 self.beDone()
                 return 'succeeded'
@@ -36,22 +36,22 @@ class NewBuoyTask(smach.State):
                 self.service_preempt()
                 return 'preempted'
             if self.objectLost:
-                scanForBuoy()
-            else
-                descendToBuoy()
-                alignWithBouy()
-                advance()
-                extendTimeout()
+                self.scanForBuoy()
+            else:
+                self.descendToBuoy()
+                self.alignWithBouy()
+                self.advance()
+                self.extendTimeout()
             # we decide the object is lost until we receive another message
             self.objectLost = True
             rospy.sleep(1)
-            self.timeout-=1
+            self.timeout -= 1
             self.objectLost = True
         #we timed out
         self.beDone()
         return 'timeout'
     def taskCompleted(self):
-        if msg.data = 'NewBuoyTask':
+        if msg.data == 'NewBuoyTask':
             self.buoyHit=True
     def beDone(self):
         msg = ModuleEnableMsg()
