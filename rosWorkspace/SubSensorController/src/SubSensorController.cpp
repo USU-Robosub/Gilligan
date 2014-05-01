@@ -16,14 +16,16 @@
 #include "timer.h"
 #include <pthread.h>
 
+#include <USBLibrary/SerialInterface.hpp>
+
 #define STATE_WAITING_ON_FD 0
 #define STATE_WORKING       1
 #define VERBOSE 0
 
 
 
-int setupTTY(int fd);
-std::string getTTYLine(int fd);
+//int setupTTY(int fd);
+//std::string getTTYLine(int fd);
 bool timeLeft(struct timeval* start, struct timeval* timeout);
 bool goodLine(std::string val, int varCount);
 void torpedoCallback(const std_msgs::UInt8::ConstPtr& msg);
@@ -47,6 +49,9 @@ void error(char * msg)
 int main(int argc, char **argv)
 {
   std::string file = "/dev/controller_sensor";
+  UInt32 baudrate = 115200;
+  SerialInterface usb("/dev/controller_sensor", baudrate);
+
 
   if (argc > 1)
   {
@@ -103,24 +108,26 @@ int main(int argc, char **argv)
     {
       if (checkLock() && getLock())
       {
-        fd = open(file.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+        controllerState = STATE_WORKING;
+        sleep(5);
+        
+        //fd = open(file.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+        // if (fd == -1)
+        // {
+        //   printf("%s Error: System failed to open %s: %s(%d)\n", argv[0], file.c_str(), strerror(errno), errno);
+        //   sleep(1);
+        // }
+        // else
+        // {
+        //   if (setupTTY(fd) == 0) 
+        //   {
+        //     controllerState = STATE_WORKING;
 
-        if (fd == -1)
-        {
-          printf("%s Error: System failed to open %s: %s(%d)\n", argv[0], file.c_str(), strerror(errno), errno);
-          sleep(1);
-        }
-        else
-        {
-          if (setupTTY(fd) == 0)
-          {
-            controllerState = STATE_WORKING;
-
-            sleep(5); //wait for sensor to boot and stabilize
-          }
-          else
-            close(fd);
-        }
+        //     sleep(5); //wait for sensor to boot and stabilize
+        //   }
+        //   else
+        //     close(fd);
+        // }
         releaseLock();
       }
     }
@@ -129,7 +136,11 @@ int main(int argc, char **argv)
       std::string line = "";
       if (checkLock() && getLock())
       {
-        line = getTTYLine(fd);
+        UInt8 aBuf[baudrate];
+        usb.recv(aBuf,baudrate);
+        std::string temp ((const char*)aBuf,baudrate);
+        line = temp;
+        //line = getTTYLine(fd);
         //printf("got line %s\n", line.c_str());
         releaseLock();
       }
@@ -141,7 +152,7 @@ int main(int argc, char **argv)
         {
           int scanfVal;
 
-          if ((scanfVal = sscanf(line.c_str(), "%f,%f,%f,%d,%f,%f,%f,%d,%d,%d", &ttemp[0], &ttemp[1], &ttemp[2], &tmotorKilled,
+          if ((scanfVal = sscanf(line.c_str(), "S%f,%f,%f,%d,%f,%f,%f,%d,%d,%dE", &ttemp[0], &ttemp[1], &ttemp[2], &tmotorKilled,
               &tcurVolt[0], &tcurVolt[1], &tpressure, &twaterDetected, &tdropperLeft, &tdropperRight)) == numVariables)
           {
             if ((temp[0] != ttemp[0]) || (temp[1] != ttemp[1]) || (temp[2] != ttemp[2]) || tempTimer.isTimeout())

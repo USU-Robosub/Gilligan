@@ -1,0 +1,21 @@
+<package>
+  <description brief="USBLibrary">
+
+     USBLibrary
+
+  </description>
+  <author>Cameron</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/USBLibrary</url>
+
+  <export>
+
+   <cpp flags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lros"/>
+   <cpp os="linux" cflags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -framework "/>lerLibrary"/>
+   </export>
+
+
+</package>
+
+

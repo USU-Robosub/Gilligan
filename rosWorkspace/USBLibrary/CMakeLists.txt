@@ -29,8 +29,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_library(${PROJECT_NAME} src/timer.cpp)
-rosbuild_add_executable(SubSensorController src/SubSensorController.cpp)
-target_link_libraries(${PROJECT_NAME} USBLibrary)
+rosbuild_add_library(USBLibrary src/SerialInterface.cpp src/BufferUtils.cpp)
 
-#target_link_libraries(${PROJECT_NAME} serial)
